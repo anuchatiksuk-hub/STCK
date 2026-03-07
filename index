@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Smart School V3.0</title>
+  <style>
+    body, html { 
+      margin: 0; 
+      padding: 0; 
+      height: 100%; 
+      overflow: hidden; 
+      background-color: #f0f4f8;
+    }
+    iframe { 
+      width: 100%; 
+      height: 100%; 
+      border: none; 
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <iframe 
+    src="https://script.google.com/a/macros/korat4.go.th/s/AKfycbyhthOeb9XGDyrXgCRu0LNsatlYUn30JzjD3xWL1xu1z5oaD-4uHuowhZyn5A9k7KQW_Q/exec" 
+    allow="camera; microphone" 
+    allowfullscreen>
+  </iframe>
+</body>
+</html>
