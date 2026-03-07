@@ -2,26 +2,1317 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Smart School V3.0</title>
-  <meta http-equiv="refresh" content="0; url=https://script.google.com/a/macros/korat4.go.th/s/AKfycbyhthOeb9XGDyrXgCRu0LNsatlYUn30JzjD3xWL1xu1z5oaD-4uHuowhZyn5A9k7KQW_Q/exec">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
   <style>
-    body {
-      font-family: sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background-color: #f0f4f8;
-      margin: 0;
-      color: #1e40af;
+    :root {
+      --p: #1e40af; --p2: #3b82f6; --p-light: #eff6ff;
+      --success: #16a34a; --warn: #d97706; --danger: #dc2626; --purple: #7c3aed;
+      --bg: #f0f4f8; --card: #ffffff; --txt: #0f172a; --txt2: #475569; --border: #e2e8f0;
+      --sidebar-w: 260px; --header-h: 60px; --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+      --vh: 1vh;
     }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+    html { height: 100%; -webkit-text-size-adjust: 100%; }
+    body { font-family: 'Sarabun', 'Noto Sans Thai', sans-serif; background: var(--bg); color: var(--txt); height: calc(var(--vh,1vh)*100); overflow: hidden; display: flex; }
+
+    .sidebar { width: var(--sidebar-w); background: var(--txt); display: flex; flex-direction: column; z-index: 100; flex-shrink: 0; overflow: hidden; transition: width 0.3s; }
+    .sidebar-brand { padding: 20px 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); cursor: pointer; transition: background 0.2s; }
+    .sidebar-brand:hover { background: rgba(255,255,255,0.05); }
+    .sidebar-brand .logo { width: 36px; height: 36px; background: var(--p2); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .sidebar-brand .logo .material-icons { color: white; font-size: 20px; }
+    .sidebar-brand .brand-text h1 { color: white; font-size: 1rem; font-weight: 700; line-height: 1.2; }
+    .sidebar-brand .brand-text p { color: rgba(255,255,255,0.5); font-size: 0.72rem; }
+    .sidebar-brand .settings-icon { margin-left: auto; color: rgba(255,255,255,0.4); font-size: 18px; transition: color 0.2s; }
+    .sidebar-brand:hover .settings-icon { color: rgba(255,255,255,0.8); }
+    .sidebar-class-select { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .sidebar-class-select label { color: rgba(255,255,255,0.5); font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px; }
+    .sidebar-class-select select { width: 100%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: white; border-radius: 8px; padding: 8px 10px; font-family: inherit; font-size: 0.85rem; outline: none; cursor: pointer; }
+    .sidebar-class-select select option { background: #1e293b; color: white; }
+    .sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .sidebar-nav::-webkit-scrollbar { width: 0; }
+    .nav-section { padding: 8px 16px 4px; color: rgba(255,255,255,0.35); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 16px; color: rgba(255,255,255,0.6); cursor: pointer; transition: all 0.15s; text-decoration: none; position: relative; border-left: 3px solid transparent; }
+    .nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.9); }
+    .nav-item.active { background: rgba(59,130,246,0.2); color: white; border-left-color: var(--p2); }
+    .nav-item .material-icons { font-size: 20px; flex-shrink: 0; }
+    .nav-item span:not(.material-icons) { font-size: 0.875rem; font-weight: 500; }
+    .nav-item .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); margin-left: auto; }
+    .sidebar-footer { padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .status-pill { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(255,255,255,0.06); border-radius: 8px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); flex-shrink: 0; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+    .status-pill span { color: rgba(255,255,255,0.6); font-size: 0.78rem; }
+
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+    .topbar { height: var(--header-h); background: white; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; gap: 12px; flex-shrink: 0; box-shadow: var(--shadow); }
+    .topbar h2 { font-size: 1.1rem; font-weight: 700; color: var(--txt); flex: 1; }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+    .content { flex: 1; overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch; }
+    .content::-webkit-scrollbar { width: 6px; }
+    .content::-webkit-scrollbar-track { background: transparent; }
+    .content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    .page { display: none; animation: fadeUp 0.25s ease; }
+    .page.active { display: block; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+    .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); padding: 20px; margin-bottom: 16px; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 12px; flex-wrap: wrap; }
+    .card-title { font-size: 1rem; font-weight: 700; color: var(--txt); display: flex; align-items: center; gap: 8px; }
+
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border: none; border-radius: 8px; font-family: inherit; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+    .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+    .btn .material-icons { font-size: 16px; }
+    .btn-primary { background: var(--p); color: white; }
+    .btn-blue { background: var(--p2); color: white; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-warn { background: var(--warn); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-purple { background: var(--purple); color: white; }
+    .btn-ghost { background: transparent; color: var(--txt2); border: 1px solid var(--border); }
+    .btn-ghost:hover { background: var(--bg); }
+    .btn-sm { padding: 5px 10px; font-size: 0.78rem; }
+    .btn-sm .material-icons { font-size: 14px; }
+
+    input, select, textarea { font-family: inherit; font-size: 0.9rem; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; outline: none; width: 100%; transition: border-color 0.15s, box-shadow 0.15s; background: white; color: var(--txt); }
+    input:focus, select:focus, textarea:focus { border-color: var(--p2); box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+    input[type="date"] { color: var(--p); font-weight: 600; background: var(--p-light); border-color: var(--p2); }
+    label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--txt2); margin-bottom: 6px; }
+    .form-group { margin-bottom: 16px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+    .badge-present { background: #dcfce7; color: #15803d; }
+    .badge-late { background: #fef3c7; color: #b45309; }
+    .badge-absent { background: #fee2e2; color: #b91c1c; }
+    .badge-sick { background: #dbeafe; color: #1d4ed8; }
+    .badge-leave { background: #f3e8ff; color: #7e22ce; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th { background: #f8fafc; color: var(--txt2); font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; padding: 10px 12px; border-bottom: 2px solid var(--border); text-align: left; white-space: nowrap; }
+    td { padding: 10px 12px; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
+    tr:hover td { background: #fafbfc; }
+    tr:last-child td { border-bottom: none; }
+
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+    .stat-card { background: white; border-radius: var(--radius); padding: 16px; border: 1px solid var(--border); position: relative; overflow: hidden; }
+    .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent, var(--p2)); }
+    .stat-card h3 { font-size: 0.78rem; color: var(--txt2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+    .stat-card .value { font-size: 2rem; font-weight: 800; color: var(--txt); line-height: 1; }
+    .stat-card .sub { font-size: 0.75rem; color: var(--txt2); margin-top: 4px; }
+
+    .tabs { display: flex; gap: 2px; background: #f1f5f9; padding: 4px; border-radius: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .tab { padding: 7px 16px; border-radius: 7px; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--txt2); transition: all 0.15s; white-space: nowrap; }
+    .tab:hover { color: var(--txt); background: rgba(255,255,255,0.6); }
+    .tab.active { background: white; color: var(--p); box-shadow: var(--shadow); }
+
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.6); z-index: 9000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
+    .modal-overlay.open { display: flex; }
+    .modal { background: white; border-radius: 16px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; animation: modalIn 0.25s cubic-bezier(0.34,1.56,0.64,1); box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+    @keyframes modalIn { from { opacity:0; transform:scale(0.92) translateY(20px); } to { opacity:1; transform:scale(1) translateY(0); } }
+    .modal-header { position: sticky; top: 0; background: white; padding: 20px 20px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; z-index: 1; border-radius: 16px 16px 0 0; }
+    .modal-header h3 { font-size: 1.1rem; font-weight: 700; color: var(--txt); }
+    .modal-close { width: 32px; height: 32px; border-radius: 8px; border: none; background: var(--bg); color: var(--txt2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: all 0.15s; }
+    .modal-close:hover { background: var(--danger); color: white; }
+    .modal-body { padding: 20px; }
+    .modal-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+
+    /* API Setup Banner */
+    #api-setup-banner { background: #fef9c3; border: 2px solid #f59e0b; border-radius: var(--radius); padding: 16px 20px; margin-bottom: 20px; }
+    #api-setup-banner h3 { color: #b45309; margin-bottom: 8px; }
+
+    #loader { position: fixed; inset: 0; background: rgba(255,255,255,0.92); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; backdrop-filter: blur(4px); }
+    .loader-spinner { width: 44px; height: 44px; border: 4px solid #e2e8f0; border-top-color: var(--p2); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loader p { color: var(--txt2); font-weight: 600; font-size: 0.9rem; }
+
+    #toast-container { position: fixed; top: 20px; right: 20px; z-index: 99998; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .toast { background: white; border-radius: 10px; padding: 12px 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); border-left: 4px solid var(--p2); display: flex; align-items: center; gap: 10px; max-width: 320px; animation: toastIn 0.3s ease; pointer-events: all; font-size: 0.875rem; font-weight: 500; }
+    .toast.success { border-left-color: var(--success); }
+    .toast.error { border-left-color: var(--danger); }
+    .toast.warn { border-left-color: var(--warn); }
+    @keyframes toastIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
+
+    .cam-wrap { position: relative; width: 100%; max-width: 520px; margin: 0 auto; background: #0f172a; border-radius: var(--radius); overflow: hidden; aspect-ratio: 4/3; }
+    .cam-wrap video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); display: block; }
+    .cam-wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+    .auto-panel { background: linear-gradient(135deg, #1e3a5f, #1e40af); color: white; border-radius: var(--radius); padding: 20px; text-align: center; margin-top: 16px; }
+    .auto-panel h3 { font-size: 1.1rem; margin-bottom: 8px; }
+    .auto-countdown { font-size: 3.5rem; font-weight: 800; line-height: 1; margin: 8px 0; }
+    .auto-status { font-size: 0.9rem; opacity: 0.85; }
+
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .cal-header { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px; }
+    .cal-header div { text-align: center; font-size: 0.75rem; font-weight: 700; color: var(--txt2); padding: 6px; }
+    .cal-day { aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; border: 2px solid transparent; transition: all 0.15s; position: relative; font-size: 0.85rem; font-weight: 600; }
+    .cal-day:hover { border-color: var(--p2); }
+    .cal-day.today { background: var(--p-light); color: var(--p); border-color: var(--p2); }
+    .cal-day.holiday { background: #fef2f2; color: var(--danger); }
+    .cal-day.special-open { background: #fefce8; color: #854d0e; }
+    .cal-day.school-day { background: #f0fdf4; color: var(--success); }
+    .cal-day.other-month { opacity: 0.3; }
+    .cal-day.weekend { color: var(--danger); }
+    .cal-day .event-dot { position: absolute; bottom: 4px; width: 5px; height: 5px; border-radius: 50%; background: var(--p2); }
+
+    .student-profile { background: linear-gradient(135deg, var(--p), var(--p2)); border-radius: var(--radius); padding: 24px; color: white; margin-bottom: 16px; }
+    .student-avatar { width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 3px solid rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 12px; }
+    .attendance-ring { display: flex; align-items: center; gap: 20px; margin-top: 16px; }
+    .ring-stat { text-align: center; }
+    .ring-stat .val { font-size: 1.8rem; font-weight: 800; line-height: 1; }
+    .ring-stat .lbl { font-size: 0.75rem; opacity: 0.8; }
+
+    .admin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+    .admin-action-card { background: white; border-radius: var(--radius); padding: 20px; border: 1px solid var(--border); text-align: center; cursor: pointer; transition: all 0.2s; }
+    .admin-action-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--p2); }
+    .admin-action-card .icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
+    .admin-action-card h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
+    .admin-action-card p { font-size: 0.78rem; color: var(--txt2); }
+
+    .progress-bar { background: var(--border); border-radius: 99px; height: 8px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 99px; transition: width 0.5s ease; }
+
+    .search-box { position: relative; }
+    .search-box .material-icons { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--txt2); font-size: 18px; pointer-events: none; }
+    .search-box input { padding-left: 36px; }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+    .empty-state { text-align: center; padding: 48px 20px; color: var(--txt2); }
+    .empty-state .material-icons { font-size: 48px; opacity: 0.3; display: block; margin-bottom: 12px; }
+    .empty-state p { font-size: 0.9rem; }
+
+    @media (max-width: 1024px) {
+      .sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); transition: transform 0.3s; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; }
+      .sidebar-overlay.show { display: block; }
+      .main { width: 100%; }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+      .admin-grid { grid-template-columns: repeat(2, 1fr); }
+      .form-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .content { padding: 12px; }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .admin-grid { grid-template-columns: 1fr 1fr; }
+      .card { padding: 14px; }
+      table { font-size: 0.78rem; display: block; overflow-x: auto; }
+      th, td { padding: 8px; white-space: nowrap; }
+      .topbar { padding: 0 12px; }
+      .btn-text-hide { display: none; }
+    }
+    @media print {
+      @page { size: A4; margin: 1.5cm; }
+      body { background: white; overflow: visible; }
+      .sidebar, .topbar, .btn, .tabs, .no-print, #toast-container, #loader { display: none !important; }
+      .main { overflow: visible; }
+      .content { padding: 0; overflow: visible; }
+      .page { display: block !important; }
+      .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
+      .print-only { display: block !important; }
+      table { border: 1px solid #ccc; }
+      th, td { border: 1px solid #ccc; padding: 6px 8px; font-size: 9pt; }
+      .print-header { display: block !important; text-align: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #333; }
+    }
+    .print-header, .print-only { display: none; }
   </style>
 </head>
 <body>
-  <div style="text-align: center;">
-    <h2>กำลังเปิดระบบ Smart School...</h2>
-    <p>หากระบบไม่เปิดอัตโนมัติ <a href="https://script.google.com/a/macros/korat4.go.th/s/AKfycbyhthOeb9XGDyrXgCRu0LNsatlYUn30JzjD3xWL1xu1z5oaD-4uHuowhZyn5A9k7KQW_Q/exec">คลิกที่นี่</a></p>
+
+<div id="loader"><div class="loader-spinner"></div><p id="load-txt">กำลังโหลดระบบ...</p></div>
+<div id="toast-container"></div>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand" onclick="openModal('settings-modal')">
+    <div class="logo"><span class="material-icons">school</span></div>
+    <div class="brand-text"><h1 id="school-name-display">Smart School</h1><p>ระบบจัดการโรงเรียน v3.0</p></div>
+    <span class="material-icons settings-icon">settings</span>
   </div>
+  <div class="sidebar-class-select">
+    <label>ห้องเรียน</label>
+    <select id="cls-filter" onchange="applyFilter()"><option value="ALL">ทุกห้องเรียน</option></select>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">การเช็คชื่อ</div>
+    <div class="nav-item active" onclick="go('dash', this)"><span class="material-icons">assignment_turned_in</span><span>เช็คชื่อรายวัน</span></div>
+    <div class="nav-item" onclick="go('check', this)"><span class="material-icons">face</span><span>สแกนใบหน้า AI</span><span class="badge-dot"></span></div>
+    <div class="nav-section">ข้อมูล & รายงาน</div>
+    <div class="nav-item" onclick="go('report', this)"><span class="material-icons">assessment</span><span>สรุป / รายงาน</span></div>
+    <div class="nav-item" onclick="go('calendar', this)"><span class="material-icons">calendar_month</span><span>ปฏิทินการเรียน</span></div>
+    <div class="nav-section">จัดการข้อมูล</div>
+    <div class="nav-item" onclick="go('students', this)"><span class="material-icons">group</span><span>รายชื่อนักเรียน</span></div>
+    <div class="nav-item" onclick="go('reg', this)"><span class="material-icons">camera_alt</span><span>ลงทะเบียนใบหน้า</span></div>
+    <div class="nav-section">ระบบ</div>
+    <div class="nav-item" onclick="go('admin', this)"><span class="material-icons">admin_panel_settings</span><span>จัดการระบบ (Admin)</span></div>
+    <div class="nav-item" onclick="go('student-view', this)"><span class="material-icons">person</span><span>หน้าดูสำหรับนักเรียน</span></div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="status-pill">
+      <div class="status-dot" id="status-dot"></div>
+      <span id="status-text">ออนไลน์</span>
+      <span style="margin-left:auto; font-size:0.7rem; color:rgba(255,255,255,0.3);" id="last-sync-text"></span>
+    </div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <button class="btn btn-ghost btn-sm" id="menu-toggle" onclick="toggleSidebar()" style="display:none;"><span class="material-icons">menu</span></button>
+    <h2 id="page-title">📝 เช็คชื่อรายวัน</h2>
+    <div class="topbar-actions">
+      <input type="date" id="dash-date-picker" onchange="renderDash()" style="width:auto; margin:0; font-size:0.82rem; padding:6px 10px;">
+      <button class="btn btn-ghost btn-sm" onclick="setToday()">วันนี้</button>
+      <button class="btn btn-primary btn-sm" onclick="refreshData()"><span class="material-icons">refresh</span><span class="btn-text-hide">รีเฟรช</span></button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASH -->
+    <div id="dash" class="page active">
+      <div id="api-setup-banner" style="display:none;">
+        <h3>⚙️ ต้องตั้งค่า API URL ก่อน</h3>
+        <p style="margin-bottom:10px; font-size:0.875rem;">คลิก ⚙️ ที่มุมบนซ้าย แล้ววาง URL ของ Google Apps Script</p>
+        <button class="btn btn-warn" onclick="openModal('settings-modal')"><span class="material-icons">settings</span> ไปตั้งค่า</button>
+      </div>
+      <div id="today-banner" style="display:none; margin-bottom:14px; border-radius:var(--radius); padding:14px 18px; align-items:center; gap:12px; font-weight:700; font-size:0.95rem;">
+        <span id="today-banner-icon" style="font-size:1.5rem"></span>
+        <div><div id="today-banner-title"></div><div id="today-banner-sub" style="font-size:0.78rem; font-weight:500; opacity:0.8; margin-top:2px"></div></div>
+        <button onclick="document.getElementById('today-banner').style.display='none'" style="margin-left:auto; background:none; border:none; cursor:pointer; opacity:0.6; font-size:18px;">✕</button>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card" style="--accent:#3b82f6"><h3>นักเรียนทั้งหมด</h3><div class="value" id="d-total">0</div><div class="sub">คน</div></div>
+        <div class="stat-card" style="--accent:#16a34a"><h3>มาเรียน</h3><div class="value" id="d-p" style="color:var(--success)">0</div><div class="sub">คน</div></div>
+        <div class="stat-card" style="--accent:#d97706"><h3>สาย</h3><div class="value" id="d-l" style="color:var(--warn)">0</div><div class="sub">คน</div></div>
+        <div class="stat-card" style="--accent:#dc2626"><h3>ขาด/ลา/ป่วย</h3><div class="value" id="d-a" style="color:var(--danger)">0</div><div class="sub">คน</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="material-icons" style="color:var(--p2)">people</span> รายชื่อนักเรียน</div>
+          <div class="search-box" style="width:200px"><span class="material-icons">search</span><input type="text" id="dash-search" placeholder="ค้นหาชื่อ..." onkeyup="renderDash()"></div>
+        </div>
+        <div style="overflow-x:auto"><table id="tb-dash"></table></div>
+      </div>
+    </div>
+
+    <!-- AI CHECK -->
+    <div id="check" class="page">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="material-icons" style="color:var(--p2)">face</span> สแกนใบหน้า AI</div>
+          <button id="btn-auto-mode" class="btn btn-success" onclick="toggleAutoMode()"><span class="material-icons">play_arrow</span> เปิด Auto Check-In</button>
+        </div>
+        <div class="cam-wrap"><video id="v-check" autoplay playsinline muted></video><canvas id="c-check"></canvas></div>
+        <div id="auto-panel" class="auto-panel" style="display:none">
+          <h3>🎯 ตรวจพบ: <span id="auto-name">-</span></h3>
+          <div class="auto-countdown" id="auto-countdown">-</div>
+          <div class="auto-status" id="auto-status">กำลังเตรียม...</div>
+        </div>
+        <div style="margin-top:16px; text-align:center; padding:16px; background:var(--bg); border-radius:var(--radius)">
+          <div style="font-size:1.4rem; font-weight:800; color:var(--p); margin-bottom:6px" id="ai-name">รอการตรวจจับ...</div>
+          <div style="font-size:0.875rem; color:var(--txt2); margin-bottom:12px" id="ai-status">เมื่อ AI ตรวจพบใบหน้า ระบบจะแสดงชื่อ</div>
+          <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap" id="ai-buttons">
+            <button class="btn btn-success" onclick="manualCheck('มาเรียน')">✅ มาเรียน</button>
+            <button class="btn btn-warn" onclick="manualCheck('สาย')">⏰ สาย</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORT -->
+    <div id="report" class="page">
+      <div class="print-header" id="print-header">
+        <h2 id="print-school-name" style="font-size:1.3rem">โรงเรียน Smart School</h2>
+        <h3 id="print-report-title" style="font-size:1rem; margin-top:4px">รายงานการมาเรียน</h3>
+        <p style="font-size:0.85rem; color:#666; margin-top:4px">วันที่พิมพ์: <span id="print-date"></span></p>
+      </div>
+      <div class="card no-print">
+        <div class="card-header">
+          <div class="card-title"><span class="material-icons" style="color:var(--p2)">assessment</span> เลือกประเภทรายงาน</div>
+          <button class="btn btn-ghost btn-sm" onclick="window.print()"><span class="material-icons">print</span> พิมพ์</button>
+        </div>
+        <div class="tabs" id="report-tabs">
+          <div class="tab active" onclick="switchReport('history', this)">ประวัติรายคน</div>
+          <div class="tab" onclick="switchReport('summary', this)">สรุปยอด</div>
+          <div class="tab" onclick="switchReport('daily', this)">รายวัน</div>
+          <div class="tab" onclick="switchReport('weekly', this)">รายสัปดาห์</div>
+          <div class="tab" onclick="switchReport('monthly', this)">รายเดือน</div>
+          <div class="tab" onclick="switchReport('term', this)">รายเทอม</div>
+        </div>
+        <div id="rep-date-range" style="display:none; grid-template-columns:auto 1fr 1fr auto; gap:10px; align-items:center; background:var(--bg); padding:12px; border-radius:8px; margin-bottom:16px;" class="no-print">
+          <label style="margin:0; white-space:nowrap">ช่วงวันที่:</label>
+          <input type="date" id="rep-date-start" onchange="renderCurrentReport()">
+          <input type="date" id="rep-date-end" onchange="renderCurrentReport()">
+          <button class="btn btn-ghost btn-sm" onclick="setReportPreset()">อัตโนมัติ</button>
+        </div>
+        <div id="term-selector" style="display:none; margin-bottom:16px">
+          <div style="display:flex; gap:8px; flex-wrap:wrap">
+            <button class="btn btn-success btn-sm" onclick="selectTerm(1)"><span class="material-icons">calendar_today</span> เทอม 1 (พ.ค.-ต.ค.)</button>
+            <button class="btn btn-blue btn-sm" onclick="selectTerm(2)"><span class="material-icons">calendar_today</span> เทอม 2 (พ.ย.-เม.ย.)</button>
+            <button class="btn btn-ghost btn-sm" onclick="selectTerm(0)">กำหนดเอง</button>
+          </div>
+        </div>
+      </div>
+      <div id="rep-history" class="card">
+        <div class="form-group no-print"><label>เลือกนักเรียน</label><div class="search-box"><span class="material-icons">search</span><input type="text" id="hist-search" placeholder="ค้นหานักเรียน..." onkeyup="filterHistorySelect()"></div><select id="rep-hist-sel" onchange="renderHistoryTable()" style="margin-top:8px"></select></div>
+        <div class="card-title" id="hist-title" style="margin-bottom:12px">ประวัติการมาเรียน</div>
+        <div style="overflow-x:auto"><table id="tb-rep-history"></table></div>
+      </div>
+      <div id="rep-summary" class="card" style="display:none"><div style="overflow-x:auto"><table id="tb-rep-sum"></table></div></div>
+      <div id="rep-daily" class="card" style="display:none"><div class="card-title" id="daily-title" style="margin-bottom:12px"></div><div style="overflow-x:auto"><table id="tb-rep-daily"></table></div></div>
+      <div id="rep-weekly" class="card" style="display:none"><div class="card-title" id="weekly-title" style="margin-bottom:12px"></div><div style="overflow-x:auto"><table id="tb-rep-weekly"></table></div></div>
+      <div id="rep-monthly" class="card" style="display:none"><div class="card-title" id="monthly-title" style="margin-bottom:12px"></div><div style="overflow-x:auto"><table id="tb-rep-monthly"></table></div></div>
+      <div id="rep-term" class="card" style="display:none"><div class="card-title" id="term-title" style="margin-bottom:12px"></div><div style="overflow-x:auto"><table id="tb-rep-term"></table></div></div>
+      <div class="print-only" style="margin-top:60px"><div style="display:flex; justify-content:space-around; margin-top:40px"><div style="text-align:center; width:180px"><p style="margin-bottom:60px">ลงชื่อ ................................................</p><p>(................................................)</p><p style="margin-top:4px">ครูประจำชั้น</p></div><div style="text-align:center; width:180px"><p style="margin-bottom:60px">ลงชื่อ ................................................</p><p>(................................................)</p><p style="margin-top:4px">หัวหน้าฝ่ายวิชาการ</p></div></div></div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div id="calendar" class="page">
+      <div style="display:grid; grid-template-columns:1fr auto; gap:16px; align-items:center; margin-bottom:20px; flex-wrap:wrap">
+        <div><h3 id="cal-month-title" style="font-size:1.3rem; font-weight:800; color:var(--txt)"></h3><p style="color:var(--txt2); font-size:0.85rem; margin-top:2px">จัดการปฏิทินการเรียนการสอน</p></div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end">
+          <button class="btn btn-ghost btn-sm" onclick="changeMonth(-1)"><span class="material-icons">chevron_left</span></button>
+          <button class="btn btn-ghost btn-sm" onclick="goToday()">วันนี้</button>
+          <button class="btn btn-ghost btn-sm" onclick="changeMonth(1)"><span class="material-icons">chevron_right</span></button>
+          <button class="btn btn-primary btn-sm" onclick="openModal('add-event-modal')"><span class="material-icons">add</span> เพิ่มเหตุการณ์</button>
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; font-size:0.78rem; font-weight:600">
+        <span style="display:flex; align-items:center; gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:#f0fdf4;border:1px solid #16a34a; display:inline-block"></span> วันเรียน</span>
+        <span style="display:flex; align-items:center; gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:#fef2f2;border:1px solid #dc2626; display:inline-block"></span> วันหยุด</span>
+        <span style="display:flex; align-items:center; gap:5px"><span style="width:12px;height:12px;border-radius:3px;background:#fefce8;border:1px solid #d97706; display:inline-block"></span> เปิดพิเศษ</span>
+      </div>
+      <div class="card"><div class="cal-header"><div>อา</div><div>จ</div><div>อ</div><div>พ</div><div>พฤ</div><div>ศ</div><div>ส</div></div><div class="calendar-grid" id="cal-grid"></div></div>
+      <div class="card" style="margin-top:0"><div class="card-header"><div class="card-title"><span class="material-icons" style="color:var(--p2)">event_note</span> เหตุการณ์ในเดือนนี้</div></div><div id="cal-events-list"><div class="empty-state"><span class="material-icons">event_available</span><p>ไม่มีเหตุการณ์พิเศษ</p></div></div></div>
+    </div>
+
+    <!-- STUDENTS -->
+    <div id="students" class="page">
+      <div class="card">
+        <div class="tabs">
+          <div class="tab active" onclick="switchStudentTab('single', this)">เพิ่มทีละคน</div>
+          <div class="tab" onclick="switchStudentTab('bulk', this)">วาง Excel</div>
+          <div class="tab" onclick="switchStudentTab('manage', this)">จัดการรายชื่อ</div>
+        </div>
+        <div id="student-tab-single">
+          <div class="form-row"><div class="form-group"><label>รหัสประจำตัว</label><input id="add-id" placeholder="เช่น 1001"></div><div class="form-group"><label>ห้องเรียน</label><input id="add-cls" placeholder="เช่น 1/1"></div></div>
+          <div class="form-group"><label>ชื่อ-นามสกุล</label><input id="add-name" placeholder="เช่น ด.ช.สมชาย ใจดี"></div>
+          <button class="btn btn-success" onclick="addSingle()"><span class="material-icons">save</span> บันทึก</button>
+        </div>
+        <div id="student-tab-bulk" style="display:none">
+          <div style="background:#fff7ed; padding:12px; border-radius:8px; margin-bottom:14px; border:1px solid #fed7aa; font-size:0.875rem; color:#9a3412"><strong>💡 วิธีใช้:</strong> ก๊อปปี้ข้อมูล 3 คอลัมน์ (รหัส, ชื่อ, ห้อง) จาก Excel มาวาง</div>
+          <textarea id="bulk-text" rows="10" placeholder="1001&#9;ด.ช.รักเรียน ใจดี&#9;1/1&#10;1002&#9;ด.ญ.สมหมาย สวยงาม&#9;1/1"></textarea>
+          <button class="btn btn-success" onclick="addBulk()"><span class="material-icons">playlist_add</span> บันทึกทั้งหมด</button>
+        </div>
+        <div id="student-tab-manage" style="display:none">
+          <div class="search-box" style="margin-bottom:12px"><span class="material-icons">search</span><input type="text" id="manage-search" placeholder="ค้นหาชื่อหรือรหัส..." onkeyup="renderManageList()"></div>
+          <div style="overflow-x:auto"><table id="tb-manage"></table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REG FACE -->
+    <div id="reg" class="page">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; flex-wrap:wrap">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:12px"><span class="material-icons" style="color:var(--p2)">search</span> ค้นหานักเรียน</div>
+          <div class="search-box" style="margin-bottom:8px"><span class="material-icons">search</span><input type="text" id="reg-search" placeholder="พิมพ์ชื่อ..." onkeyup="filterRegList()"></div>
+          <select id="reg-sel" size="12" style="height:220px"></select>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:12px"><span class="material-icons" style="color:var(--p2)">camera_alt</span> บันทึกใบหน้า</div>
+          <div class="tabs"><div class="tab active" onclick="switchRegMode('cam', this)">ใช้กล้อง</div><div class="tab" onclick="switchRegMode('file', this)">อัปโหลดรูป</div></div>
+          <div id="reg-mode-cam"><div class="cam-wrap" style="max-width:100%; aspect-ratio:4/3"><video id="v-reg" autoplay playsinline muted></video></div><button class="btn btn-primary" style="width:100%; margin-top:12px; justify-content:center" onclick="doReg()"><span class="material-icons">photo_camera</span> บันทึก (กล้อง)</button></div>
+          <div id="reg-mode-file" style="display:none"><div style="border:2px dashed var(--border); border-radius:10px; padding:24px; text-align:center; margin-bottom:12px"><span class="material-icons" style="font-size:40px; color:var(--txt2); opacity:0.4">cloud_upload</span><p style="color:var(--txt2); font-size:0.875rem; margin:8px 0">คลิกเพื่อเลือกรูปภาพ</p><input type="file" id="reg-file" accept="image/*"></div><button class="btn btn-warn" style="width:100%; justify-content:center" onclick="doRegFile()"><span class="material-icons">upload</span> อัปโหลดและบันทึก</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN -->
+    <div id="admin" class="page">
+      <div id="admin-login-gate" class="card" style="max-width:400px; margin:40px auto; text-align:center; padding:32px;">
+        <div style="width:64px; height:64px; background:var(--p-light); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;"><span class="material-icons" style="font-size:32px; color:var(--p)">admin_panel_settings</span></div>
+        <h3 style="margin-bottom:6px; font-size:1.2rem">Admin Login</h3>
+        <p style="color:var(--txt2); font-size:0.875rem; margin-bottom:20px">กรุณาใส่รหัสผ่านเพื่อเข้าสู่ระบบจัดการ</p>
+        <div style="text-align:left; margin-bottom:12px"><label>รหัสผ่าน Admin</label><input type="password" id="admin-login-pass" placeholder="ใส่รหัสผ่าน..." onkeydown="if(event.key==='Enter') doAdminLogin()"></div>
+        <p id="admin-login-error" style="color:var(--danger); font-size:0.82rem; margin-bottom:10px; display:none">❌ รหัสผ่านไม่ถูกต้อง</p>
+        <button class="btn btn-primary" style="width:100%; justify-content:center" onclick="doAdminLogin()"><span class="material-icons">lock_open</span> เข้าสู่ระบบ</button>
+        <p style="margin-top:14px; font-size:0.78rem; color:var(--txt2)">💡 ครั้งแรก: ไม่ต้องใส่รหัส กดเข้าได้เลย</p>
+      </div>
+      <div id="admin-content" style="display:none">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+          <div><h3 style="font-size:1.1rem; font-weight:800">🛡️ Admin Dashboard</h3><p style="font-size:0.8rem; color:var(--txt2); margin-top:2px">เข้าสู่ระบบสำเร็จ</p></div>
+          <button class="btn btn-ghost btn-sm" onclick="doAdminLogout()"><span class="material-icons">logout</span> ออกจากระบบ</button>
+        </div>
+        <div class="admin-grid">
+          <div class="admin-action-card" onclick="doBackup()"><div class="icon" style="background:#dbeafe"><span class="material-icons" style="color:var(--p)">backup</span></div><h4>สำรองข้อมูล</h4><p>Backup ไปยัง Google Drive</p></div>
+          <div class="admin-action-card" onclick="openModal('cleanup-modal')"><div class="icon" style="background:#fef9c3"><span class="material-icons" style="color:#854d0e">cleaning_services</span></div><h4>ทำความสะอาด</h4><p>ลบ/Archive ข้อมูลเก่า</p></div>
+          <div class="admin-action-card" onclick="exportData()"><div class="icon" style="background:#dcfce7"><span class="material-icons" style="color:var(--success)">download</span></div><h4>Export CSV</h4><p>ส่งออกข้อมูลการเช็คชื่อ</p></div>
+          <div class="admin-action-card" onclick="doArchive()"><div class="icon" style="background:#f3e8ff"><span class="material-icons" style="color:var(--purple)">archive</span></div><h4>Archive ข้อมูล</h4><p>ย้ายข้อมูลเก่าไป Sheet แยก</p></div>
+          <div class="admin-action-card" onclick="openModal('settings-modal')"><div class="icon" style="background:#ffe4e6"><span class="material-icons" style="color:#e11d48">tune</span></div><h4>ตั้งค่าระบบ</h4><p>ชื่อโรงเรียน, เวลาเช็คชื่อ</p></div>
+          <div class="admin-action-card" onclick="openModal('change-password-modal')"><div class="icon" style="background:#f0fdf4"><span class="material-icons" style="color:var(--success)">lock</span></div><h4>เปลี่ยนรหัสผ่าน</h4><p>ตั้งรหัสผ่าน Admin</p></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title"><span class="material-icons" style="color:var(--p2)">monitor_heart</span> สุขภาพระบบ</div><button class="btn btn-ghost btn-sm" onclick="loadHealthCheck()"><span class="material-icons">refresh</span> ตรวจสอบ</button></div>
+          <div id="health-panel"><div class="empty-state"><span class="material-icons">pending</span><p>กดตรวจสอบเพื่อดูสถานะ</p></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title"><span class="material-icons" style="color:var(--p2)">history</span> Activity Log</div><button class="btn btn-ghost btn-sm" onclick="loadAdminLog()"><span class="material-icons">refresh</span></button></div>
+          <div id="activity-log" style="max-height:300px; overflow-y:auto; font-size:0.82rem; color:var(--txt2)"><div class="empty-state"><span class="material-icons">article</span><p>ยังไม่มี log</p></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STUDENT VIEW -->
+    <div id="student-view" class="page">
+      <div class="card no-print">
+        <div class="card-title" style="margin-bottom:12px"><span class="material-icons" style="color:var(--p2)">login</span> ค้นหาข้อมูลนักเรียน</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap">
+          <div style="flex:1; min-width:200px"><label>รหัสนักเรียน</label><input type="text" id="sv-student-id" placeholder="กรอกรหัสนักเรียน..."></div>
+          <div style="display:flex; align-items:flex-end"><button class="btn btn-primary" onclick="loadStudentView()"><span class="material-icons">search</span> ดูข้อมูล</button></div>
+        </div>
+      </div>
+      <div id="sv-content" style="display:none">
+        <div class="student-profile"><div class="student-avatar" id="sv-avatar">👤</div><div style="font-size:1.3rem; font-weight:800" id="sv-name">-</div><div style="opacity:0.8; margin-top:2px" id="sv-cls">-</div><div class="attendance-ring"><div class="ring-stat"><div class="val" id="sv-p">0</div><div class="lbl">มาเรียน</div></div><div style="width:1px; height:40px; background:rgba(255,255,255,0.3)"></div><div class="ring-stat"><div class="val" id="sv-l">0</div><div class="lbl">สาย</div></div><div style="width:1px; height:40px; background:rgba(255,255,255,0.3)"></div><div class="ring-stat"><div class="val" id="sv-a">0</div><div class="lbl">ขาด</div></div><div style="width:1px; height:40px; background:rgba(255,255,255,0.3)"></div><div class="ring-stat"><div class="val" id="sv-pct">0%</div><div class="lbl">เปอร์เซ็นต์</div></div></div></div>
+        <div class="card"><div class="card-header"><div class="card-title">ประวัติการมาเรียน 30 วันล่าสุด</div></div><div style="margin-bottom:12px"><div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--txt2); margin-bottom:6px"><span>อัตราการมาเรียน</span><span id="sv-pct-label">0%</span></div><div class="progress-bar"><div class="progress-fill" id="sv-progress" style="width:0%; background:var(--success)"></div></div></div><div style="overflow-x:auto"><table id="sv-history-table"></table></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>⚙️ ตั้งค่าระบบ</h3><button class="modal-close" onclick="closeModal('settings-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>🔗 Google Apps Script URL (API)</label>
+        <input id="set-api-url" placeholder="https://script.google.com/macros/s/xxxx/exec" style="font-family:monospace; font-size:0.82rem;">
+        <small style="color:var(--txt2); font-size:0.78rem; margin-top:4px; display:block">วาง URL จาก Deploy → Manage deployments ของ GAS</small>
+      </div>
+      <div class="form-group"><label>ชื่อโรงเรียน</label><input id="set-school-name" placeholder="Smart School"></div>
+      <div class="form-group"><label>เวลารอ Auto Check-In (วินาที)</label><input type="number" id="set-auto-delay" min="1" max="10" value="2"></div>
+      <div class="form-group"><label>ความแม่นยำใบหน้า</label><select id="set-match-threshold"><option value="0.5">สูง (เข้มงวด)</option><option value="0.6" selected>ปานกลาง</option><option value="0.7">ต่ำ (ผ่อนปรน)</option></select></div>
+      <div class="form-group"><label>รีเฟรชอัตโนมัติ</label><select id="set-refresh-interval"><option value="180000">3 นาที</option><option value="300000" selected>5 นาที</option><option value="600000">10 นาที</option><option value="0">ปิด</option></select></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('settings-modal')">ยกเลิก</button><button class="btn btn-success" onclick="saveSettingsData()"><span class="material-icons">save</span> บันทึก</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="add-event-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>📅 เพิ่มเหตุการณ์ในปฏิทิน</h3><button class="modal-close" onclick="closeModal('add-event-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>วันที่</label><input type="date" id="ev-date"></div>
+      <div class="form-group"><label>ประเภท</label><select id="ev-type"><option value="holiday">วันหยุด (ปิดเรียน)</option><option value="special-open">เปิดเรียนพิเศษ</option><option value="event">กิจกรรมพิเศษ</option></select></div>
+      <div class="form-group"><label>ชื่อเหตุการณ์</label><input type="text" id="ev-name" placeholder="เช่น วันไหว้ครู"></div>
+      <div class="form-group"><label>หมายเหตุ</label><textarea id="ev-note" rows="2" placeholder="รายละเอียดเพิ่มเติม..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('add-event-modal')">ยกเลิก</button><button class="btn btn-primary" onclick="saveCalendarEvent()"><span class="material-icons">save</span> บันทึก</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="cleanup-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>🧹 ทำความสะอาดข้อมูล</h3><button class="modal-close" onclick="closeModal('cleanup-modal')">✕</button></div>
+    <div class="modal-body">
+      <div style="display:grid; gap:10px">
+        <button class="btn btn-warn" style="justify-content:flex-start" onclick="cleanupSystem(365); closeModal('cleanup-modal')"><span class="material-icons">delete_sweep</span> ลบข้อมูลเก่ากว่า 1 ปี</button>
+        <button class="btn btn-purple" style="justify-content:flex-start" onclick="doArchive(); closeModal('cleanup-modal')"><span class="material-icons">archive</span> Archive ข้อมูลเก่า (แนะนำ)</button>
+        <button class="btn btn-ghost" style="justify-content:flex-start" onclick="cleanupCustomDialog(); closeModal('cleanup-modal')"><span class="material-icons">tune</span> กำหนดจำนวนวันเอง</button>
+        <button class="btn btn-danger" style="justify-content:flex-start" onclick="cleanupByClassDialog(); closeModal('cleanup-modal')"><span class="material-icons">class</span> ลบตามห้องเรียน</button>
+      </div>
+      <div style="margin-top:14px; padding:10px; background:#fef2f2; border-radius:8px; font-size:0.82rem; color:var(--danger)">⚠️ การลบข้อมูลไม่สามารถกู้คืนได้ แนะนำ Archive แทน</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="change-password-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>🔐 ตั้งรหัสผ่าน Admin</h3><button class="modal-close" onclick="closeModal('change-password-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>รหัสผ่านใหม่</label><input type="password" id="new-pass" placeholder="อย่างน้อย 6 ตัว"></div>
+      <div class="form-group"><label>ยืนยันรหัสผ่าน</label><input type="password" id="confirm-pass" placeholder="พิมพ์อีกครั้ง"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('change-password-modal')">ยกเลิก</button><button class="btn btn-success" onclick="changeAdminPassword()"><span class="material-icons">lock</span> บันทึก</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="day-modal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="day-modal-title">รายละเอียดวัน</h3><button class="modal-close" onclick="closeModal('day-modal')">✕</button></div>
+    <div class="modal-body" id="day-modal-body"></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('day-modal')">ปิด</button><button class="btn btn-danger btn-sm" id="day-modal-delete" style="display:none" onclick="deleteCalendarEventSelected()"><span class="material-icons">delete</span> ลบเหตุการณ์</button></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  API HELPER — ใช้ fetch() แทน google.script.run
+// ============================================================
+var API_URL = localStorage.getItem('gasApiUrl') || '';
+
+async function api(action, data) {
+  if (!API_URL) {
+    document.getElementById('api-setup-banner').style.display = 'block';
+    updateStatus('offline', 'ยังไม่ได้ตั้งค่า URL');
+    throw new Error('No API URL');
+  }
+  try {
+    var res = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action, ...data }),
+      headers: { 'Content-Type': 'text/plain' }
+    });
+    var json = await res.json();
+    return json;
+  } catch(e) {
+    toast('เชื่อมต่อ API ไม่ได้: ' + e.message, 'error');
+    updateStatus('offline', 'เชื่อมต่อไม่ได้');
+    throw e;
+  }
+}
+
+// ============================================================
+//  GLOBAL STATE
+// ============================================================
+var DATA = { students:[], attendance:[], settings:{}, calendarEvents:[] };
+var FILTERED = [];
+var matcher = null;
+var CURRENT_REPORT_MODE = 'history';
+var AUTO_CHECK_MODE = false;
+var AUTO_CHECK_TIMER = null;
+var AUTO_COUNTDOWN_VALUE = 0;
+var LAST_DETECTED_ID = null;
+var AUTO_REFRESH_TIMER = null;
+var CAL_YEAR, CAL_MONTH;
+var SELECTED_DAY_DATE = null;
+var camStream = null, detectionInterval = null;
+const MODEL_URL = 'https://cdn.jsdelivr.net/gh/cgarciagl/face-api.js@0.22.2/weights';
+
+// Fix vh
+function setVH() { document.documentElement.style.setProperty('--vh', (window.innerHeight*0.01)+'px'); }
+setVH(); window.addEventListener('resize', setVH); window.addEventListener('orientationchange', ()=>setTimeout(setVH,200));
+
+// ============================================================
+//  INIT
+// ============================================================
+window.onload = async () => {
+  showLoader('⏳ กำลังโหลด AI...');
+  checkResponsive();
+  window.addEventListener('resize', checkResponsive);
+  try {
+    await Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+      faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+    ]);
+  } catch(e) { toast('โหลด AI ไม่สำเร็จ กรุณารีเฟรช', 'error'); }
+  var now = new Date(); CAL_YEAR=now.getFullYear(); CAL_MONTH=now.getMonth();
+  setToday();
+  if (!API_URL) { document.getElementById('api-setup-banner').style.display='block'; updateStatus('offline','ยังไม่ได้ตั้งค่า URL'); hideLoader(); return; }
+  refreshData();
+};
+
+function checkResponsive() {
+  var t = document.getElementById('menu-toggle');
+  if(window.innerWidth<=1024){t.style.display='flex';}else{t.style.display='none';document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebar-overlay').classList.remove('show');}
+}
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebar-overlay').classList.toggle('show'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('show'); }
+
+// ============================================================
+//  LOADER / TOAST / MODAL
+// ============================================================
+function showLoader(t) { document.getElementById('loader').style.display='flex'; document.getElementById('load-txt').innerText=t||'กำลังโหลด...'; }
+function hideLoader() { document.getElementById('loader').style.display='none'; }
+
+function toast(msg, type='info', dur=3000) {
+  var icons={success:'✅',error:'❌',warn:'⚠️',info:'ℹ️'};
+  var el=document.createElement('div'); el.className='toast '+type;
+  el.innerHTML=`<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(()=>{ el.style.animation='toastIn 0.3s ease reverse'; setTimeout(()=>el.remove(),300); }, dur);
+}
+
+function openModal(id) {
+  if(id==='settings-modal'){
+    document.getElementById('set-api-url').value = API_URL||'';
+    document.getElementById('set-school-name').value = DATA.settings.schoolName||'Smart School';
+    document.getElementById('set-auto-delay').value = (DATA.settings.autoCheckDelay||2000)/1000;
+    document.getElementById('set-match-threshold').value = DATA.settings.faceMatchThreshold||0.6;
+    document.getElementById('set-refresh-interval').value = DATA.settings.autoRefreshInterval||300000;
+  }
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(el => { el.addEventListener('click', function(e){ if(e.target===this) closeModal(this.id); }); });
+
+function updateStatus(s,t) {
+  var c={online:'#22c55e',warning:'#f59e0b',offline:'#ef4444'};
+  document.getElementById('status-dot').style.background = c[s]||'#94a3b8';
+  document.getElementById('status-text').innerText = t;
+}
+
+// ============================================================
+//  DATA
+// ============================================================
+async function refreshData() {
+  showLoader('⏳ ดึงข้อมูลล่าสุด...');
+  updateStatus('warning','กำลังโหลด...');
+  try {
+    var d = await api('getAllData');
+    DATA = { students:d.students||[], attendance:d.attendance||[], settings:d.settings||{}, calendarEvents:d.calendarEvents||[] };
+    initFilter(); buildMatcher(); updateSchoolNameDisplay();
+    document.getElementById('last-sync-text').innerText = new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+    updateStatus('online','ออนไลน์');
+    checkTodayBanner();
+    startAutoRefresh();
+    hideLoader();
+  } catch(e) { hideLoader(); updateStatus('offline','เชื่อมต่อไม่ได้'); }
+}
+
+function startAutoRefresh() {
+  var interval = DATA.settings.autoRefreshInterval||300000;
+  if(interval<=0) return;
+  if(AUTO_REFRESH_TIMER) clearInterval(AUTO_REFRESH_TIMER);
+  AUTO_REFRESH_TIMER = setInterval(()=>{ refreshData(); }, interval);
+}
+
+function initFilter() {
+  var cls = [...new Set(DATA.students.map(s=>s[2]).filter(Boolean))].sort();
+  var sel=document.getElementById('cls-filter'); var old=sel.value;
+  sel.innerHTML='<option value="ALL">ทุกห้องเรียน</option>';
+  cls.forEach(c=>{var o=document.createElement('option');o.value=c;o.text='ห้อง '+c;sel.add(o);});
+  if(old && old!=='ALL') sel.value=old;
+  applyFilter();
+}
+
+function applyFilter() {
+  var val=document.getElementById('cls-filter').value;
+  FILTERED = val==='ALL' ? DATA.students : DATA.students.filter(s=>String(s[2])===val);
+  renderDash(); renderCurrentReport(); checkTodayBanner();
+}
+
+function updateSchoolNameDisplay() {
+  var n=DATA.settings.schoolName||'Smart School';
+  document.getElementById('school-name-display').innerText=n;
+  document.getElementById('print-school-name').innerText='โรงเรียน '+n;
+}
+
+// ============================================================
+//  DATE UTILS
+// ============================================================
+function setToday() { var n=new Date(); document.getElementById('dash-date-picker').value=fmtDate(n); renderDash(); }
+function fmtDate(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function getSelectedDate() { return document.getElementById('dash-date-picker').value; }
+function thaiDate(ds, full) {
+  var d=new Date(ds); if(isNaN(d)) return '-';
+  var days=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+  var months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  var yr=d.getFullYear()+543;
+  return `วัน${days[d.getDay()]}ที่ ${d.getDate()} ${months[d.getMonth()]} ${full?yr:String(yr).slice(-2)}`;
+}
+
+// ============================================================
+//  DASHBOARD
+// ============================================================
+function renderDash() {
+  var search=document.getElementById('dash-search').value.toLowerCase();
+  var selDate=getSelectedDate();
+  var todayMap={};
+  DATA.attendance.forEach(r=>{ if(r.date===selDate) todayMap[String(r.id)]=r; });
+  var p=0,l=0,a=0,total=0, rows='';
+  FILTERED.forEach(s=>{
+    if(search && !s[1].toLowerCase().includes(search) && !String(s[0]).includes(search)) return;
+    total++;
+    var id=String(s[0]),name=s[1],cls=s[2],rec=todayMap[id];
+    var timeHtml='-', controls='', rowBg='';
+    if(rec){
+      timeHtml=`<span style="color:var(--success);font-weight:700">${rec.time} น.</span>`;
+      var bc={มาเรียน:'badge-present',สาย:'badge-late',ป่วย:'badge-sick',ลา:'badge-leave',ขาด:'badge-absent'}[rec.status]||'badge-absent';
+      if(rec.status==='มาเรียน')p++; else if(rec.status==='สาย')l++; else a++;
+      controls=`<span class="badge ${bc}">${rec.status}</span> <button class="btn btn-ghost btn-sm" onclick="openEditStatus('${id}','${name}','${cls}')"><span class="material-icons" style="font-size:14px">edit</span></button>`;
+      rowBg='background:#fafffe';
+    } else {
+      controls=`<button class="btn btn-success btn-sm" onclick="quickCheck('${id}','${name}','${cls}','มาเรียน')">มา</button>
+        <button class="btn btn-warn btn-sm" onclick="quickCheck('${id}','${name}','${cls}','สาย')">สาย</button>
+        <button class="btn btn-blue btn-sm" onclick="quickCheck('${id}','${name}','${cls}','ป่วย')">ป่วย</button>
+        <button class="btn btn-purple btn-sm" onclick="quickCheck('${id}','${name}','${cls}','ลา')">ลา</button>
+        <button class="btn btn-danger btn-sm" onclick="quickCheck('${id}','${name}','${cls}','ขาด')">ขาด</button>`;
+    }
+    rows+=`<tr style="${rowBg}"><td>${id}</td><td><strong>${name}</strong></td><td><span style="font-size:0.78rem;background:var(--p-light);color:var(--p);padding:2px 8px;border-radius:4px;font-weight:600">${cls}</span></td><td>${timeHtml}</td><td>${controls}</td></tr>`;
+  });
+  document.getElementById('tb-dash').innerHTML=`<tr><th>รหัส</th><th>ชื่อ-นามสกุล</th><th>ห้อง</th><th>เวลา</th><th>สถานะ / การจัดการ</th></tr>${rows||'<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--txt2)">ไม่พบข้อมูล</td></tr>'}`;
+  document.getElementById('d-total').innerText=total; document.getElementById('d-p').innerText=p;
+  document.getElementById('d-l').innerText=l; document.getElementById('d-a').innerText=total-p-l;
+}
+
+function openEditStatus(id,name,cls) {
+  var opts=['มาเรียน','สาย','ป่วย','ลา','ขาด'];
+  var st=prompt(`แก้ไขสถานะของ ${name}\nพิมพ์: ${opts.join(', ')}`);
+  if(st && opts.includes(st.trim())) quickCheck(id,name,cls,st.trim());
+  else if(st) toast('สถานะไม่ถูกต้อง','error');
+}
+
+async function quickCheck(id,name,cls,st) {
+  var targetDate=getSelectedDate();
+  showLoader('บันทึก...');
+  try { var r=await api('saveCheckIn',{id,name,cls,status:st,targetDate}); toast(r.msg||'บันทึกสำเร็จ','success'); refreshData(); } catch(e){}
+  hideLoader();
+}
+
+// ============================================================
+//  REPORTS
+// ============================================================
+function switchReport(mode,el) {
+  CURRENT_REPORT_MODE=mode;
+  ['rep-history','rep-summary','rep-daily','rep-weekly','rep-monthly','rep-term'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('term-selector').style.display='none'; document.getElementById('rep-date-range').style.display='none';
+  if(el){document.querySelectorAll('#report-tabs .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');}
+  document.getElementById('print-date').innerText=thaiDate(new Date(),true);
+  if(mode==='history'){document.getElementById('rep-history').style.display='block';updateHistorySelect();renderHistoryTable();}
+  else if(mode==='term'){document.getElementById('rep-term').style.display='block';document.getElementById('term-selector').style.display='block';document.getElementById('rep-date-range').style.display='grid';setReportPreset();}
+  else{document.getElementById('rep-date-range').style.display='grid';document.getElementById('rep-'+{summary:'summary',daily:'daily',weekly:'weekly',monthly:'monthly'}[mode]).style.display='block';setReportPreset();}
+}
+
+function setReportPreset() {
+  var today=new Date(),start,end,mode=CURRENT_REPORT_MODE;
+  if(mode==='daily'){start=end=today;}
+  else if(mode==='weekly'){var day=today.getDay();start=new Date(today);start.setDate(today.getDate()-(day===0?6:day-1));end=new Date(start);end.setDate(start.getDate()+6);}
+  else if(mode==='monthly'||mode==='summary'){start=new Date(today.getFullYear(),today.getMonth(),1);end=new Date(today.getFullYear(),today.getMonth()+1,0);}
+  else if(mode==='term'){var m=today.getMonth();if(m>=4&&m<=9)selectTerm(1);else selectTerm(2);return;}
+  else{start=end=today;}
+  document.getElementById('rep-date-start').value=fmtDate(start); document.getElementById('rep-date-end').value=fmtDate(end);
+  renderCurrentReport();
+}
+
+function selectTerm(n) {
+  var today=new Date(),start,end;
+  if(n===1){start=new Date(today.getFullYear(),4,1);end=new Date(today.getFullYear(),9,31);}
+  else if(n===2){var m=today.getMonth();if(m>=10){start=new Date(today.getFullYear(),10,1);end=new Date(today.getFullYear()+1,3,30);}else{start=new Date(today.getFullYear()-1,10,1);end=new Date(today.getFullYear(),3,30);}}
+  else return;
+  document.getElementById('rep-date-start').value=fmtDate(start); document.getElementById('rep-date-end').value=fmtDate(end);
+  renderCurrentReport();
+}
+
+function renderCurrentReport() { var fn={history:'renderHistoryTable',summary:'renderSummaryReport',daily:'renderDailyReport',weekly:'renderWeeklyReport',monthly:'renderMonthlyReport',term:'renderTermReport'}; if(fn[CURRENT_REPORT_MODE]) window[fn[CURRENT_REPORT_MODE]](); }
+function filterHistorySelect() { var q=document.getElementById('hist-search').value.toLowerCase(); var sel=document.getElementById('rep-hist-sel'); for(var i=0;i<sel.options.length;i++) sel.options[i].style.display=sel.options[i].text.toLowerCase().includes(q)?'':'none'; }
+function updateHistorySelect() { var sel=document.getElementById('rep-hist-sel'); sel.innerHTML=''; FILTERED.forEach(s=>{var o=document.createElement('option');o.value=s[0];o.text=s[0]+' - '+s[1];sel.add(o);}); }
+
+function getAtt(startDate,endDate) { return DATA.attendance.filter(x=>x.date>=startDate&&x.date<=endDate); }
+
+function renderHistoryTable() {
+  var id=document.getElementById('rep-hist-sel').value; if(!id) return;
+  var stu=FILTERED.find(s=>String(s[0])===String(id)); if(!stu) return;
+  document.getElementById('hist-title').innerText='ประวัติของ: '+stu[1]+' (ห้อง '+stu[2]+')';
+  document.getElementById('print-report-title').innerText='ประวัติการมาเรียน: '+stu[1];
+  var hist=DATA.attendance.filter(r=>String(r.id)===String(id)).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  var rows=hist.length?hist.map(h=>{var bc={มาเรียน:'badge-present',สาย:'badge-late',ป่วย:'badge-sick',ลา:'badge-leave',ขาด:'badge-absent'}[h.status]||'badge-absent';return`<tr><td>${thaiDate(h.date,false)}</td><td>${h.time} น.</td><td><span class="badge ${bc}">${h.status}</span></td></tr>`}).join(''):'<tr><td colspan="3" style="text-align:center;padding:24px;color:var(--txt2)">ไม่มีข้อมูล (แสดงเฉพาะ 7 วันล่าสุด)</td></tr>';
+  document.getElementById('tb-rep-history').innerHTML='<tr><th>วันที่</th><th>เวลา</th><th>สถานะ</th></tr>'+rows;
+}
+
+function buildSummaryRows(s,e) { return FILTERED.map(st=>{var id=String(st[0]),stats={p:0,l:0,s:0,lev:0,a:0};getAtt(s,e).forEach(x=>{if(String(x.id)===id){if(x.status==='มาเรียน')stats.p++;else if(x.status==='สาย')stats.l++;else if(x.status==='ป่วย')stats.s++;else if(x.status==='ลา')stats.lev++;else stats.a++;}});return{name:st[1],cls:st[2],...stats};}); }
+
+function renderSummaryReport() {
+  var s=document.getElementById('rep-date-start').value,e=document.getElementById('rep-date-end').value;
+  document.getElementById('print-report-title').innerText='สรุปยอดรวม';
+  var rows=buildSummaryRows(s,e).map(r=>`<tr><td>${r.name}</td><td style="text-align:center">${r.p}</td><td style="text-align:center">${r.l}</td><td style="text-align:center">${r.s}</td><td style="text-align:center">${r.lev}</td><td style="text-align:center;color:var(--danger)">${r.a}</td><td style="text-align:center;font-weight:700">${r.p+r.l}</td></tr>`).join('');
+  document.getElementById('tb-rep-sum').innerHTML='<tr><th>ชื่อ</th><th>มา</th><th>สาย</th><th>ป่วย</th><th>ลา</th><th>ขาด</th><th>รวมมา</th></tr>'+rows;
+}
+
+function renderDailyReport() {
+  var d=document.getElementById('rep-date-start').value;
+  document.getElementById('daily-title').innerText='รายงานประจำ '+thaiDate(d,false);
+  document.getElementById('print-report-title').innerText='รายงานประจำ '+thaiDate(d,false);
+  var rows=FILTERED.map(s=>{var rec=DATA.attendance.find(r=>String(r.id)===String(s[0])&&r.date===d);var bc=rec?({มาเรียน:'badge-present',สาย:'badge-late',ป่วย:'badge-sick',ลา:'badge-leave',ขาด:'badge-absent'}[rec.status]||'badge-absent'):'';return`<tr><td>${s[0]}</td><td>${s[1]}</td><td>${s[2]}</td><td>${rec?`<span class="badge ${bc}">${rec.status}</span>`:'<span style="color:var(--txt2)">-</span>'}</td></tr>`;}).join('');
+  document.getElementById('tb-rep-daily').innerHTML='<tr><th>รหัส</th><th>ชื่อ</th><th>ห้อง</th><th>สถานะ</th></tr>'+rows;
+}
+
+function renderWeeklyReport() {
+  var sd=document.getElementById('rep-date-start').value,ed=document.getElementById('rep-date-end').value;
+  document.getElementById('weekly-title').innerText=`รายสัปดาห์ ${thaiDate(sd,false)} - ${thaiDate(ed,false)}`;
+  var dates=[],cur=new Date(sd),end=new Date(ed);
+  while(cur<=end){dates.push(fmtDate(cur));cur.setDate(cur.getDate()+1);}
+  var hdr='<tr><th>ชื่อ</th>'+dates.map(d=>`<th>${new Date(d).getDate()}</th>`).join('')+'</tr>';
+  var rows=FILTERED.map(s=>{var cells=dates.map(date=>{var rec=DATA.attendance.find(r=>String(r.id)===String(s[0])&&r.date===date);var st=rec?rec.status:'-';var col={มาเรียน:'var(--success)',สาย:'var(--warn)',ขาด:'var(--danger)'}[st]||'var(--txt2)';var sh={มาเรียน:'มา',สาย:'สาย',ป่วย:'ป่วย',ลา:'ลา',ขาด:'ขาด'}[st]||'-';return`<td style="text-align:center;color:${col};font-weight:${st!=='-'?'600':'400'}">${sh}</td>`;}).join('');return`<tr><td>${s[1]}</td>${cells}</tr>`;}).join('');
+  document.getElementById('tb-rep-weekly').innerHTML=hdr+rows;
+}
+
+function renderMonthlyReport() {
+  var s=document.getElementById('rep-date-start').value,e=document.getElementById('rep-date-end').value;
+  var sd=new Date(s); var months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']; var mn=months[sd.getMonth()]+' '+(sd.getFullYear()+543);
+  document.getElementById('monthly-title').innerText='รายงานเดือน '+mn; document.getElementById('print-report-title').innerText='รายงานเดือน '+mn;
+  var rows=buildSummaryRows(s,e).map(r=>{var tot=r.p+r.l+r.s+r.lev+r.a,pct=tot>0?((r.p+r.l)/tot*100).toFixed(1):0;var col=pct>=80?'var(--success)':pct>=60?'var(--warn)':'var(--danger)';return`<tr><td>${r.name}</td><td style="text-align:center">${r.p}</td><td style="text-align:center">${r.l}</td><td style="text-align:center">${r.s}</td><td style="text-align:center">${r.lev}</td><td style="text-align:center;color:var(--danger)">${r.a}</td><td style="text-align:center;font-weight:700">${tot}</td><td style="text-align:center;font-weight:800;color:${col}">${pct}%</td></tr>`;}).join('');
+  document.getElementById('tb-rep-monthly').innerHTML='<tr><th>ชื่อ</th><th>มา</th><th>สาย</th><th>ป่วย</th><th>ลา</th><th>ขาด</th><th>รวม</th><th>%มา</th></tr>'+rows;
+}
+
+function renderTermReport() {
+  var s=document.getElementById('rep-date-start').value,e=document.getElementById('rep-date-end').value;
+  document.getElementById('term-title').innerText=`รายงานรายเทอม (${thaiDate(s,false)} - ${thaiDate(e,false)})`; document.getElementById('print-report-title').innerText='รายงานรายเทอม';
+  var rows=buildSummaryRows(s,e).map(r=>{var tot=r.p+r.l+r.s+r.lev+r.a,pct=tot>0?((r.p+r.l)/tot*100).toFixed(1):0;var grade=pct>=80?'✅ ดีมาก':pct>=60?'⚠️ ปานกลาง':'❌ ต้องปรับปรุง';var col=pct>=80?'var(--success)':pct>=60?'var(--warn)':'var(--danger)';return`<tr><td>${r.name}</td><td style="text-align:center">${r.p}</td><td style="text-align:center">${r.l}</td><td style="text-align:center">${r.s}</td><td style="text-align:center">${r.lev}</td><td style="text-align:center;color:var(--danger)">${r.a}</td><td style="text-align:center">${tot}</td><td style="text-align:center;font-weight:800;color:${col}">${pct}%</td><td style="font-weight:700;color:${col}">${grade}</td></tr>`;}).join('');
+  document.getElementById('tb-rep-term').innerHTML='<tr><th>ชื่อ</th><th>มา</th><th>สาย</th><th>ป่วย</th><th>ลา</th><th>ขาด</th><th>รวม</th><th>%มา</th><th>ผล</th></tr>'+rows;
+}
+
+// ============================================================
+//  CALENDAR
+// ============================================================
+var THAI_HOLIDAYS_2025={'2025-01-01':'วันขึ้นปีใหม่','2025-02-10':'วันมาฆบูชา','2025-04-06':'วันจักรี','2025-04-13':'วันสงกรานต์','2025-04-14':'วันสงกรานต์','2025-04-15':'วันสงกรานต์','2025-05-01':'วันแรงงาน','2025-05-05':'วันฉัตรมงคล','2025-05-12':'วันวิสาขบูชา','2025-06-03':'วันเฉลิมพระชนมพรรษาพระราชินี','2025-07-28':'วันเฉลิมพระชนมพรรษาร.10','2025-08-12':'วันแม่','2025-10-13':'วันนวมินทรมหาราช','2025-10-23':'วันปิยมหาราช','2025-12-05':'วันพ่อ','2025-12-10':'วันรัฐธรรมนูญ','2025-12-31':'วันสิ้นปี'};
+
+function changeMonth(d){CAL_MONTH+=d;if(CAL_MONTH>11){CAL_MONTH=0;CAL_YEAR++;}if(CAL_MONTH<0){CAL_MONTH=11;CAL_YEAR--;}renderCalendar();}
+function goToday(){var n=new Date();CAL_YEAR=n.getFullYear();CAL_MONTH=n.getMonth();renderCalendar();}
+
+function renderCalendar() {
+  var months=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  document.getElementById('cal-month-title').innerText=months[CAL_MONTH]+' '+(CAL_YEAR+543);
+  var today=fmtDate(new Date()),firstDay=new Date(CAL_YEAR,CAL_MONTH,1).getDay(),daysInMonth=new Date(CAL_YEAR,CAL_MONTH+1,0).getDate(),daysInPrev=new Date(CAL_YEAR,CAL_MONTH,0).getDate();
+  var events=DATA.calendarEvents||[],cells='',total=Math.ceil((firstDay+daysInMonth)/7)*7;
+  for(var i=0;i<total;i++){
+    var dayNum,dateStr,isOther=false;
+    if(i<firstDay){dayNum=daysInPrev-firstDay+i+1;isOther=true;dateStr=fmtDate(new Date(CAL_YEAR,CAL_MONTH-1,dayNum));}
+    else if(i>=firstDay+daysInMonth){dayNum=i-firstDay-daysInMonth+1;isOther=true;dateStr=fmtDate(new Date(CAL_YEAR,CAL_MONTH+1,dayNum));}
+    else{dayNum=i-firstDay+1;dateStr=fmtDate(new Date(CAL_YEAR,CAL_MONTH,dayNum));}
+    var dow=new Date(dateStr).getDay(),isWeekend=dow===0||dow===6,isToday=dateStr===today;
+    var holiday=THAI_HOLIDAYS_2025[dateStr],customEvent=events.find(e=>e.date===dateStr);
+    var cls='cal-day';
+    if(isOther)cls+=' other-month';if(isToday)cls+=' today';
+    if(customEvent){if(customEvent.type==='holiday')cls+=' holiday';else if(customEvent.type==='special-open')cls+=' special-open';else cls+=' school-day';}
+    else if(holiday&&!isOther)cls+=' holiday';else if(isWeekend&&!isOther)cls+=' weekend';else if(!isOther)cls+=' school-day';
+    var dot=customEvent||holiday?'<span class="event-dot"></span>':'';
+    cells+=`<div class="${cls}" onclick="showDayDetail('${dateStr}')" title="${customEvent?customEvent.name:holiday||''}">${dayNum}${dot}</div>`;
+  }
+  document.getElementById('cal-grid').innerHTML=cells;
+  renderEventsList();
+}
+
+function renderEventsList() {
+  var events=(DATA.calendarEvents||[]).filter(e=>{var d=new Date(e.date);return d.getFullYear()===CAL_YEAR&&d.getMonth()===CAL_MONTH;});
+  var holidays=Object.entries(THAI_HOLIDAYS_2025).filter(([k])=>{var d=new Date(k);return d.getFullYear()===CAL_YEAR&&d.getMonth()===CAL_MONTH;}).map(([date,name])=>({date,name,type:'holiday',isBuiltin:true}));
+  var all=[...holidays,...events].sort((a,b)=>a.date.localeCompare(b.date));
+  if(!all.length){document.getElementById('cal-events-list').innerHTML='<div class="empty-state"><span class="material-icons">event_available</span><p>ไม่มีเหตุการณ์พิเศษ</p></div>';return;}
+  var colors={holiday:'var(--danger)','special-open':'var(--warn)',event:'var(--p2)'};
+  var labels={holiday:'หยุดเรียน','special-open':'เปิดพิเศษ',event:'กิจกรรม'};
+  document.getElementById('cal-events-list').innerHTML=all.map(ev=>{var col=colors[ev.type]||'var(--p2)';return`<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)"><div style="width:40px;height:40px;border-radius:8px;background:${col}20;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:0.75rem;font-weight:800;color:${col}">${new Date(ev.date).getDate()}</span></div><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:0.9rem">${ev.name}</div><div style="font-size:0.78rem;color:var(--txt2)">${thaiDate(ev.date,false)}</div></div><span style="font-size:0.75rem;background:${col}20;color:${col};padding:3px 8px;border-radius:12px;font-weight:700">${labels[ev.type]||ev.type}</span>${!ev.isBuiltin?`<button class="btn btn-ghost btn-sm" onclick="deleteEventByDate('${ev.date}')"><span class="material-icons" style="font-size:14px;color:var(--danger)">delete</span></button>`:''}</div>`;}).join('');
+}
+
+function showDayDetail(dateStr) {
+  SELECTED_DAY_DATE=dateStr;
+  var events=(DATA.calendarEvents||[]).filter(e=>e.date===dateStr);
+  var holiday=THAI_HOLIDAYS_2025[dateStr];
+  document.getElementById('day-modal-title').innerText=thaiDate(dateStr,false);
+  var body='';
+  if(holiday) body+=`<div style="padding:10px;background:#fef2f2;border-radius:8px;margin-bottom:10px;color:var(--danger);font-weight:600">🎌 ${holiday}</div>`;
+  var att=DATA.attendance.filter(r=>r.date===dateStr);
+  if(att.length){body+=`<div style="font-weight:700;margin-bottom:8px">การเช็คชื่อ (${att.length} คน)</div>`;body+=att.slice(0,5).map(r=>`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:0.875rem"><span>${r.name}</span><span class="badge badge-${r.status==='มาเรียน'?'present':r.status==='สาย'?'late':'absent'}">${r.status}</span></div>`).join('');if(att.length>5)body+=`<div style="text-align:center;font-size:0.8rem;color:var(--txt2);margin-top:6px">และอีก ${att.length-5} คน</div>`;}
+  else body+='<div style="color:var(--txt2);font-size:0.875rem">ยังไม่มีการเช็คชื่อในวันนี้</div>';
+  if(events.length){body+='<hr class="divider">';events.forEach(ev=>{body+=`<div style="padding:8px;background:var(--bg);border-radius:8px;margin-top:6px"><strong>${ev.name}</strong>${ev.note?`<p style="font-size:0.82rem;color:var(--txt2);margin-top:4px">${ev.note}</p>`:''}</div>`;});document.getElementById('day-modal-delete').style.display='inline-flex';}
+  else document.getElementById('day-modal-delete').style.display='none';
+  body+=`<div style="margin-top:14px"><button class="btn btn-primary btn-sm" onclick="closeModal('day-modal'); document.getElementById('ev-date').value='${dateStr}'; openModal('add-event-modal')"><span class="material-icons">add</span> เพิ่มเหตุการณ์วันนี้</button></div>`;
+  document.getElementById('day-modal-body').innerHTML=body;
+  openModal('day-modal');
+}
+
+function checkTodayBanner() {
+  var today=fmtDate(new Date());
+  var holiday=THAI_HOLIDAYS_2025[today];
+  var customEvent=(DATA.calendarEvents||[]).find(e=>e.date===today);
+  var banner=document.getElementById('today-banner');
+  if(customEvent){
+    var colors={holiday:'#fef2f2;border:1px solid #fca5a5','special-open':'#fefce8;border:1px solid #fcd34d',event:'#eff6ff;border:1px solid #93c5fd'};
+    var icons={holiday:'🎌','special-open':'🏫',event:'📌'};
+    var labels={holiday:'วันหยุดเรียน','special-open':'วันเปิดเรียนพิเศษ',event:'กิจกรรมพิเศษ'};
+    banner.style.cssText=`display:flex; margin-bottom:14px; border-radius:var(--radius); padding:14px 18px; align-items:center; gap:12px; font-weight:700; font-size:0.95rem; background:${colors[customEvent.type]||'#eff6ff;border:1px solid #93c5fd'};`;
+    document.getElementById('today-banner-icon').innerText=icons[customEvent.type]||'📌';
+    document.getElementById('today-banner-title').innerText=customEvent.name;
+    document.getElementById('today-banner-sub').innerText=labels[customEvent.type]||'';
+  } else if(holiday){
+    banner.style.cssText='display:flex; margin-bottom:14px; border-radius:var(--radius); padding:14px 18px; align-items:center; gap:12px; font-weight:700; font-size:0.95rem; background:#fef2f2; border:1px solid #fca5a5;';
+    document.getElementById('today-banner-icon').innerText='🎌';
+    document.getElementById('today-banner-title').innerText=holiday;
+    document.getElementById('today-banner-sub').innerText='วันหยุดนักขัตฤกษ์';
+  } else { banner.style.display='none'; }
+}
+
+async function saveCalendarEvent() {
+  var date=document.getElementById('ev-date').value,type=document.getElementById('ev-type').value,name=document.getElementById('ev-name').value.trim(),note=document.getElementById('ev-note').value.trim();
+  if(!date||!name){toast('กรุณากรอกข้อมูลให้ครบ','error');return;}
+  showLoader('บันทึก...');
+  try { var r=await api('saveCalendarEvent',{event:{date,type,name,note}}); if(r.success){toast(r.msg,'success');closeModal('add-event-modal');document.getElementById('ev-name').value='';document.getElementById('ev-note').value='';refreshData();}else toast(r.msg,'error'); } catch(e){}
+  hideLoader();
+}
+
+async function deleteCalendarEventSelected() {
+  if(!SELECTED_DAY_DATE||!confirm('ยืนยันการลบ?')) return;
+  showLoader('ลบ...');
+  try { var r=await api('deleteCalendarEvent',{date:SELECTED_DAY_DATE}); if(r.success){toast(r.msg,'success');closeModal('day-modal');refreshData();}else toast('เกิดข้อผิดพลาด','error'); } catch(e){}
+  hideLoader();
+}
+
+async function deleteEventByDate(date) {
+  if(!confirm('ยืนยันการลบ?')) return;
+  showLoader('ลบ...');
+  try { var r=await api('deleteCalendarEvent',{date}); if(r.success){toast(r.msg,'success');refreshData();}else toast('เกิดข้อผิดพลาด','error'); } catch(e){}
+  hideLoader();
+}
+
+// ============================================================
+//  STUDENTS
+// ============================================================
+function switchStudentTab(t,el) {
+  ['single','bulk','manage'].forEach(id=>document.getElementById('student-tab-'+id).style.display='none');
+  document.getElementById('student-tab-'+t).style.display='block';
+  if(el){document.querySelectorAll('#students .tab').forEach(e=>e.classList.remove('active'));el.classList.add('active');}
+  if(t==='manage') renderManageList();
+}
+
+async function addSingle() {
+  var id=document.getElementById('add-id').value.trim(),name=document.getElementById('add-name').value.trim(),cls=document.getElementById('add-cls').value.trim();
+  if(!id||!name){toast('กรุณากรอกข้อมูลให้ครบ','error');return;}
+  showLoader('บันทึก...');
+  try { await api('uploadStudentCSV',{data:[[id,name,cls]]}); toast('เพิ่มนักเรียนสำเร็จ','success'); ['add-id','add-name','add-cls'].forEach(x=>document.getElementById(x).value=''); refreshData(); } catch(e){}
+  hideLoader();
+}
+
+async function addBulk() {
+  var txt=document.getElementById('bulk-text').value; if(!txt){toast('วางข้อมูลก่อน','error');return;}
+  var data=[]; txt.split('\n').forEach(l=>{var c=l.split(/\t|,/);if(c.length>=2)data.push([c[0].trim(),c[1].trim(),c[2]?c[2].trim():'-']);});
+  if(!data.length){toast('ไม่พบข้อมูล','error');return;}
+  showLoader('บันทึก...');
+  try { var r=await api('uploadStudentCSV',{data}); toast('บันทึก '+r.count+' คน','success'); document.getElementById('bulk-text').value=''; refreshData(); } catch(e){}
+  hideLoader();
+}
+
+function renderManageList() {
+  var q=document.getElementById('manage-search').value.toLowerCase();
+  var rows=DATA.students.filter(s=>!q||s[1].toLowerCase().includes(q)||String(s[0]).includes(q)).map(s=>`<tr><td>${s[0]}</td><td>${s[1]}</td><td>${s[2]}</td><td><button class="btn btn-blue btn-sm" onclick="editStudentDialog('${s[0]}','${s[1]}','${s[2]}')"><span class="material-icons">edit</span></button><button class="btn btn-danger btn-sm" onclick="deleteStudentConfirm('${s[0]}','${s[1]}')"><span class="material-icons">delete</span></button></td></tr>`).join('');
+  document.getElementById('tb-manage').innerHTML='<tr><th>รหัส</th><th>ชื่อ</th><th>ห้อง</th><th>จัดการ</th></tr>'+(rows||'<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--txt2)">ไม่พบข้อมูล</td></tr>');
+}
+
+async function editStudentDialog(id,name,cls) {
+  var nId=prompt('รหัส:',id); if(!nId) return;
+  var nName=prompt('ชื่อ:',name); if(!nName) return;
+  var nCls=prompt('ห้อง:',cls); if(!nCls) return;
+  showLoader('แก้ไข...');
+  try { var r=await api('editStudent',{oldId:id,newId:nId,newName:nName,newCls:nCls}); toast(r.msg,r.success?'success':'error'); if(r.success){refreshData();renderManageList();} } catch(e){}
+  hideLoader();
+}
+
+async function deleteStudentConfirm(id,name) {
+  if(!confirm(`ยืนยันการลบ?\n${name} (${id})`)) return;
+  showLoader('ลบ...');
+  try { var r=await api('deleteStudent',{id}); toast(r.msg,r.success?'success':'error'); if(r.success){refreshData();renderManageList();} } catch(e){}
+  hideLoader();
+}
+
+// ============================================================
+//  FACE API
+// ============================================================
+function buildMatcher() {
+  var labeled=[],threshold=DATA.settings.faceMatchThreshold||0.6;
+  DATA.students.forEach(s=>{if(s[3]){try{labeled.push(new faceapi.LabeledFaceDescriptors(s[0]+'#'+s[1]+'#'+s[2],[new Float32Array(Object.values(JSON.parse(s[3])))]));}catch(e){}}});
+  matcher=labeled.length?new faceapi.FaceMatcher(labeled,threshold):null;
+}
+
+function startCam(videoId,runAI) {
+  stopCam();
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast('Browser ไม่รองรับกล้อง','error');return;}
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}})
+    .then(s=>{
+      camStream=s; var v=document.getElementById(videoId); v.srcObject=null; v.srcObject=s;
+      var started=false;
+      var tryPlay=()=>{if(started)return;started=true;v.play().then(()=>{if(runAI)startDetection(v);}).catch(console.error);};
+      v.onloadedmetadata=tryPlay; v.onloadeddata=tryPlay; setTimeout(tryPlay,2000);
+    })
+    .catch(e=>{
+      var m='';
+      if(e.name==='NotAllowedError')m='🚫 กล้องถูกบล็อก กรุณาคลิก 🔒 ที่ address bar แล้วอนุญาตกล้อง';
+      else if(e.name==='NotReadableError')m='📷 กล้องถูกใช้โดยโปรแกรมอื่น';
+      else m='❌ '+e.name+': '+e.message;
+      toast(m,'error');
+    });
+}
+
+function stopCam() {
+  if(detectionInterval){clearInterval(detectionInterval);detectionInterval=null;}
+  if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}
+  stopAutoCheck();
+  var cvs=document.getElementById('c-check'); if(cvs) cvs.getContext('2d').clearRect(0,0,cvs.width,cvs.height);
+}
+
+function startDetection(video) {
+  var cvs=document.getElementById('c-check'); if(!cvs) return;
+  var getSize=()=>({width:video.videoWidth||video.clientWidth||640,height:video.videoHeight||video.clientHeight||480});
+  var size=getSize(); faceapi.matchDimensions(cvs,size);
+  if(detectionInterval) clearInterval(detectionInterval);
+  detectionInterval=setInterval(async()=>{
+    if(video.paused||video.ended||!camStream) return;
+    var cur=getSize(); if(cur.width!==size.width||cur.height!==size.height){size=cur;faceapi.matchDimensions(cvs,size);}
+    if(!matcher) return;
+    try {
+      var dets=await faceapi.detectAllFaces(video,new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
+      var rez=faceapi.resizeResults(dets,size); cvs.getContext('2d').clearRect(0,0,cvs.width,cvs.height);
+      if(!rez.length){stopAutoCheck();document.getElementById('ai-name').innerText='รอการตรวจจับ...';document.getElementById('ai-status').innerHTML='<span style="color:var(--txt2)">เมื่อ AI ตรวจพบใบหน้า ระบบจะแสดงชื่อ</span>';document.getElementById('ai-buttons').innerHTML='<button class="btn btn-success" onclick="manualCheck(\'มาเรียน\')" disabled style="opacity:.4">✅ มาเรียน</button><button class="btn btn-warn" onclick="manualCheck(\'สาย\')" disabled style="opacity:.4">⏰ สาย</button>';return;}
+      rez.forEach(d=>{
+        var m=matcher.findBestMatch(d.descriptor);
+        var b=d.detection.box;
+        var flipped=new faceapi.Box({x:size.width-b.x-b.width,y:b.y,width:b.width,height:b.height});
+        if(m.label!=='unknown'){
+          var parts=m.label.split('#'),sid=parts[0],sname=parts[1],scls=parts[2];
+          var today=fmtDate(new Date());
+          var checked=DATA.attendance.find(r=>String(r.id)===sid&&r.date===today);
+          document.getElementById('ai-name').innerText=sname;
+          document.getElementById('ai-name').dataset.info=JSON.stringify({id:sid,name:sname,cls:scls});
+          if(checked){
+            document.getElementById('ai-status').innerHTML=`<span style="color:var(--success);font-weight:700">✅ เช็คชื่อแล้ว</span> | ${checked.time} น.`;
+            document.getElementById('ai-buttons').innerHTML='<button class="btn" style="background:var(--border);cursor:not-allowed" disabled>✅ เช็คแล้ว</button>';
+            new faceapi.draw.DrawBox(flipped,{label:sname+' ✓',boxColor:'#16a34a'}).draw(cvs); stopAutoCheck();
+          } else {
+            document.getElementById('ai-status').innerHTML='<span style="color:var(--txt2)">กดปุ่มเพื่อยืนยัน หรือรอ Auto Check-In</span>';
+            document.getElementById('ai-buttons').innerHTML='<button class="btn btn-success" onclick="manualCheck(\'มาเรียน\')">✅ มาเรียน</button><button class="btn btn-warn" onclick="manualCheck(\'สาย\')">⏰ สาย</button>';
+            new faceapi.draw.DrawBox(flipped,{label:sname,boxColor:'#3b82f6'}).draw(cvs); startAutoCheck(sid,sname,scls);
+          }
+        } else {
+          document.getElementById('ai-name').innerText='❓ ไม่รู้จัก';
+          document.getElementById('ai-status').innerHTML='<span style="color:var(--danger)">ไม่พบใบหน้าในระบบ กรุณาลงทะเบียนก่อน</span>';
+          document.getElementById('ai-buttons').innerHTML='<button class="btn" style="background:var(--border);cursor:not-allowed" disabled>ไม่รู้จัก</button>';
+          new faceapi.draw.DrawBox(flipped,{label:'?',boxColor:'#dc2626'}).draw(cvs); stopAutoCheck();
+        }
+      });
+    } catch(e){console.error('Detection error:',e);}
+  },300);
+}
+
+function toggleAutoMode() {
+  AUTO_CHECK_MODE=!AUTO_CHECK_MODE;
+  var btn=document.getElementById('btn-auto-mode');
+  document.getElementById('auto-panel').style.display=AUTO_CHECK_MODE?'block':'none';
+  if(AUTO_CHECK_MODE){btn.innerHTML='<span class="material-icons">stop</span> ปิด Auto Check-In';btn.className='btn btn-danger';document.getElementById('auto-status').innerText='🔍 กำลังค้นหาใบหน้า...';}
+  else{btn.innerHTML='<span class="material-icons">play_arrow</span> เปิด Auto Check-In';btn.className='btn btn-success';stopAutoCheck();}
+}
+
+function startAutoCheck(id,name,cls) {
+  if(!AUTO_CHECK_MODE||LAST_DETECTED_ID===id) return;
+  LAST_DETECTED_ID=id;
+  var delay=(DATA.settings.autoCheckDelay||2000)/1000; AUTO_COUNTDOWN_VALUE=delay;
+  document.getElementById('auto-name').innerText=name; document.getElementById('auto-status').innerText='⏱️ กำลังนับถอยหลัง...';
+  if(AUTO_CHECK_TIMER) clearInterval(AUTO_CHECK_TIMER);
+  AUTO_CHECK_TIMER=setInterval(()=>{document.getElementById('auto-countdown').innerText=AUTO_COUNTDOWN_VALUE;if(AUTO_COUNTDOWN_VALUE--<0){clearInterval(AUTO_CHECK_TIMER);doAutoCheckIn(id,name,cls);}},1000);
+}
+
+function stopAutoCheck() {
+  if(AUTO_CHECK_TIMER){clearInterval(AUTO_CHECK_TIMER);AUTO_CHECK_TIMER=null;}
+  LAST_DETECTED_ID=null; var el=document.getElementById('auto-countdown'); if(el)el.innerText='-';
+}
+
+async function doAutoCheckIn(id,name,cls) {
+  var today=fmtDate(new Date());
+  if(DATA.attendance.find(r=>String(r.id)===String(id)&&r.date===today)){document.getElementById('auto-status').innerHTML=`✅ ${name} เช็คชื่อไปแล้ว`;setTimeout(()=>{stopAutoCheck();document.getElementById('auto-status').innerText='🔍 กำลังค้นหาใบหน้า...';},2000);return;}
+  document.getElementById('auto-status').innerHTML=`💾 กำลังบันทึก ${name}...`;
+  try { await api('saveCheckIn',{id,name,cls,status:'มาเรียน',targetDate:today}); document.getElementById('auto-status').innerHTML=`✅ บันทึก ${name} เรียบร้อย`; toast(`✅ Auto: ${name}`,'success'); refreshData(); setTimeout(()=>{stopAutoCheck();document.getElementById('auto-status').innerText='🔍 กำลังค้นหาใบหน้า...';},2000); } catch(e){}
+}
+
+async function manualCheck(st) {
+  var el=document.getElementById('ai-name');
+  var info=el.dataset.info?JSON.parse(el.dataset.info):null;
+  if(!info){toast('ยังไม่พบใบหน้า','error');return;}
+  var today=fmtDate(new Date());
+  if(DATA.attendance.find(r=>String(r.id)===String(info.id)&&r.date===today)){toast(`${info.name} เช็คชื่อไปแล้ว`,'warn');return;}
+  stopAutoCheck();
+  showLoader('บันทึก...');
+  try { var r=await api('saveCheckIn',{id:info.id,name:info.name,cls:info.cls,status:st,targetDate:today}); toast(`บันทึก ${info.name}: ${st}`,'success'); refreshData(); document.getElementById('ai-status').innerHTML=`<span style="color:var(--success);font-weight:700">✅ บันทึกแล้ว: ${st}</span>`; } catch(e){}
+  hideLoader();
+}
+
+// ============================================================
+//  REGISTER FACE
+// ============================================================
+function updateRegList(){fillRegSel('');}
+function filterRegList(){fillRegSel(document.getElementById('reg-search').value);}
+function fillRegSel(filter) {
+  var sel=document.getElementById('reg-sel'); sel.innerHTML='';
+  var list=FILTERED.length?FILTERED:DATA.students;
+  list.forEach(s=>{if(filter&&!s[1].includes(filter)&&!String(s[0]).includes(filter))return;var o=document.createElement('option');o.value=JSON.stringify({id:s[0],name:s[1],cls:s[2]});o.text=(s[3]?'✅ ':'⚪ ')+s[0]+' - '+s[1];sel.add(o);});
+}
+
+function switchRegMode(m,el) {
+  document.getElementById('reg-mode-cam').style.display=m==='cam'?'block':'none';
+  document.getElementById('reg-mode-file').style.display=m==='file'?'block':'none';
+  if(el){document.querySelectorAll('#reg .tab').forEach(e=>e.classList.remove('active'));el.classList.add('active');}
+  if(m==='cam')startCam('v-reg',false);else stopCam();
+}
+
+async function doReg() {
+  var val=document.getElementById('reg-sel').value; var obj=val?JSON.parse(val):null; if(!obj){toast('เลือกชื่อก่อน','error');return;}
+  var det=await faceapi.detectSingleFace(document.getElementById('v-reg'),new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+  if(!det){toast('ไม่พบใบหน้า','error');return;}
+  checkAndRegister(obj,document.getElementById('v-reg'),det);
+}
+
+async function doRegFile() {
+  var val=document.getElementById('reg-sel').value; var obj=val?JSON.parse(val):null; if(!obj){toast('เลือกชื่อก่อน','error');return;}
+  var f=document.getElementById('reg-file').files[0]; if(!f){toast('เลือกไฟล์ก่อน','error');return;}
+  var img=await faceapi.bufferToImage(f);
+  var det=await faceapi.detectSingleFace(img,new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+  if(!det){toast('ไม่พบใบหน้าในรูปภาพ','error');return;}
+  checkAndRegister(obj,img,det);
+}
+
+async function checkAndRegister(obj,src,det) {
+  showLoader('ตรวจสอบใบหน้าซ้ำ...');
+  try { var r=await api('checkDuplicateFace',{desc:Array.from(det.descriptor)}); hideLoader(); if(r.isDuplicate&&!confirm(`⚠️ พบใบหน้านี้แล้ว!\n${r.student.name}\nต้องการลงทะเบียนซ้ำ?`))return; sendReg(obj,src,det); } catch(e){hideLoader();}
+}
+
+async function sendReg(obj,src,det) {
+  var cvs=document.createElement('canvas'); cvs.width=src.videoWidth||src.width; cvs.height=src.videoHeight||src.height; cvs.getContext('2d').drawImage(src,0,0);
+  showLoader('บันทึกใบหน้า...');
+  try { var r=await api('registerFace',{id:obj.id,name:obj.name,cls:obj.cls,img64:cvs.toDataURL('image/jpeg',0.6),desc:Array.from(det.descriptor)}); toast(r.msg,r.success?'success':'error'); if(r.success)refreshData(); } catch(e){}
+  hideLoader();
+}
+
+// ============================================================
+//  SETTINGS
+// ============================================================
+async function saveSettingsData() {
+  var newUrl=document.getElementById('set-api-url').value.trim();
+  if(newUrl){ API_URL=newUrl; localStorage.setItem('gasApiUrl',newUrl); document.getElementById('api-setup-banner').style.display='none'; }
+  var settings={ schoolName:document.getElementById('set-school-name').value||'Smart School', autoCheckDelay:parseInt(document.getElementById('set-auto-delay').value)*1000, faceMatchThreshold:parseFloat(document.getElementById('set-match-threshold').value), autoRefreshInterval:parseInt(document.getElementById('set-refresh-interval').value) };
+  if(!API_URL){closeModal('settings-modal');return;}
+  showLoader('บันทึก...');
+  try { var r=await api('saveSettings',{settings}); toast(r.msg,r.success?'success':'error'); if(r.success){closeModal('settings-modal');startAutoRefresh();refreshData();} } catch(e){}
+  hideLoader();
+}
+
+// ============================================================
+//  ADMIN
+// ============================================================
+var ADMIN_SESSION=false;
+
+async function doAdminLogin() {
+  var pass=document.getElementById('admin-login-pass').value;
+  var errEl=document.getElementById('admin-login-error'); errEl.style.display='none';
+  showLoader('ตรวจสอบ...');
+  try {
+    var r=await api('verifyAdminPassword',{password:pass}); hideLoader();
+    if(r.success){ ADMIN_SESSION=true; document.getElementById('admin-login-gate').style.display='none'; document.getElementById('admin-content').style.display='block'; document.getElementById('admin-login-pass').value=''; toast('เข้าสู่ระบบ Admin สำเร็จ','success'); loadHealthCheck(); loadAdminLog(); }
+    else { errEl.style.display='block'; document.getElementById('admin-login-pass').value=''; }
+  } catch(e){ hideLoader(); }
+}
+
+function doAdminLogout() {
+  ADMIN_SESSION=false; document.getElementById('admin-login-gate').style.display='block'; document.getElementById('admin-content').style.display='none'; document.getElementById('admin-login-pass').value=''; toast('ออกจากระบบแล้ว','info');
+}
+
+async function loadHealthCheck() {
+  document.getElementById('health-panel').innerHTML='<div style="text-align:center;padding:24px"><div class="loader-spinner" style="margin:0 auto"></div></div>';
+  try {
+    var h=await api('checkSystemHealth');
+    var col={healthy:'var(--success)',warning:'var(--warn)',error:'var(--danger)'}[h.status]||'var(--txt2)';
+    document.getElementById('health-panel').innerHTML=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px"><div style="text-align:center;padding:12px;background:var(--bg);border-radius:8px"><div style="font-size:1.5rem;font-weight:800">${h.students}</div><div style="font-size:0.78rem;color:var(--txt2)">นักเรียน</div></div><div style="text-align:center;padding:12px;background:var(--bg);border-radius:8px"><div style="font-size:1.5rem;font-weight:800">${h.attendance}</div><div style="font-size:0.78rem;color:var(--txt2)">บันทึกเช็คชื่อ</div></div><div style="text-align:center;padding:12px;background:var(--bg);border-radius:8px"><div style="font-size:1.5rem;font-weight:800;color:${col}">${{healthy:'✅',warning:'⚠️',error:'❌'}[h.status]||'?'}</div><div style="font-size:0.78rem;color:var(--txt2)">สถานะ</div></div></div>${h.warnings&&h.warnings.length?`<div style="background:#fef9c3;padding:10px;border-radius:8px;font-size:0.82rem">${h.warnings.map(w=>`⚠️ ${w}`).join('<br>')}</div>`:''}<div style="font-size:0.78rem;color:var(--txt2);margin-top:8px">อัพเดต: ${new Date().toLocaleTimeString('th-TH')}</div>`;
+  } catch(e){document.getElementById('health-panel').innerHTML=`<div style="color:var(--danger)">❌ ไม่สามารถตรวจสอบได้</div>`;}
+}
+
+async function doBackup() {
+  if(!confirm('สำรองข้อมูลไปยัง Google Drive?')) return;
+  showLoader('กำลัง Backup...');
+  try { var r=await api('backupData'); toast(r.msg,r.success?'success':'error'); } catch(e){}
+  hideLoader();
+}
+
+async function doArchive() {
+  var days=prompt('Archive ข้อมูลเก่ากว่ากี่วัน?','365'); if(!days) return;
+  var n=parseInt(days); if(isNaN(n)||n<1){toast('ตัวเลขไม่ถูกต้อง','error');return;}
+  if(!confirm(`Archive ข้อมูลเก่ากว่า ${n} วัน?\n✅ ข้อมูลจะถูกย้าย ไม่ถูกลบ`)) return;
+  showLoader('กำลัง Archive...');
+  try { var r=await api('archiveOldData',{days:n}); toast(r.msg,r.success?'success':'error'); if(r.success)refreshData(); } catch(e){}
+  hideLoader();
+}
+
+async function cleanupSystem(days) {
+  if(!confirm(`ลบข้อมูลเก่ากว่า ${days} วัน?\n⚠️ ไม่สามารถกู้คืนได้`)) return;
+  showLoader('กำลังลบ...');
+  try { var r=await api('cleanupCustom',{days}); toast(r.msg,r.success?'success':'error'); if(r.success)refreshData(); } catch(e){}
+  hideLoader();
+}
+
+function cleanupCustomDialog(){var d=prompt('ลบข้อมูลเก่ากว่ากี่วัน?','365');if(d)cleanupSystem(parseInt(d));}
+async function cleanupByClassDialog(){var cls=prompt('ลบข้อมูลของห้องเรียนใด?');if(!cls)return;if(!confirm(`ยืนยันลบห้อง ${cls}?`))return;showLoader('ลบ...');try{var r=await api('deleteByClass',{className:cls});toast(r.msg,r.success?'success':'error');if(r.success)refreshData();}catch(e){}hideLoader();}
+
+async function exportData() {
+  toast('กำลัง Export...','info'); showLoader('Export...');
+  try { var r=await api('exportToCSV'); hideLoader(); if(r.success){toast('Export สำเร็จ','success');if(r.url)window.open(r.url,'_blank');}else toast(r.msg,'error'); } catch(e){hideLoader();}
+}
+
+async function changeAdminPassword() {
+  var np=document.getElementById('new-pass').value, cp=document.getElementById('confirm-pass').value;
+  if(!np||np.length<6){toast('รหัสผ่านต้องมีอย่างน้อย 6 ตัว','error');return;}
+  if(np!==cp){toast('รหัสผ่านไม่ตรงกัน','error');return;}
+  showLoader('บันทึก...');
+  try { var r=await api('saveAdminPassword',{password:np}); toast(r.msg,r.success?'success':'error'); if(r.success){closeModal('change-password-modal');document.getElementById('new-pass').value='';document.getElementById('confirm-pass').value='';} } catch(e){}
+  hideLoader();
+}
+
+async function loadAdminLog() {
+  try {
+    var logs=await api('getActivityLog');
+    var el=document.getElementById('activity-log'); if(!el) return;
+    if(!logs||!logs.length){el.innerHTML='<div class="empty-state"><span class="material-icons">article</span><p>ยังไม่มี log</p></div>';return;}
+    el.innerHTML=logs.map(l=>`<div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);align-items:flex-start;"><span style="color:var(--txt2);min-width:130px;font-size:0.78rem;flex-shrink:0">${l.time}</span><span style="font-weight:600;min-width:80px;font-size:0.8rem;color:var(--p)">${l.action}</span><span style="font-size:0.82rem">${l.detail}</span></div>`).join('');
+  } catch(e){}
+}
+
+// ============================================================
+//  STUDENT VIEW
+// ============================================================
+function loadStudentView() {
+  var id=document.getElementById('sv-student-id').value.trim(); if(!id){toast('กรอกรหัสก่อน','error');return;}
+  var stu=DATA.students.find(s=>String(s[0])===String(id)); if(!stu){toast('ไม่พบรหัสนักเรียนนี้','error');return;}
+  document.getElementById('sv-name').innerText=stu[1]; document.getElementById('sv-cls').innerText='ห้อง '+stu[2]; document.getElementById('sv-avatar').innerText=stu[1].charAt(0)||'👤';
+  var today=new Date(), thirtyAgo=new Date(today); thirtyAgo.setDate(today.getDate()-30);
+  var hist=DATA.attendance.filter(r=>String(r.id)===String(id)&&r.date>=fmtDate(thirtyAgo)&&r.date<=fmtDate(today));
+  var p=0,l=0,a=0,s=0,lev=0;
+  hist.forEach(h=>{if(h.status==='มาเรียน')p++;else if(h.status==='สาย')l++;else if(h.status==='ป่วย')s++;else if(h.status==='ลา')lev++;else a++;});
+  var total=p+l+s+lev+a, pct=total>0?Math.round((p+l)/total*100):0;
+  document.getElementById('sv-p').innerText=p; document.getElementById('sv-l').innerText=l; document.getElementById('sv-a').innerText=a+s+lev; document.getElementById('sv-pct').innerText=pct+'%'; document.getElementById('sv-pct-label').innerText=pct+'%';
+  var pb=document.getElementById('sv-progress'); pb.style.width=pct+'%'; pb.style.background=pct>=80?'var(--success)':pct>=60?'var(--warn)':'var(--danger)';
+  var rows=hist.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(h=>{var bc={มาเรียน:'badge-present',สาย:'badge-late',ป่วย:'badge-sick',ลา:'badge-leave',ขาด:'badge-absent'}[h.status]||'badge-absent';return`<tr><td>${thaiDate(h.date,false)}</td><td>${h.time} น.</td><td><span class="badge ${bc}">${h.status}</span></td></tr>`;}).join('');
+  document.getElementById('sv-history-table').innerHTML='<tr><th>วันที่</th><th>เวลา</th><th>สถานะ</th></tr>'+(rows||'<tr><td colspan="3" style="text-align:center;padding:24px;color:var(--txt2)">ไม่มีข้อมูล</td></tr>');
+  document.getElementById('sv-content').style.display='block';
+}
+
+// ============================================================
+//  NAVIGATION
+// ============================================================
+var pageTitles={dash:'📝 เช็คชื่อรายวัน',check:'📸 สแกนใบหน้า AI',report:'📊 สรุปและรายงาน',calendar:'📅 ปฏิทินการเรียน',students:'👥 รายชื่อนักเรียน',reg:'📷 ลงทะเบียนใบหน้า',admin:'🛡️ จัดการระบบ (Admin)','student-view':'👤 ดูข้อมูลนักเรียน'};
+
+function go(p,navEl) {
+  stopCam();
+  document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+  document.getElementById(p).classList.add('active');
+  if(navEl) navEl.classList.add('active');
+  document.getElementById('page-title').innerText=pageTitles[p]||p;
+  var dp=document.getElementById('dash-date-picker');
+  dp.style.display=p==='dash'?'':'none';
+  document.querySelector('.topbar-actions .btn-ghost').style.display=p==='dash'?'':'none';
+  if(p==='check') startCam('v-check',true);
+  if(p==='reg'){updateRegList();}
+  if(p==='report') switchReport('history',document.querySelector('#report-tabs .tab'));
+  if(p==='students') switchStudentTab('single',document.querySelector('#students .tab'));
+  if(p==='calendar') renderCalendar();
+  if(p==='admin'&&!ADMIN_SESSION){setTimeout(()=>{document.getElementById('admin-login-gate').style.display='block';document.getElementById('admin-content').style.display='none';},50);}
+  if(window.innerWidth<=1024) closeSidebar();
+}
+</script>
 </body>
 </html>
