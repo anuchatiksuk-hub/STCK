@@ -8,6 +8,7 @@
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
       --p: #1e40af; --p2: #3b82f6; --p-light: #eff6ff;
@@ -238,6 +239,7 @@
     <div class="brand-text"><h1 id="school-name-display">Smart School</h1><p>ระบบจัดการโรงเรียน v3.0</p></div>
     <span class="material-icons settings-icon">settings</span>
   </div>
+  <div id="ss-user-badge-slot" style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.06)"></div>
   <div class="sidebar-class-select">
     <label>ห้องเรียน</label>
     <select id="cls-filter" onchange="applyFilter()"><option value="ALL">ทุกห้องเรียน</option></select>
@@ -609,6 +611,7 @@ setVH(); window.addEventListener('resize', setVH); window.addEventListener('orie
 //  INIT
 // ============================================================
 window.onload = async () => {
+  // ── โหลด AI models ก่อน ──
   showLoader('⏳ กำลังโหลด AI...');
   checkResponsive();
   window.addEventListener('resize', checkResponsive);
@@ -619,10 +622,41 @@ window.onload = async () => {
       faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
     ]);
   } catch(e) { toast('โหลด AI ไม่สำเร็จ กรุณารีเฟรช', 'error'); }
+  hideLoader();
+
   var now = new Date(); CAL_YEAR=now.getFullYear(); CAL_MONTH=now.getMonth();
   setToday();
-  if (!API_URL) { document.getElementById('api-setup-banner').style.display='block'; updateStatus('offline','ยังไม่ได้ตั้งค่า URL'); hideLoader(); return; }
-  refreshData();
+
+  // ── เริ่ม Auth ──
+  // ตั้งค่าอีเมล admin ที่จะแสดงในหน้า "ไม่มีสิทธิ์"
+  if (typeof SmartAuth !== 'undefined') {
+    SmartAuth._adminContact = 'admin@school.th'; // ← เปลี่ยนเป็นอีเมลจริง
+
+    SmartAuth.init({
+      apiUrl:   localStorage.getItem('gasApiUrl') || '',
+      clientId: '',  // ← วาง Google OAuth Client ID ตรงนี้ (ถ้ามี)
+                     //   เช่น '123456789-xxx.apps.googleusercontent.com'
+                     //   ถ้าว่างไว้ = ใช้ Demo mode อย่างเดียว
+      onLogin: async (user) => {
+        // login สำเร็จ — โหลดข้อมูลหลัก
+        API_URL = localStorage.getItem('gasApiUrl') || '';
+        SmartAuth.applyRoleUI();
+        if (!API_URL) {
+          document.getElementById('api-setup-banner').style.display = 'block';
+          updateStatus('offline', 'ยังไม่ได้ตั้งค่า URL');
+          return;
+        }
+        refreshData();
+      },
+      onLogout: () => {
+        DATA = { students:[], attendance:[], settings:{}, calendarEvents:[] };
+      },
+    });
+  } else {
+    // auth.js โหลดไม่สำเร็จ — fallback ทำงานแบบเดิม
+    if (!API_URL) { document.getElementById('api-setup-banner').style.display='block'; updateStatus('offline','ยังไม่ได้ตั้งค่า URL'); return; }
+    refreshData();
+  }
 };
 
 function checkResponsive() {
@@ -1314,5 +1348,6 @@ function go(p,navEl) {
   if(window.innerWidth<=1024) closeSidebar();
 }
 </script>
+<script src="auth.js"></script>
 </body>
 </html>
