@@ -212,17 +212,24 @@
       .btn-text-hide { display: none; }
     }
     @media print {
-      @page { size: A4; margin: 1.5cm; }
-      body { background: white; overflow: visible; }
-      .sidebar, .topbar, .btn, .tabs, .no-print, #toast-container, #loader { display: none !important; }
-      .main { overflow: visible; }
-      .content { padding: 0; overflow: visible; }
-      .page { display: block !important; }
-      .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
+      @page { size: A4 portrait; margin: 1.5cm 1.2cm; }
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      body { background: white !important; overflow: visible !important; display: block !important; font-size: 9pt; }
+      .sidebar, .topbar, .btn, .tabs, .no-print, #toast-container, #loader,
+      #report-tabs, #rep-date-range, #term-selector, .report-actions,
+      .sidebar-overlay { display: none !important; }
+      .main { overflow: visible !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+      .content { padding: 0 !important; overflow: visible !important; height: auto !important; }
+      .page { display: block !important; padding: 0 !important; }
+      .card { box-shadow: none !important; border: 1px solid #ccc !important; break-inside: avoid !important; page-break-inside: avoid !important; margin-bottom: 12px !important; }
+      table { border-collapse: collapse !important; width: 100% !important; border: 1px solid #999 !important; }
+      thead { display: table-header-group !important; }
+      tr { break-inside: avoid !important; page-break-inside: avoid !important; }
+      th, td { border: 1px solid #bbb !important; padding: 4px 6px !important; font-size: 8.5pt !important; }
+      th { background: #1e40af !important; color: white !important; font-weight: 700 !important; }
+      .print-header { display: block !important; text-align: center; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 2px solid #1e40af; page-break-after: avoid !important; }
       .print-only { display: block !important; }
-      table { border: 1px solid #ccc; }
-      th, td { border: 1px solid #ccc; padding: 6px 8px; font-size: 9pt; }
-      .print-header { display: block !important; text-align: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #333; }
+      .school-days-box { break-inside: avoid !important; page-break-inside: avoid !important; }
     }
     .print-header, .print-only { display: none; }
   </style>
@@ -370,11 +377,11 @@
         <div class="card-title" id="hist-title" style="margin-bottom:12px">ประวัติการมาเรียน</div>
         <div style="overflow-x:auto"><table id="tb-rep-history"></table></div>
       </div>
-      <div id="rep-summary" class="card" style="display:none"><div style="overflow-x:auto"><table id="tb-rep-sum"></table></div></div>
+      <div id="rep-summary" class="card" style="display:none"><div id="sum-days-box"></div><div style="overflow-x:auto"><table id="tb-rep-sum"></table></div></div>
       <div id="rep-daily" class="card" style="display:none"><div class="card-title" id="daily-title" style="margin-bottom:12px"></div><div style="overflow-x:auto"><table id="tb-rep-daily"></table></div></div>
-      <div id="rep-weekly" class="card" style="display:none"><div class="card-title" id="weekly-title" style="margin-bottom:12px"></div><div style="overflow-x:auto"><table id="tb-rep-weekly"></table></div></div>
-      <div id="rep-monthly" class="card" style="display:none"><div class="card-title" id="monthly-title" style="margin-bottom:12px"></div><div style="overflow-x:auto"><table id="tb-rep-monthly"></table></div></div>
-      <div id="rep-term" class="card" style="display:none"><div class="card-title" id="term-title" style="margin-bottom:12px"></div><div style="overflow-x:auto"><table id="tb-rep-term"></table></div></div>
+      <div id="rep-weekly" class="card" style="display:none"><div class="card-title" id="weekly-title" style="margin-bottom:12px"></div><div id="weekly-days-box"></div><div style="overflow-x:auto"><table id="tb-rep-weekly"></table></div></div>
+      <div id="rep-monthly" class="card" style="display:none"><div class="card-title" id="monthly-title" style="margin-bottom:12px"></div><div id="monthly-days-box"></div><div style="overflow-x:auto"><table id="tb-rep-monthly"></table></div></div>
+      <div id="rep-term" class="card" style="display:none"><div class="card-title" id="term-title" style="margin-bottom:12px"></div><div id="term-days-box"></div><div style="overflow-x:auto"><table id="tb-rep-term"></table></div></div>
       <div class="print-only" style="margin-top:60px"><div style="display:flex; justify-content:space-around; margin-top:40px"><div style="text-align:center; width:180px"><p style="margin-bottom:60px">ลงชื่อ ................................................</p><p>(................................................)</p><p style="margin-top:4px">ครูประจำชั้น</p></div><div style="text-align:center; width:180px"><p style="margin-bottom:60px">ลงชื่อ ................................................</p><p>(................................................)</p><p style="margin-top:4px">หัวหน้าฝ่ายวิชาการ</p></div></div></div>
     </div>
 
@@ -847,6 +854,50 @@ function updateHistorySelect() { var sel=document.getElementById('rep-hist-sel')
 
 function getAtt(startDate,endDate) { return DATA.attendance.filter(x=>x.date>=startDate&&x.date<=endDate); }
 
+// ============================================================
+//  คำนวณ "วันเรียนจริง" จากปฏิทินในระบบ
+//  - ลบ เสาร์/อาทิตย์
+//  - ลบ วันหยุดนักขัตฤกษ์ (THAI_HOLIDAYS)
+//  - ลบ วันหยุดพิเศษ (type=holiday ใน Calendar)
+//  - บวก วันเปิดเรียนพิเศษ (type=special-open ใน Calendar)
+// ============================================================
+function getSchoolDays(startDate, endDate) {
+  var cur = new Date(startDate + 'T00:00:00');
+  var end = new Date(endDate + 'T00:00:00');
+  var customEvents = DATA.calendarEvents || [];
+  var schoolDays = [];
+  while (cur <= end) {
+    var ds = fmtDate(cur);
+    var dow = cur.getDay(); // 0=อาทิตย์ 6=เสาร์
+    var isWeekend = (dow === 0 || dow === 6);
+    var isNatHoliday = !!THAI_HOLIDAYS_2025[ds];
+    var customHoliday = customEvents.find(e => e.date === ds && e.type === 'holiday');
+    var specialOpen  = customEvents.find(e => e.date === ds && e.type === 'special-open');
+    // วันเรียน = (ไม่ใช่วันหยุดทุกประเภท) หรือ (เปิดพิเศษแม้เสาร์/อาทิตย์/หยุด)
+    var isSchoolDay = (!isWeekend && !isNatHoliday && !customHoliday) || !!specialOpen;
+    if (isSchoolDay) schoolDays.push(ds);
+    cur.setDate(cur.getDate() + 1);
+  }
+  return schoolDays;
+}
+
+// แสดง school-days info box เหนือตาราง
+function renderSchoolDaysBox(containerId, startDate, endDate) {
+  var days = getSchoolDays(startDate, endDate);
+  var customEvents = DATA.calendarEvents || [];
+  var holidays = customEvents.filter(e => e.date >= startDate && e.date <= endDate && e.type === 'holiday');
+  var specials  = customEvents.filter(e => e.date >= startDate && e.date <= endDate && e.type === 'special-open');
+  var el = document.getElementById(containerId);
+  if (!el) return days;
+  el.innerHTML = `<div class="school-days-box" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;padding:12px 16px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;font-size:0.82rem">
+    <span>📅 <strong>วันเรียนจริง: ${days.length} วัน</strong></span>
+    <span style="color:#64748b">| หยุดพิเศษ: ${holidays.length} วัน</span>
+    <span style="color:#16a34a">| เปิดพิเศษ: ${specials.length} วัน</span>
+    <span style="color:#94a3b8;font-size:0.75rem">(ลบ เสาร์-อาทิตย์ + วันหยุดราชการ + ปฏิทินโรงเรียน)</span>
+  </div>`;
+  return days;
+}
+
 function renderHistoryTable() {
   var id=document.getElementById('rep-hist-sel').value; if(!id) return;
   var stu=FILTERED.find(s=>String(s[0])===String(id)); if(!stu) return;
@@ -857,13 +908,34 @@ function renderHistoryTable() {
   document.getElementById('tb-rep-history').innerHTML='<tr><th>วันที่</th><th>เวลา</th><th>สถานะ</th></tr>'+rows;
 }
 
-function buildSummaryRows(s,e) { return FILTERED.map(st=>{var id=String(st[0]),stats={p:0,l:0,s:0,lev:0,a:0};getAtt(s,e).forEach(x=>{if(String(x.id)===id){if(x.status==='มาเรียน')stats.p++;else if(x.status==='สาย')stats.l++;else if(x.status==='ป่วย')stats.s++;else if(x.status==='ลา')stats.lev++;else stats.a++;}});return{name:st[1],cls:st[2],...stats};}); }
+function buildSummaryRows(s,e) {
+  return FILTERED.map(st=>{
+    var id=String(st[0]),stats={p:0,l:0,sk:0,lev:0,a:0};
+    getAtt(s,e).forEach(x=>{
+      if(String(x.id)===id){
+        if(x.status==='มาเรียน')stats.p++;
+        else if(x.status==='สาย')stats.l++;
+        else if(x.status==='ป่วย')stats.sk++;
+        else if(x.status==='ลา')stats.lev++;
+        else stats.a++;
+      }
+    });
+    return{name:st[1],cls:st[2],...stats};
+  });
+}
 
 function renderSummaryReport() {
   var s=document.getElementById('rep-date-start').value,e=document.getElementById('rep-date-end').value;
   document.getElementById('print-report-title').innerText='สรุปยอดรวม';
-  var rows=buildSummaryRows(s,e).map(r=>`<tr><td>${r.name}</td><td style="text-align:center">${r.p}</td><td style="text-align:center">${r.l}</td><td style="text-align:center">${r.s}</td><td style="text-align:center">${r.lev}</td><td style="text-align:center;color:var(--danger)">${r.a}</td><td style="text-align:center;font-weight:700">${r.p+r.l}</td></tr>`).join('');
-  document.getElementById('tb-rep-sum').innerHTML='<tr><th>ชื่อ</th><th>มา</th><th>สาย</th><th>ป่วย</th><th>ลา</th><th>ขาด</th><th>รวมมา</th></tr>'+rows;
+  var schoolDays = renderSchoolDaysBox('sum-days-box', s, e);
+  var totalDays = schoolDays.length || 1;
+  var rows=buildSummaryRows(s,e).map(r=>{
+    var attend=r.p+r.l;
+    var pct=(attend/totalDays*100).toFixed(1);
+    var col=pct>=80?'var(--success)':pct>=60?'var(--warn)':'var(--danger)';
+    return`<tr><td>${r.name}</td><td>${r.cls}</td><td style="text-align:center">${r.p}</td><td style="text-align:center">${r.l}</td><td style="text-align:center">${r.sk}</td><td style="text-align:center">${r.lev}</td><td style="text-align:center;color:var(--danger)">${r.a}</td><td style="text-align:center;font-weight:800;color:${col}">${pct}%</td></tr>`;
+  }).join('');
+  document.getElementById('tb-rep-sum').innerHTML='<tr><th>ชื่อ</th><th>ห้อง</th><th>มา</th><th>สาย</th><th>ป่วย</th><th>ลา</th><th>ขาด</th><th>%มา</th></tr>'+rows;
 }
 
 function renderDailyReport() {
@@ -877,10 +949,23 @@ function renderDailyReport() {
 function renderWeeklyReport() {
   var sd=document.getElementById('rep-date-start').value,ed=document.getElementById('rep-date-end').value;
   document.getElementById('weekly-title').innerText=`รายสัปดาห์ ${thaiDate(sd,false)} - ${thaiDate(ed,false)}`;
-  var dates=[],cur=new Date(sd),end=new Date(ed);
-  while(cur<=end){dates.push(fmtDate(cur));cur.setDate(cur.getDate()+1);}
-  var hdr='<tr><th>ชื่อ</th>'+dates.map(d=>`<th>${new Date(d).getDate()}</th>`).join('')+'</tr>';
-  var rows=FILTERED.map(s=>{var cells=dates.map(date=>{var rec=DATA.attendance.find(r=>String(r.id)===String(s[0])&&r.date===date);var st=rec?rec.status:'-';var col={มาเรียน:'var(--success)',สาย:'var(--warn)',ขาด:'var(--danger)'}[st]||'var(--txt2)';var sh={มาเรียน:'มา',สาย:'สาย',ป่วย:'ป่วย',ลา:'ลา',ขาด:'ขาด'}[st]||'-';return`<td style="text-align:center;color:${col};font-weight:${st!=='-'?'600':'400'}">${sh}</td>`;}).join('');return`<tr><td>${s[1]}</td>${cells}</tr>`;}).join('');
+  // แสดงเฉพาะวันเรียนจริง ไม่แสดงเสาร์/อาทิตย์/หยุด
+  var schoolDays = getSchoolDays(sd, ed);
+  renderSchoolDaysBox('weekly-days-box', sd, ed);
+  var hdr='<tr><th>ชื่อ</th>'+schoolDays.map(d=>{var dt=new Date(d);return`<th style="white-space:nowrap">${['อา','จ','อ','พ','พฤ','ศ','ส'][dt.getDay()]} ${dt.getDate()}</th>`;}).join('')+'<th>%มา</th></tr>';
+  var rows=FILTERED.map(s=>{
+    var present=0;
+    var cells=schoolDays.map(date=>{
+      var rec=DATA.attendance.find(r=>String(r.id)===String(s[0])&&r.date===date);
+      var st=rec?rec.status:'-';
+      if(st==='มาเรียน'||st==='สาย') present++;
+      var col={มาเรียน:'var(--success)',สาย:'var(--warn)',ขาด:'var(--danger)'}[st]||'var(--txt2)';
+      var sh={มาเรียน:'มา',สาย:'สาย',ป่วย:'ป่วย',ลา:'ลา',ขาด:'ขาด'}[st]||'-';
+      return`<td style="text-align:center;color:${col};font-weight:${st!=='-'?'600':'400'}">${sh}</td>`;
+    }).join('');
+    var pct=schoolDays.length>0?(present/schoolDays.length*100).toFixed(0)+'%':'-%';
+    return`<tr><td>${s[1]}</td>${cells}<td style="text-align:center;font-weight:800">${pct}</td></tr>`;
+  }).join('');
   document.getElementById('tb-rep-weekly').innerHTML=hdr+rows;
 }
 
@@ -888,15 +973,30 @@ function renderMonthlyReport() {
   var s=document.getElementById('rep-date-start').value,e=document.getElementById('rep-date-end').value;
   var sd=new Date(s); var months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']; var mn=months[sd.getMonth()]+' '+(sd.getFullYear()+543);
   document.getElementById('monthly-title').innerText='รายงานเดือน '+mn; document.getElementById('print-report-title').innerText='รายงานเดือน '+mn;
-  var rows=buildSummaryRows(s,e).map(r=>{var tot=r.p+r.l+r.s+r.lev+r.a,pct=tot>0?((r.p+r.l)/tot*100).toFixed(1):0;var col=pct>=80?'var(--success)':pct>=60?'var(--warn)':'var(--danger)';return`<tr><td>${r.name}</td><td style="text-align:center">${r.p}</td><td style="text-align:center">${r.l}</td><td style="text-align:center">${r.s}</td><td style="text-align:center">${r.lev}</td><td style="text-align:center;color:var(--danger)">${r.a}</td><td style="text-align:center;font-weight:700">${tot}</td><td style="text-align:center;font-weight:800;color:${col}">${pct}%</td></tr>`;}).join('');
-  document.getElementById('tb-rep-monthly').innerHTML='<tr><th>ชื่อ</th><th>มา</th><th>สาย</th><th>ป่วย</th><th>ลา</th><th>ขาด</th><th>รวม</th><th>%มา</th></tr>'+rows;
+  var schoolDays = renderSchoolDaysBox('monthly-days-box', s, e);
+  var totalDays = schoolDays.length || 1;
+  var rows=buildSummaryRows(s,e).map(r=>{
+    var attend=r.p+r.l;
+    var pct=(attend/totalDays*100).toFixed(1);
+    var col=pct>=80?'var(--success)':pct>=60?'var(--warn)':'var(--danger)';
+    return`<tr><td>${r.name}</td><td>${r.cls}</td><td style="text-align:center">${r.p}</td><td style="text-align:center">${r.l}</td><td style="text-align:center">${r.sk}</td><td style="text-align:center">${r.lev}</td><td style="text-align:center;color:var(--danger)">${r.a}</td><td style="text-align:center;font-weight:700">${totalDays}</td><td style="text-align:center;font-weight:800;color:${col}">${pct}%</td></tr>`;
+  }).join('');
+  document.getElementById('tb-rep-monthly').innerHTML='<tr><th>ชื่อ</th><th>ห้อง</th><th>มา</th><th>สาย</th><th>ป่วย</th><th>ลา</th><th>ขาด</th><th>วันเรียน</th><th>%มา</th></tr>'+rows;
 }
 
 function renderTermReport() {
   var s=document.getElementById('rep-date-start').value,e=document.getElementById('rep-date-end').value;
   document.getElementById('term-title').innerText=`รายงานรายเทอม (${thaiDate(s,false)} - ${thaiDate(e,false)})`; document.getElementById('print-report-title').innerText='รายงานรายเทอม';
-  var rows=buildSummaryRows(s,e).map(r=>{var tot=r.p+r.l+r.s+r.lev+r.a,pct=tot>0?((r.p+r.l)/tot*100).toFixed(1):0;var grade=pct>=80?'✅ ดีมาก':pct>=60?'⚠️ ปานกลาง':'❌ ต้องปรับปรุง';var col=pct>=80?'var(--success)':pct>=60?'var(--warn)':'var(--danger)';return`<tr><td>${r.name}</td><td style="text-align:center">${r.p}</td><td style="text-align:center">${r.l}</td><td style="text-align:center">${r.s}</td><td style="text-align:center">${r.lev}</td><td style="text-align:center;color:var(--danger)">${r.a}</td><td style="text-align:center">${tot}</td><td style="text-align:center;font-weight:800;color:${col}">${pct}%</td><td style="font-weight:700;color:${col}">${grade}</td></tr>`;}).join('');
-  document.getElementById('tb-rep-term').innerHTML='<tr><th>ชื่อ</th><th>มา</th><th>สาย</th><th>ป่วย</th><th>ลา</th><th>ขาด</th><th>รวม</th><th>%มา</th><th>ผล</th></tr>'+rows;
+  var schoolDays = renderSchoolDaysBox('term-days-box', s, e);
+  var totalDays = schoolDays.length || 1;
+  var rows=buildSummaryRows(s,e).map(r=>{
+    var attend=r.p+r.l;
+    var pct=(attend/totalDays*100).toFixed(1);
+    var grade=pct>=80?'✅ ผ่าน':pct>=60?'⚠️ เสี่ยง':'❌ ไม่ผ่าน';
+    var col=pct>=80?'var(--success)':pct>=60?'var(--warn)':'var(--danger)';
+    return`<tr><td>${r.name}</td><td>${r.cls}</td><td style="text-align:center">${r.p}</td><td style="text-align:center">${r.l}</td><td style="text-align:center">${r.sk}</td><td style="text-align:center">${r.lev}</td><td style="text-align:center;color:var(--danger)">${r.a}</td><td style="text-align:center">${totalDays}</td><td style="text-align:center;font-weight:800;color:${col}">${pct}%</td><td style="font-weight:700;color:${col}">${grade}</td></tr>`;
+  }).join('');
+  document.getElementById('tb-rep-term').innerHTML='<tr><th>ชื่อ</th><th>ห้อง</th><th>มา</th><th>สาย</th><th>ป่วย</th><th>ลา</th><th>ขาด</th><th>วันเรียน</th><th>%มา</th><th>ผล</th></tr>'+rows;
 }
 
 // ============================================================
