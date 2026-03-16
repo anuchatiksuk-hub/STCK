@@ -7,7 +7,7 @@
 <title id="page-title-meta">Smart School V3.1</title>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
-<script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 <style>
 :root{
   --ink:#0a0f1e;--ink2:#3d4460;--ink3:#8890aa;
@@ -159,7 +159,7 @@ tr:last-child td{border-bottom:none;}
 .modal-footer{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:7px;justify-content:flex-end;flex-wrap:wrap;}
 
 /* ─ LOADER/TOAST ─ */
-#loader{position:fixed;inset:0;background:rgba(255,255,255,0.9);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;backdrop-filter:blur(6px);}
+#loader{position:fixed;inset:0;background:rgba(255,255,255,0.96);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;backdrop-filter:blur(8px);}
 .spin{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.75s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 #loader p{color:var(--ink2);font-weight:600;font-size:0.875rem;}
@@ -291,7 +291,20 @@ body[data-theme="amber"]{--accent:#d97706;}
 </head>
 <body data-theme="blue">
 
-<div id="loader"><div class="spin"></div><p id="load-txt">กำลังโหลดระบบ...</p></div>
+<div id="loader">
+  <div style="text-align:center;max-width:300px;width:100%;padding:0 20px;">
+    <div style="width:52px;height:52px;margin:0 auto 16px;position:relative;">
+      <div class="spin" style="position:absolute;inset:0;width:52px;height:52px;border-width:4px;"></div>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px;">🏫</div>
+    </div>
+    <div style="font-weight:800;font-size:1rem;color:#0a0f1e;margin-bottom:6px;" id="load-title">Smart School V3.1</div>
+    <p id="load-txt" style="color:#3d4460;font-size:0.82rem;margin-bottom:14px;">กำลังโหลดระบบ...</p>
+    <div style="background:#e4e8f4;border-radius:99px;height:5px;overflow:hidden;margin-bottom:14px;">
+      <div id="load-bar" style="height:100%;border-radius:99px;background:#2563ff;width:10%;transition:width 0.5s ease;"></div>
+    </div>
+    <button id="load-skip-btn" onclick="skipAILoad()" style="display:none;background:transparent;border:1px solid #e4e8f4;color:#8890aa;padding:6px 14px;border-radius:7px;cursor:pointer;font-size:0.75rem;font-family:inherit;">ข้ามการโหลด AI (ใช้งานระบบอื่นได้)</button>
+  </div>
+</div>
 <div id="toast-container"></div>
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
@@ -877,23 +890,101 @@ var EDIT_STATUS_PENDING = null;
 // ═══════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════
+var AI_READY = false;
+
+// Wait for faceapi to be available (poll up to 8s)
+function waitForFaceApi(timeout) {
+  return new Promise((resolve) => {
+    if (typeof faceapi !== 'undefined') { resolve(true); return; }
+    var start = Date.now();
+    var t = setInterval(() => {
+      if (typeof faceapi !== 'undefined') { clearInterval(t); resolve(true); }
+      else if (Date.now() - start > (timeout || 8000)) { clearInterval(t); resolve(false); }
+    }, 100);
+  });
+}
+
+// Load AI models with per-step timeout
+async function loadAIModels() {
+  var steps = [
+    { name:'TinyFaceDetector', fn: () => faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL) },
+    { name:'FaceLandmark68',   fn: () => faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL) },
+    { name:'FaceRecognition',  fn: () => faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL) }
+  ];
+  for (var i = 0; i < steps.length; i++) {
+    if (_skipAI) throw new Error('skipped');
+    var step = steps[i];
+    var pct = 30 + (i * 22);
+    setLoadProgress(pct, `⏳ โหลด AI model (${i+1}/${steps.length}): ${step.name}`);
+    try {
+      await Promise.race([
+        step.fn(),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 25000))
+      ]);
+    } catch(e) {
+      if (e.message === 'skipped') throw e;
+      console.warn('AI model load failed:', step.name, e.message);
+      throw e;
+    }
+  }
+  setLoadProgress(95, '✅ โหลด AI สำเร็จ!');
+  await new Promise(r => setTimeout(r, 400));
+}
+
 window.onload = async () => {
   loadLocalSettings();
   checkResponsive();
   window.addEventListener('resize', checkResponsive);
-  showLoader('⏳ กำลังโหลด AI...');
-  try {
-    await Promise.all([
-      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-      faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
-    ]);
-  } catch(e) { toast('โหลด AI ไม่สำเร็จ กรุณารีเฟรช', 'error'); }
-  var now = new Date(); CAL_YEAR=now.getFullYear(); CAL_MONTH=now.getMonth();
-  setToday();
+
+  setLoadProgress(5, '🔄 กำลังเตรียมระบบ...');
+
+  // Apply theme & terms first so UI looks right immediately
   applyStoredTheme();
   applyTerminology();
-  if (!API_URL) { document.getElementById('api-setup-banner').style.display='block'; updateStatus('offline','ยังไม่ได้ตั้งค่า URL'); hideLoader(); return; }
+
+  var now = new Date();
+  CAL_YEAR = now.getFullYear();
+  CAL_MONTH = now.getMonth();
+  setToday();
+
+  setLoadProgress(15, '⏳ รอโหลด face-api.js...');
+
+  // 1. Wait for face-api.js script
+  var faceApiAvailable = await waitForFaceApi(10000);
+
+  if (!faceApiAvailable) {
+    setLoadProgress(80, '⚠️ โหลด face-api.js ไม่สำเร็จ');
+    toast('ไม่สามารถโหลด face-api.js — ฟีเจอร์สแกนใบหน้าจะไม่ทำงาน', 'warn', 7000);
+    AI_READY = false;
+  } else {
+    setLoadProgress(25, '✅ โหลด face-api.js สำเร็จ — กำลังโหลด AI model...');
+    // 2. Load AI models
+    try {
+      await loadAIModels();
+      AI_READY = true;
+      console.log('✅ AI models loaded');
+    } catch(e) {
+      if (e.message === 'skipped') {
+        setLoadProgress(80, '⏭️ ข้ามการโหลด AI');
+        toast('ข้ามการโหลด AI — ฟีเจอร์สแกนใบหน้าจะไม่ทำงาน', 'warn', 5000);
+      } else {
+        setLoadProgress(80, '⚠️ โหลด AI model ไม่สำเร็จ');
+        toast('โหลด AI ไม่สำเร็จ — ฟีเจอร์สแกนใบหน้าจะไม่ทำงาน แต่ระบบอื่นปกติ', 'warn', 7000);
+      }
+      AI_READY = false;
+    }
+  }
+
+  // 3. Proceed regardless of AI status
+  setLoadProgress(90, '⏳ กำลังเชื่อมต่อข้อมูล...');
+
+  if (!API_URL) {
+    setLoadProgress(100, '✅ พร้อมใช้งาน');
+    document.getElementById('api-setup-banner').style.display = 'block';
+    updateStatus('offline', 'ยังไม่ได้ตั้งค่า URL');
+    setTimeout(hideLoader, 300);
+    return;
+  }
   refreshData();
 };
 
@@ -927,8 +1018,28 @@ function closeSidebar(){document.getElementById('sidebar').classList.remove('ope
 // ═══════════════════════════════════════════════════
 //  LOADER / TOAST / MODAL
 // ═══════════════════════════════════════════════════
-function showLoader(t){document.getElementById('loader').style.display='flex';document.getElementById('load-txt').innerText=t||'กำลังโหลด...';}
-function hideLoader(){document.getElementById('loader').style.display='none';}
+var _skipAI = false;
+function skipAILoad() { _skipAI = true; }
+
+function showLoader(t, pct) {
+  document.getElementById('loader').style.display = 'flex';
+  document.getElementById('load-txt').innerText = t || 'กำลังโหลด...';
+  if (typeof pct === 'number') {
+    document.getElementById('load-bar').style.width = pct + '%';
+  }
+  // Show skip button after 4 seconds
+  setTimeout(() => {
+    var btn = document.getElementById('load-skip-btn');
+    if (btn && document.getElementById('loader').style.display !== 'none') btn.style.display = 'inline-block';
+  }, 4000);
+}
+function hideLoader() { document.getElementById('loader').style.display = 'none'; }
+function setLoadProgress(pct, txt) {
+  var bar = document.getElementById('load-bar');
+  if (bar) bar.style.width = pct + '%';
+  var t = document.getElementById('load-txt');
+  if (t && txt) t.innerText = txt;
+}
 function toast(msg,type='info',dur=3200){
   var icons={success:'✅',error:'❌',warn:'⚠️',info:'ℹ️'};
   var el=document.createElement('div');el.className='toast '+type;
@@ -956,7 +1067,7 @@ async function api(action,data){
 //  DATA
 // ═══════════════════════════════════════════════════
 async function refreshData(){
-  showLoader('⏳ ดึงข้อมูลล่าสุด...');
+  showLoader('⏳ ดึงข้อมูลล่าสุด...', 92);
   updateStatus('warning','กำลังโหลด...');
   try{
     var d=await api('getAllData');
@@ -965,7 +1076,8 @@ async function refreshData(){
     document.getElementById('last-sync-text').innerText=new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
     updateStatus('online','ออนไลน์');
     checkTodayBanner();startAutoRefresh();
-    hideLoader();
+    setLoadProgress(100,'✅ พร้อมใช้งาน');
+    setTimeout(hideLoader, 300);
   }catch(e){hideLoader();updateStatus('offline','เชื่อมต่อไม่ได้');}
 }
 function startAutoRefresh(){
@@ -1625,6 +1737,7 @@ async function deleteStudentConfirm(id,name){
 //  FACE API
 // ═══════════════════════════════════════════════════
 function buildMatcher(){
+  if(!AI_READY||typeof faceapi==='undefined'){matcher=null;return;}
   var labeled=[],threshold=DATA.settings.faceMatchThreshold||0.6;
   DATA.students.forEach(s=>{if(s[3]){try{labeled.push(new faceapi.LabeledFaceDescriptors(s[0]+'#'+s[1]+'#'+s[2],[new Float32Array(Object.values(JSON.parse(s[3])))]));}catch(e){}}});
   matcher=labeled.length?new faceapi.FaceMatcher(labeled,threshold):null;
@@ -1636,7 +1749,13 @@ function startCam(videoId,runAI){
     .then(s=>{
       camStream=s;var v=document.getElementById(videoId);v.srcObject=null;v.srcObject=s;
       var started=false;
-      var tryPlay=()=>{if(started)return;started=true;v.play().then(()=>{if(runAI)startDetection(v);}).catch(console.error);};
+      var tryPlay=()=>{if(started)return;started=true;v.play().then(()=>{
+        if(runAI){
+          if(!AI_READY||typeof faceapi==='undefined'){
+            toast('AI ยังโหลดไม่เสร็จ — กรุณาเช็คชื่อด้วยปุ่มด้านล่างแทน','warn',5000);
+          }else{startDetection(v);}
+        }
+      }).catch(console.error);};
       v.onloadedmetadata=tryPlay;v.onloadeddata=tryPlay;setTimeout(tryPlay,2000);
     })
     .catch(e=>{
@@ -1746,12 +1865,14 @@ function switchRegMode(m,el){
   if(m==='cam')startCam('v-reg',false);else stopCam();
 }
 async function doReg(){
+  if(!AI_READY||typeof faceapi==='undefined'){toast('AI ยังโหลดไม่เสร็จ','error');return;}
   var val=document.getElementById('reg-sel').value;var obj=val?JSON.parse(val):null;if(!obj){toast('เลือกชื่อก่อน','error');return;}
   var det=await faceapi.detectSingleFace(document.getElementById('v-reg'),new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
   if(!det){toast('ไม่พบใบหน้า','error');return;}
   checkAndRegister(obj,document.getElementById('v-reg'),det);
 }
 async function doRegFile(){
+  if(!AI_READY||typeof faceapi==='undefined'){toast('AI ยังโหลดไม่เสร็จ','error');return;}
   var val=document.getElementById('reg-sel').value;var obj=val?JSON.parse(val):null;if(!obj){toast('เลือกชื่อก่อน','error');return;}
   var f=document.getElementById('reg-file').files[0];if(!f){toast('เลือกไฟล์ก่อน','error');return;}
   var img=await faceapi.bufferToImage(f);
