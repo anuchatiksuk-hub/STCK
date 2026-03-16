@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title id="page-title-meta">Smart School V3.1</title>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
@@ -1387,7 +1388,8 @@ async function saveMission(){
   showLoader('บันทึก...');
   try{
     var r=await api('saveCheckIn',{id:MISSION_PENDING.id,name:MISSION_PENDING.name,cls:MISSION_PENDING.cls,status:missionName,targetDate:date});
-    toast(`บันทึก${missionName} ${MISSION_PENDING.name}${note?' ('+note.substring(0,20)+(note.length>20?'...':')+')':''}`,'success');
+    var noteShort = note ? ' (' + note.substring(0,20) + (note.length>20?'...':') ') : '';
+    toast('บันทึก'+missionName+' '+MISSION_PENDING.name+noteShort,'success');
     refreshData();
   }catch(e){}
   hideLoader();MISSION_PENDING=null;
@@ -1801,7 +1803,11 @@ function startDetection(video){
             new faceapi.draw.DrawBox(flipped,{label:sname+' ✓',boxColor:'#06d6a0'}).draw(cvs);stopAutoCheck();
           }else{
             document.getElementById('ai-status').innerHTML='<span style="color:var(--ink3)">กดปุ่มเพื่อยืนยัน หรือรอ Auto</span>';
-            document.getElementById('ai-buttons').innerHTML=`<button class="btn btn-green" onclick="manualCheck('${escQ(TERMS.present||'มาเรียน')}')">✅ ${TERMS.present||'มาเรียน'}</button><button class="btn btn-warn" onclick="manualCheck('${escQ(TERMS.late||'สาย')}')">⏰ ${TERMS.late||'สาย'}</button>`;
+            var pName = escQ(TERMS.present||'มาเรียน');
+            var lName = escQ(TERMS.late||'สาย');
+            var pLabel = TERMS.present||'มาเรียน';
+            var lLabel = TERMS.late||'สาย';
+            document.getElementById('ai-buttons').innerHTML='<button class="btn btn-green" onclick="manualCheck(\''+pName+'\')">✅ '+pLabel+'</button><button class="btn btn-warn" onclick="manualCheck(\''+lName+'\')">⏰ '+lLabel+'</button>';
             new faceapi.draw.DrawBox(flipped,{label:sname,boxColor:'var(--accent)'}).draw(cvs);startAutoCheck(sid,sname,scls);
           }
         }else{
