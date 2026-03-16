@@ -364,6 +364,56 @@ body[data-theme="amber"]{--accent:#d97706;}
       <button class="btn btn-warn btn-sm" onclick="go('admin',document.querySelector('[data-page=admin]'))"><span class="material-icons-round">settings</span> ไปตั้งค่า</button>
     </div>
     <div id="today-banner" style="display:none;"></div>
+
+    <!-- ── AI CAMERA INLINE PANEL ── -->
+    <div class="card" id="ai-inline-card" style="margin-bottom:13px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+        <div class="card-title"><span class="material-icons-round">face</span> <span id="check-title-inline">สแกนใบหน้า AI</span></div>
+        <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;">
+          <button id="btn-toggle-cam" class="btn btn-ghost btn-sm" onclick="toggleInlineCam()">
+            <span class="material-icons-round">videocam</span> <span id="btn-toggle-cam-txt">เปิดกล้อง</span>
+          </button>
+          <button id="btn-auto-mode" class="btn btn-green btn-sm" onclick="toggleAutoMode()" style="display:none;">
+            <span class="material-icons-round">play_arrow</span> <span id="btn-auto-txt">Auto</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Camera area — hidden until opened -->
+      <div id="ai-cam-area" style="display:none;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;">
+          <!-- Camera -->
+          <div>
+            <div class="cam-wrap" style="max-width:100%;aspect-ratio:4/3;">
+              <video id="v-check" autoplay playsinline muted></video>
+              <canvas id="c-check"></canvas>
+            </div>
+          </div>
+          <!-- Result panel -->
+          <div style="display:flex;flex-direction:column;gap:9px;">
+            <!-- Detected name -->
+            <div style="background:var(--paper);border-radius:var(--r);border:1px solid var(--border);padding:13px;text-align:center;">
+              <div style="font-size:0.68rem;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">ตรวจพบ</div>
+              <div style="font-size:1.15rem;font-weight:800;color:var(--accent);margin-bottom:3px;" id="ai-name">รอการตรวจจับ...</div>
+              <div style="font-size:0.75rem;color:var(--ink3);" id="ai-status">เมื่อ AI ตรวจพบใบหน้า ระบบจะแสดงชื่อ</div>
+            </div>
+            <!-- Manual buttons -->
+            <div id="ai-buttons" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;">
+              <button class="btn btn-green btn-sm" onclick="manualCheck('มาเรียน')">✅ มาเรียน</button>
+              <button class="btn btn-warn btn-sm" onclick="manualCheck('สาย')">⏰ สาย</button>
+            </div>
+            <!-- Auto countdown -->
+            <div id="auto-panel" class="auto-panel" style="display:none;padding:12px;">
+              <h3 style="font-size:0.85rem;">🎯 ตรวจพบ: <span id="auto-name">-</span></h3>
+              <div class="auto-countdown" id="auto-countdown" style="font-size:2.2rem;">-</div>
+              <div class="auto-status" id="auto-status">กำลังเตรียม...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ── END AI CAMERA ── -->
+
     <div class="stat-grid">
       <div class="stat-card" style="--acc:#2563ff"><h3 id="sc-total-lbl">นักเรียนทั้งหมด</h3><div class="value" id="d-total">0</div><div class="sub" id="sc-unit">คน</div></div>
       <div class="stat-card" style="--acc:#06d6a0"><h3 id="sc-present-lbl">มาเรียน</h3><div class="value" id="d-p" style="color:var(--accent2)">0</div><div class="sub" id="sc-unit2">คน</div></div>
@@ -384,25 +434,25 @@ body[data-theme="amber"]{--accent:#d97706;}
     </div>
   </div>
 
-  <!-- ══ AI CHECK ══ -->
+  <!-- ══ AI CHECK (standalone page - kept for sidebar nav) ══ -->
   <div id="check" class="page">
     <div class="card">
       <div class="card-header">
-        <div class="card-title"><span class="material-icons-round">face</span> <span id="check-title">สแกนใบหน้า AI</span></div>
-        <button id="btn-auto-mode" class="btn btn-green" onclick="toggleAutoMode()"><span class="material-icons-round">play_arrow</span> Auto Check-In</button>
+        <div class="card-title"><span class="material-icons-round">face</span> สแกนใบหน้า AI (เต็มหน้าจอ)</div>
+        <button id="btn-auto-mode-full" class="btn btn-green" onclick="toggleAutoModeFull()"><span class="material-icons-round">play_arrow</span> Auto Check-In</button>
       </div>
-      <div class="cam-wrap"><video id="v-check" autoplay playsinline muted></video><canvas id="c-check"></canvas></div>
-      <div id="auto-panel" class="auto-panel" style="display:none">
-        <h3>🎯 ตรวจพบ: <span id="auto-name">-</span></h3>
-        <div class="auto-countdown" id="auto-countdown">-</div>
-        <div class="auto-status" id="auto-status">กำลังเตรียม...</div>
+      <div class="cam-wrap"><video id="v-check-full" autoplay playsinline muted></video><canvas id="c-check-full"></canvas></div>
+      <div id="auto-panel-full" class="auto-panel" style="display:none">
+        <h3>🎯 ตรวจพบ: <span id="auto-name-full">-</span></h3>
+        <div class="auto-countdown" id="auto-countdown-full">-</div>
+        <div class="auto-status" id="auto-status-full">กำลังเตรียม...</div>
       </div>
       <div style="margin-top:13px;text-align:center;padding:13px;background:var(--paper);border-radius:var(--r);border:1px solid var(--border);">
-        <div style="font-size:1.25rem;font-weight:800;color:var(--accent);margin-bottom:4px" id="ai-name">รอการตรวจจับ...</div>
-        <div style="font-size:0.8rem;color:var(--ink3);margin-bottom:9px" id="ai-status">เมื่อ AI ตรวจพบใบหน้า ระบบจะแสดงชื่อ</div>
-        <div style="display:flex;justify-content:center;gap:7px;flex-wrap:wrap" id="ai-buttons">
-          <button class="btn btn-green" onclick="manualCheck('มาเรียน')">✅ มาเรียน</button>
-          <button class="btn btn-warn" onclick="manualCheck('สาย')">⏰ สาย</button>
+        <div style="font-size:1.25rem;font-weight:800;color:var(--accent);margin-bottom:4px" id="ai-name-full">รอการตรวจจับ...</div>
+        <div style="font-size:0.8rem;color:var(--ink3);margin-bottom:9px" id="ai-status-full">เมื่อ AI ตรวจพบใบหน้า ระบบจะแสดงชื่อ</div>
+        <div style="display:flex;justify-content:center;gap:7px;flex-wrap:wrap" id="ai-buttons-full">
+          <button class="btn btn-green" onclick="manualCheckFull('มาเรียน')">✅ มาเรียน</button>
+          <button class="btn btn-warn" onclick="manualCheckFull('สาย')">⏰ สาย</button>
         </div>
       </div>
     </div>
@@ -892,6 +942,13 @@ var EDIT_STATUS_PENDING = null;
 //  INIT
 // ═══════════════════════════════════════════════════
 var AI_READY = false;
+var INLINE_CAM_OPEN = false;
+var AUTO_CHECK_MODE_FULL = false;
+var AUTO_CHECK_TIMER_FULL = null;
+var AUTO_COUNTDOWN_FULL = 0;
+var LAST_DETECTED_ID_FULL = null;
+var camStreamFull = null;
+var detectionIntervalFull = null;
 
 // Wait for faceapi to be available (poll up to 8s)
 function waitForFaceApi(timeout) {
@@ -1774,6 +1831,38 @@ function stopCam(){
   stopAutoCheck();
   var cvs=document.getElementById('c-check');if(cvs)cvs.getContext('2d').clearRect(0,0,cvs.width,cvs.height);
 }
+function stopCamFull(){
+  if(detectionIntervalFull){clearInterval(detectionIntervalFull);detectionIntervalFull=null;}
+  if(camStreamFull){camStreamFull.getTracks().forEach(t=>t.stop());camStreamFull=null;}
+  stopAutoCheckFull();
+  var cvs=document.getElementById('c-check-full');if(cvs)cvs.getContext('2d').clearRect(0,0,cvs.width,cvs.height);
+}
+
+// ── INLINE CAM (on Dash page) ──
+function toggleInlineCam(){
+  INLINE_CAM_OPEN = !INLINE_CAM_OPEN;
+  var area = document.getElementById('ai-cam-area');
+  var btn  = document.getElementById('btn-toggle-cam');
+  var btnTxt = document.getElementById('btn-toggle-cam-txt');
+  var autoBtn = document.getElementById('btn-auto-mode');
+  if(INLINE_CAM_OPEN){
+    area.style.display = 'block';
+    btn.className = 'btn btn-danger btn-sm';
+    btnTxt.innerText = 'ปิดกล้อง';
+    autoBtn.style.display = 'inline-flex';
+    startCam('v-check', true);
+  }else{
+    area.style.display = 'none';
+    btn.className = 'btn btn-ghost btn-sm';
+    btnTxt.innerText = 'เปิดกล้อง';
+    autoBtn.style.display = 'none';
+    stopCam();
+    AUTO_CHECK_MODE = false;
+    document.getElementById('btn-auto-mode').innerHTML = '<span class="material-icons-round">play_arrow</span> <span id="btn-auto-txt">Auto</span>';
+    document.getElementById('btn-auto-mode').className = 'btn btn-green btn-sm';
+    document.getElementById('auto-panel').style.display = 'none';
+  }
+}
 function startDetection(video){
   var cvs=document.getElementById('c-check');if(!cvs)return;
   var getSize=()=>({width:video.videoWidth||video.clientWidth||640,height:video.videoHeight||video.clientHeight||480});
@@ -1854,6 +1943,87 @@ async function manualCheck(st){
   stopAutoCheck();
   showLoader('บันทึก...');
   try{await api('saveCheckIn',{id:info.id,name:info.name,cls:info.cls,status:st,targetDate:today});toast(`บันทึก ${info.name}: ${st}`,'success');refreshData();document.getElementById('ai-status').innerHTML=`<span style="color:var(--accent2);font-weight:700">✅ บันทึกแล้ว: ${st}</span>`;}catch(e){}
+  hideLoader();
+}
+
+// ── FULL PAGE CAM (sidebar → สแกนใบหน้า AI) ──
+function startDetectionFull(video){
+  var cvs=document.getElementById('c-check-full');if(!cvs)return;
+  var getSize=()=>({width:video.videoWidth||video.clientWidth||640,height:video.videoHeight||video.clientHeight||480});
+  var size=getSize();faceapi.matchDimensions(cvs,size);
+  if(detectionIntervalFull)clearInterval(detectionIntervalFull);
+  detectionIntervalFull=setInterval(async()=>{
+    if(video.paused||video.ended||!camStreamFull)return;
+    var cur=getSize();if(cur.width!==size.width||cur.height!==size.height){size=cur;faceapi.matchDimensions(cvs,size);}
+    if(!matcher)return;
+    try{
+      var dets=await faceapi.detectAllFaces(video,new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
+      var rez=faceapi.resizeResults(dets,size);cvs.getContext('2d').clearRect(0,0,cvs.width,cvs.height);
+      if(!rez.length){stopAutoCheckFull();document.getElementById('ai-name-full').innerText='รอการตรวจจับ...';document.getElementById('ai-status-full').innerHTML='<span style="color:var(--ink3)">เมื่อ AI ตรวจพบใบหน้า ระบบจะแสดงชื่อ</span>';return;}
+      rez.forEach(d=>{
+        var m=matcher.findBestMatch(d.descriptor);
+        var b=d.detection.box;
+        var flipped=new faceapi.Box({x:size.width-b.x-b.width,y:b.y,width:b.width,height:b.height});
+        if(m.label!=='unknown'){
+          var parts=m.label.split('#'),sid=parts[0],sname=parts[1],scls=parts[2];
+          var today=fmtDate(new Date());
+          var checked=DATA.attendance.find(r=>String(r.id)===sid&&r.date===today);
+          document.getElementById('ai-name-full').innerText=sname;
+          document.getElementById('ai-name-full').dataset.info=JSON.stringify({id:sid,name:sname,cls:scls});
+          if(checked){
+            document.getElementById('ai-status-full').innerHTML=`<span style="color:var(--accent2);font-weight:700">✅ เช็คชื่อแล้ว</span> | ${checked.time} น.`;
+            document.getElementById('ai-buttons-full').innerHTML='<button class="btn" style="background:var(--border);cursor:not-allowed" disabled>✅ เช็คแล้ว</button>';
+            new faceapi.draw.DrawBox(flipped,{label:sname+' ✓',boxColor:'#06d6a0'}).draw(cvs);stopAutoCheckFull();
+          }else{
+            var pName=escQ(TERMS.present||'มาเรียน');var lName=escQ(TERMS.late||'สาย');
+            document.getElementById('ai-status-full').innerHTML='<span style="color:var(--ink3)">กดปุ่มเพื่อยืนยัน</span>';
+            document.getElementById('ai-buttons-full').innerHTML='<button class="btn btn-green" onclick="manualCheckFull(\''+pName+'\')">✅ '+(TERMS.present||'มาเรียน')+'</button><button class="btn btn-warn" onclick="manualCheckFull(\''+lName+'\')">⏰ '+(TERMS.late||'สาย')+'</button>';
+            new faceapi.draw.DrawBox(flipped,{label:sname,boxColor:'var(--accent)'}).draw(cvs);startAutoCheckFull(sid,sname,scls);
+          }
+        }else{
+          document.getElementById('ai-name-full').innerText='❓ ไม่รู้จัก';
+          document.getElementById('ai-status-full').innerHTML='<span style="color:var(--danger)">ไม่พบในระบบ</span>';
+          document.getElementById('ai-buttons-full').innerHTML='<button class="btn" style="background:var(--border);cursor:not-allowed" disabled>ไม่รู้จัก</button>';
+          new faceapi.draw.DrawBox(flipped,{label:'?',boxColor:'#ef4444'}).draw(cvs);stopAutoCheckFull();
+        }
+      });
+    }catch(e){console.error(e);}
+  },300);
+}
+function toggleAutoModeFull(){
+  AUTO_CHECK_MODE_FULL=!AUTO_CHECK_MODE_FULL;
+  var btn=document.getElementById('btn-auto-mode-full');
+  document.getElementById('auto-panel-full').style.display=AUTO_CHECK_MODE_FULL?'block':'none';
+  if(AUTO_CHECK_MODE_FULL){btn.innerHTML='<span class="material-icons-round">stop</span> ปิด Auto';btn.className='btn btn-danger';document.getElementById('auto-status-full').innerText='🔍 กำลังค้นหาใบหน้า...';}
+  else{btn.innerHTML='<span class="material-icons-round">play_arrow</span> Auto Check-In';btn.className='btn btn-green';stopAutoCheckFull();}
+}
+function startAutoCheckFull(id,name,cls){
+  if(!AUTO_CHECK_MODE_FULL||LAST_DETECTED_ID_FULL===id)return;
+  LAST_DETECTED_ID_FULL=id;
+  var delay=(DATA.settings.autoCheckDelay||2000)/1000;AUTO_COUNTDOWN_FULL=delay;
+  document.getElementById('auto-name-full').innerText=name;document.getElementById('auto-status-full').innerText='⏱️ นับถอยหลัง...';
+  if(AUTO_CHECK_TIMER_FULL)clearInterval(AUTO_CHECK_TIMER_FULL);
+  AUTO_CHECK_TIMER_FULL=setInterval(()=>{document.getElementById('auto-countdown-full').innerText=AUTO_COUNTDOWN_FULL;if(AUTO_COUNTDOWN_FULL--<0){clearInterval(AUTO_CHECK_TIMER_FULL);doAutoCheckInFull(id,name,cls);}},1000);
+}
+function stopAutoCheckFull(){
+  if(AUTO_CHECK_TIMER_FULL){clearInterval(AUTO_CHECK_TIMER_FULL);AUTO_CHECK_TIMER_FULL=null;}
+  LAST_DETECTED_ID_FULL=null;var el=document.getElementById('auto-countdown-full');if(el)el.innerText='-';
+}
+async function doAutoCheckInFull(id,name,cls){
+  var today=fmtDate(new Date());
+  if(DATA.attendance.find(r=>String(r.id)===String(id)&&r.date===today)){document.getElementById('auto-status-full').innerHTML=`✅ ${name} เช็คชื่อแล้ว`;setTimeout(()=>{stopAutoCheckFull();document.getElementById('auto-status-full').innerText='🔍 กำลังค้นหาใบหน้า...';},2000);return;}
+  document.getElementById('auto-status-full').innerHTML=`💾 บันทึก ${name}...`;
+  try{await api('saveCheckIn',{id,name,cls,status:TERMS.present||'มาเรียน',targetDate:today});document.getElementById('auto-status-full').innerHTML=`✅ บันทึก ${name}`;toast(`✅ Auto: ${name}`,'success');refreshData();setTimeout(()=>{stopAutoCheckFull();document.getElementById('auto-status-full').innerText='🔍 กำลังค้นหาใบหน้า...';},2000);}catch(e){}
+}
+async function manualCheckFull(st){
+  var el=document.getElementById('ai-name-full');
+  var info=el.dataset.info?JSON.parse(el.dataset.info):null;
+  if(!info){toast('ยังไม่พบใบหน้า','error');return;}
+  var today=fmtDate(new Date());
+  if(DATA.attendance.find(r=>String(r.id)===String(info.id)&&r.date===today)){toast(`${info.name} เช็คชื่อแล้ว`,'warn');return;}
+  stopAutoCheckFull();
+  showLoader('บันทึก...');
+  try{await api('saveCheckIn',{id:info.id,name:info.name,cls:info.cls,status:st,targetDate:today});toast(`บันทึก ${info.name}: ${st}`,'success');refreshData();document.getElementById('ai-status-full').innerHTML=`<span style="color:var(--accent2);font-weight:700">✅ บันทึกแล้ว: ${st}</span>`;}catch(e){}
   hideLoader();
 }
 // Register Face
@@ -2006,23 +2176,82 @@ function loadStudentView(){
 // ═══════════════════════════════════════════════════
 var pageTitles={dash:'📝 เช็คชื่อรายวัน',check:'📸 สแกนใบหน้า AI',report:'📊 รายงาน',calendar:'📅 ปฏิทิน',students:'👥 รายชื่อ',reg:'📷 ลงทะเบียนใบหน้า',admin:'🛡️ Admin','student-view':'👤 ดูข้อมูล'};
 function go(p,navEl){
-  stopCam();
+  // Stop inline cam if leaving dash
+  if(p !== 'dash' && INLINE_CAM_OPEN){
+    INLINE_CAM_OPEN = false;
+    stopCam();
+    document.getElementById('ai-cam-area').style.display='none';
+    document.getElementById('btn-toggle-cam').className='btn btn-ghost btn-sm';
+    document.getElementById('btn-toggle-cam-txt').innerText='เปิดกล้อง';
+    document.getElementById('btn-auto-mode').style.display='none';
+    AUTO_CHECK_MODE=false;
+  }
+  // Stop full-page cam
+  stopCamFull();
+  AUTO_CHECK_MODE_FULL=false;
+
   document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
   document.getElementById(p).classList.add('active');
   if(navEl)navEl.classList.add('active');
-  // Update page title with terminology
-  var titles={dash:`📝 เช็คชื่อรายวัน`,check:`📸 สแกนใบหน้า AI`,report:`📊 ${TERMS.report||'รายงาน'}`,calendar:`📅 ${TERMS.calendar||'ปฏิทิน'}`,students:`👥 รายชื่อ${TERMS.student||'นักเรียน'}`,reg:`📷 ลงทะเบียนใบหน้า`,admin:`🛡️ Admin`,'student-view':`👤 ดูข้อมูล${TERMS.student||'นักเรียน'}`};
+
+  var titles={
+    dash:`📝 เช็คชื่อรายวัน`,
+    check:`📸 สแกนใบหน้า AI (เต็มหน้าจอ)`,
+    report:`📊 ${TERMS.report||'รายงาน'}`,
+    calendar:`📅 ${TERMS.calendar||'ปฏิทิน'}`,
+    students:`👥 รายชื่อ${TERMS.student||'นักเรียน'}`,
+    reg:`📷 ลงทะเบียนใบหน้า`,
+    admin:`🛡️ Admin`,
+    'student-view':`👤 ดูข้อมูล${TERMS.student||'นักเรียน'}`
+  };
   document.getElementById('page-title').innerText=titles[p]||p;
-  var dp=document.getElementById('dash-date-picker');var todayBtn=document.getElementById('btn-today');
-  dp.style.display=p==='dash'?'':'none';if(todayBtn)todayBtn.style.display=p==='dash'?'':'none';
-  if(p==='check')startCam('v-check',true);
+
+  var dp=document.getElementById('dash-date-picker');
+  var todayBtn=document.getElementById('btn-today');
+  dp.style.display=p==='dash'?'':'none';
+  if(todayBtn)todayBtn.style.display=p==='dash'?'':'none';
+
+  // Full-page cam: start with its own video element
+  if(p==='check'){
+    if(!AI_READY||typeof faceapi==='undefined'){
+      toast('AI ยังโหลดไม่เสร็จ — ไม่สามารถใช้กล้องได้','warn',5000);
+    } else {
+      startCamFull();
+    }
+  }
   if(p==='reg'){updateRegList();}
   if(p==='report')switchReport('history',document.querySelector('#report-tabs .tab'));
   if(p==='students')switchStudentTab('single',document.querySelector('#students .tab'));
   if(p==='calendar')renderCalendar();
-  if(p==='admin'&&!ADMIN_SESSION){setTimeout(()=>{document.getElementById('admin-login-gate').style.display='block';document.getElementById('admin-content').style.display='none';},50);}
+  if(p==='admin'&&!ADMIN_SESSION){
+    setTimeout(()=>{
+      document.getElementById('admin-login-gate').style.display='block';
+      document.getElementById('admin-content').style.display='none';
+    },50);
+  }
   if(window.innerWidth<=1024)closeSidebar();
+}
+
+function startCamFull(){
+  stopCamFull();
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast('Browser ไม่รองรับกล้อง','error');return;}
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}})
+    .then(s=>{
+      camStreamFull=s;
+      var v=document.getElementById('v-check-full');
+      v.srcObject=null;v.srcObject=s;
+      var started=false;
+      var tryPlay=()=>{if(started)return;started=true;v.play().then(()=>{startDetectionFull(v);}).catch(console.error);};
+      v.onloadedmetadata=tryPlay;v.onloadeddata=tryPlay;setTimeout(tryPlay,2000);
+    })
+    .catch(e=>{
+      var m='';
+      if(e.name==='NotAllowedError')m='🚫 กล้องถูกบล็อก คลิก 🔒 แล้วอนุญาต';
+      else if(e.name==='NotReadableError')m='📷 กล้องถูกใช้โดยโปรแกรมอื่น';
+      else m='❌ '+e.name+': '+e.message;
+      toast(m,'error');
+    });
 }
 </script>
 </body>
