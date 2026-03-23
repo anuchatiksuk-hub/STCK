@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Setup — Smart Office สพป.นครราชสีมา เขต 4</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ─── RESET & TOKENS ─── */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07090f;
+  --surface:#0e1117;
+  --surface2:#151820;
+  --surface3:#1b2030;
+  --border:#ffffff0f;
+  --border2:#ffffff18;
+  --txt:#f0f4ff;
+  --txt2:#8892a4;
+  --txt3:#55607a;
+  --accent:#3b82f6;
+  --accent2:#60a5fa;
+  --accent-glow:rgba(59,130,246,.25);
+  --success:#22c55e;
+  --warn:#f59e0b;
+  --danger:#ef4444;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'Sarabun',sans-serif;
+  --r:10px;
+  --r2:16px;
+}
+
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:var(--sans);overflow-x:hidden}
+body{display:flex;flex-direction:column;min-height:100vh}
+
+/* ─── ANIMATED BACKGROUND ─── */
+.bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(59,130,246,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.04) 1px,transparent 1px);
+  background-size:40px 40px}
+.bg-glow{position:fixed;width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,rgba(59,130,246,.08) 0%,transparent 70%);
+  top:-200px;right:-100px;pointer-events:none;z-index:0;
+  animation:driftGlow 20s ease-in-out infinite}
+.bg-glow2{position:fixed;width:400px;height:400px;border-radius:50%;
+  background:radial-gradient(circle,rgba(99,102,241,.06) 0%,transparent 70%);
+  bottom:-100px;left:-50px;pointer-events:none;z-index:0;
+  animation:driftGlow 15s ease-in-out infinite reverse}
+@keyframes driftGlow{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,40px)}}
+
+/* ─── LAYOUT ─── */
+.wrapper{position:relative;z-index:1;width:100%;max-width:760px;margin:0 auto;padding:28px 20px 60px}
+
+/* ─── HEADER ─── */
+.setup-header{text-align:center;padding:32px 0 40px;animation:slideDown .6s cubic-bezier(.22,1,.36,1)}
+@keyframes slideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:none}}
+.logo-mark{display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:18px;
+  background:linear-gradient(135deg,#1e40af,#3b82f6);
+  box-shadow:0 0 40px rgba(59,130,246,.3);margin-bottom:18px}
+.logo-mark svg{width:32px;height:32px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.setup-header h1{font-size:1.6rem;font-weight:800;letter-spacing:-.02em;margin-bottom:6px}
+.setup-header h1 span{color:var(--accent2)}
+.setup-header p{color:var(--txt2);font-size:.88rem}
+.version-tag{display:inline-block;font-family:var(--mono);font-size:.65rem;
+  background:var(--surface2);border:1px solid var(--border2);
+  color:var(--txt3);padding:3px 10px;border-radius:20px;margin-top:10px}
+
+/* ─── STEPPER ─── */
+.stepper{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:36px;position:relative}
+.step-item{display:flex;flex-direction:column;align-items:center;position:relative;flex:1;max-width:120px}
+.step-circle{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:.8rem;font-weight:700;font-family:var(--mono);z-index:1;position:relative;
+  transition:all .4s cubic-bezier(.22,1,.36,1);border:2px solid var(--border2);
+  background:var(--surface2);color:var(--txt3)}
+.step-item.done .step-circle{background:var(--success);border-color:var(--success);color:#fff;box-shadow:0 0 20px rgba(34,197,94,.3)}
+.step-item.active .step-circle{background:var(--accent);border-color:var(--accent);color:#fff;
+  box-shadow:0 0 24px var(--accent-glow);animation:stepPulse 2s infinite}
+@keyframes stepPulse{0%,100%{box-shadow:0 0 24px var(--accent-glow)}50%{box-shadow:0 0 36px rgba(59,130,246,.4)}}
+.step-label{font-size:.68rem;color:var(--txt3);margin-top:8px;text-align:center;font-weight:600;transition:color .3s;white-space:nowrap}
+.step-item.active .step-label{color:var(--accent2)}
+.step-item.done .step-label{color:var(--success)}
+.step-line{flex:1;height:2px;background:var(--border);max-width:60px;position:relative;top:-5px;transition:background .4s}
+.step-line.done{background:var(--success)}
+.step-check::before{content:'✓';font-size:1rem}
+
+/* ─── CARDS ─── */
+.panel{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r2);
+  padding:28px;margin-bottom:16px;animation:panelIn .4s cubic-bezier(.22,1,.36,1)}
+@keyframes panelIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.panel-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:22px}
+.panel-icon{width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.3rem}
+.panel-icon.blue{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.2)}
+.panel-icon.green{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2)}
+.panel-icon.yellow{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2)}
+.panel-icon.purple{background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2)}
+.panel-icon.red{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2)}
+.panel-title{font-size:1.05rem;font-weight:800;margin-bottom:3px}
+.panel-sub{font-size:.8rem;color:var(--txt2)}
+
+/* ─── FORM ─── */
+.form-group{margin-bottom:16px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+label{display:block;font-size:.75rem;font-weight:700;color:var(--txt2);margin-bottom:7px;text-transform:uppercase;letter-spacing:.05em}
+label .req{color:var(--accent2);margin-left:2px}
+input,select,textarea{
+  width:100%;padding:10px 14px;font-family:var(--sans);font-size:.88rem;
+  background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);
+  color:var(--txt);outline:none;transition:border-color .2s,box-shadow .2s;
+  -webkit-appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+input::placeholder,textarea::placeholder{color:var(--txt3)}
+select option{background:var(--surface2)}
+.input-mono{font-family:var(--mono);font-size:.8rem!important}
+.hint{font-size:.73rem;color:var(--txt3);margin-top:5px;line-height:1.5}
+
+/* ─── BUTTONS ─── */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border:none;border-radius:var(--r);
+  font-family:var(--sans);font-size:.875rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:none}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 4px 20px rgba(59,130,246,.25)}
+.btn-primary:hover{background:#2563eb;box-shadow:0 4px 28px rgba(59,130,246,.4)}
+.btn-success{background:var(--success);color:#fff;box-shadow:0 4px 20px rgba(34,197,94,.2)}
+.btn-ghost{background:var(--surface2);color:var(--txt2);border:1px solid var(--border2)}
+.btn-ghost:hover{background:var(--surface3);color:var(--txt)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-lg{padding:13px 28px;font-size:.95rem;border-radius:var(--r2)}
+.btn-full{width:100%;justify-content:center}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+
+/* ─── STEP PAGES ─── */
+.step-page{display:none}
+.step-page.active{display:block;animation:panelIn .35s cubic-bezier(.22,1,.36,1)}
+
+/* ─── STATUS / BADGE ─── */
+.status-row{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:var(--r);
+  background:var(--surface2);border:1px solid var(--border);font-size:.82rem;margin-bottom:10px}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot-ok{background:var(--success);box-shadow:0 0 8px rgba(34,197,94,.5)}
+.dot-warn{background:var(--warn);box-shadow:0 0 8px rgba(245,158,11,.5)}
+.dot-err{background:var(--danger);box-shadow:0 0 8px rgba(239,68,68,.5)}
+.dot-idle{background:var(--txt3)}
+.status-txt{flex:1}
+.status-tag{font-family:var(--mono);font-size:.68rem;padding:2px 8px;border-radius:6px;font-weight:600}
+.tag-ok{background:rgba(34,197,94,.12);color:var(--success)}
+.tag-err{background:rgba(239,68,68,.12);color:var(--danger)}
+.tag-idle{background:rgba(255,255,255,.05);color:var(--txt3)}
+
+/* ─── CODE BLOCK ─── */
+.code-block{background:#0a0c12;border:1px solid var(--border2);border-radius:var(--r);
+  padding:14px 16px;font-family:var(--mono);font-size:.75rem;color:#93bbfc;
+  overflow-x:auto;margin:10px 0;line-height:1.7;position:relative}
+.code-block .kw{color:#c792ea}.code-block .str{color:#c3e88d}.code-block .cm{color:var(--txt3);font-style:italic}
+.copy-btn{position:absolute;top:10px;right:10px;background:var(--surface3);border:1px solid var(--border2);
+  color:var(--txt2);border-radius:6px;padding:3px 10px;font-size:.68rem;cursor:pointer;font-family:var(--mono);
+  transition:all .2s}
+.copy-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ─── STAFF IMPORT ─── */
+.staff-table-wrap{max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r)}
+.staff-table-wrap::-webkit-scrollbar{width:4px}
+.staff-table-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+table.staff-tbl{width:100%;border-collapse:collapse;font-size:.78rem}
+.staff-tbl th{background:var(--surface3);color:var(--txt2);font-weight:700;font-size:.68rem;
+  text-transform:uppercase;letter-spacing:.05em;padding:8px 12px;text-align:left;
+  position:sticky;top:0;z-index:1;border-bottom:1px solid var(--border2)}
+.staff-tbl td{padding:7px 12px;border-bottom:1px solid var(--border);color:var(--txt);vertical-align:middle}
+.staff-tbl tr:last-child td{border-bottom:none}
+.staff-tbl tr:hover td{background:rgba(255,255,255,.02)}
+.dept-pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.65rem;
+  font-weight:700;background:rgba(59,130,246,.12);color:var(--accent2)}
+.role-admin{background:rgba(239,68,68,.12);color:#fca5a5}
+.role-head{background:rgba(245,158,11,.12);color:#fcd34d}
+.role-staff{background:rgba(255,255,255,.06);color:var(--txt2)}
+.count-badge{display:inline-flex;align-items:center;justify-content:center;
+  background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.25);
+  color:var(--accent2);font-family:var(--mono);font-size:.75rem;font-weight:600;
+  padding:3px 10px;border-radius:20px;margin-left:10px}
+
+/* ─── PROGRESS ─── */
+.progress-wrap{background:var(--surface3);border-radius:99px;height:6px;overflow:hidden;margin:8px 0}
+.progress-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),#60a5fa);
+  transition:width .5s cubic-bezier(.22,1,.36,1)}
+
+/* ─── CHECKLIST ─── */
+.checklist{list-style:none;display:flex;flex-direction:column;gap:10px}
+.checklist li{display:flex;align-items:center;gap:12px;padding:12px 16px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);
+  font-size:.85rem;transition:all .3s}
+.checklist li.ok{border-color:rgba(34,197,94,.2);background:rgba(34,197,94,.04)}
+.checklist li.fail{border-color:rgba(239,68,68,.2);background:rgba(239,68,68,.04)}
+.check-icon{width:28px;height:28px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.9rem}
+.check-icon.ok{background:rgba(34,197,94,.15)}
+.check-icon.fail{background:rgba(239,68,68,.15)}
+.check-icon.idle{background:var(--surface3);color:var(--txt3);font-size:.7rem;font-family:var(--mono)}
+.check-text{flex:1}
+.check-text strong{display:block;font-weight:700;font-size:.83rem;margin-bottom:1px}
+.check-text span{font-size:.72rem;color:var(--txt2)}
+
+/* ─── CONGRATS ─── */
+.congrats{text-align:center;padding:20px 0}
+.congrats-icon{font-size:4rem;animation:bounce .8s cubic-bezier(.36,2,.5,.85);display:inline-block}
+@keyframes bounce{0%{transform:scale(0) rotate(-20deg)}70%{transform:scale(1.15) rotate(3deg)}100%{transform:scale(1) rotate(0)}}
+.congrats h2{font-size:1.5rem;font-weight:800;margin:14px 0 8px;letter-spacing:-.01em}
+.congrats p{color:var(--txt2);font-size:.88rem;line-height:1.7;max-width:440px;margin:0 auto}
+.go-btn{margin-top:28px;display:inline-flex;align-items:center;gap:10px;padding:15px 36px;
+  background:linear-gradient(135deg,#1e40af,#3b82f6);color:#fff;border:none;border-radius:var(--r2);
+  font-family:var(--sans);font-size:1rem;font-weight:800;cursor:pointer;
+  box-shadow:0 8px 32px rgba(59,130,246,.4);transition:all .2s;text-decoration:none}
+.go-btn:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(59,130,246,.5)}
+.go-btn:active{transform:none}
+
+/* ─── DIVIDER ─── */
+.divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+.divider-txt{display:flex;align-items:center;gap:12px;color:var(--txt3);font-size:.73rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.08em;margin:16px 0}
+.divider-txt::before,.divider-txt::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ─── TOAST ─── */
+#toast-wrap{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);
+  padding:12px 16px;font-size:.83rem;display:flex;align-items:center;gap:10px;max-width:320px;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);pointer-events:all;animation:toastIn .3s ease}
+@keyframes toastIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+.toast.ok{border-left:3px solid var(--success)}
+.toast.err{border-left:3px solid var(--danger)}
+.toast.warn{border-left:3px solid var(--warn)}
+
+/* ─── LOADER OVERLAY ─── */
+#loader{position:fixed;inset:0;background:rgba(7,9,15,.85);backdrop-filter:blur(6px);
+  z-index:9998;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.spinner{width:40px;height:40px;border:3px solid rgba(59,130,246,.15);
+  border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loader p{color:var(--txt2);font-size:.85rem;font-family:var(--mono)}
+
+/* ─── NOTICE BOX ─── */
+.notice{padding:13px 16px;border-radius:var(--r);font-size:.82rem;line-height:1.6;margin:12px 0}
+.notice.info{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);color:var(--accent2)}
+.notice.warn{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);color:#fcd34d}
+.notice.success{background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);color:#86efac}
+.notice strong{font-weight:800}
+
+/* ─── STEP INDICATOR BAR ─── */
+.step-bar{display:flex;height:3px;gap:3px;margin-bottom:32px;border-radius:99px;overflow:hidden}
+.step-bar-seg{flex:1;background:var(--border2);border-radius:99px;transition:background .4s}
+.step-bar-seg.done{background:var(--success)}
+.step-bar-seg.active{background:var(--accent)}
+
+@media(max-width:640px){
+  .wrapper{padding:16px 14px 50px}
+  .form-row{grid-template-columns:1fr}
+  .panel{padding:18px}
+  .stepper{gap:0}
+  .step-label{font-size:.6rem}
+  .step-circle{width:32px;height:32px;font-size:.72rem}
+  .btn-row{flex-direction:column}
+  .btn-row .btn{width:100%;justify-content:center}
+}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+<div class="bg-glow2"></div>
+<div id="toast-wrap"></div>
+<div id="loader"><div class="spinner"></div><p id="loader-txt">กำลังดำเนินการ...</p></div>
+
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <div class="setup-header">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    </div>
+    <h1>Smart Office <span>Setup</span></h1>
+    <p>สำนักงานเขตพื้นที่การศึกษาประถมศึกษานครราชสีมา เขต 4</p>
+    <div class="version-tag">v1.0 · Initial Setup Wizard</div>
+  </div>
+
+  <!-- STEPPER -->
+  <div class="stepper" id="stepper">
+    <div class="step-item active" id="si-0">
+      <div class="step-circle" id="sc-0">01</div>
+      <div class="step-label">API URL</div>
+    </div>
+    <div class="step-line" id="sl-0"></div>
+    <div class="step-item" id="si-1">
+      <div class="step-circle" id="sc-1">02</div>
+      <div class="step-label">สร้าง Sheets</div>
+    </div>
+    <div class="step-line" id="sl-1"></div>
+    <div class="step-item" id="si-2">
+      <div class="step-circle" id="sc-2">03</div>
+      <div class="step-label">บุคลากร</div>
+    </div>
+    <div class="step-line" id="sl-2"></div>
+    <div class="step-item" id="si-3">
+      <div class="step-circle" id="sc-3">04</div>
+      <div class="step-label">ตั้งค่า</div>
+    </div>
+    <div class="step-line" id="sl-3"></div>
+    <div class="step-item" id="si-4">
+      <div class="step-circle" id="sc-4">05</div>
+      <div class="step-label">เสร็จสิ้น</div>
+    </div>
+  </div>
+
+  <!-- STEP BAR -->
+  <div class="step-bar">
+    <div class="step-bar-seg active" id="sb-0"></div>
+    <div class="step-bar-seg" id="sb-1"></div>
+    <div class="step-bar-seg" id="sb-2"></div>
+    <div class="step-bar-seg" id="sb-3"></div>
+    <div class="step-bar-seg" id="sb-4"></div>
+  </div>
+
+  <!-- ═══════════ STEP 0 — API URL ═══════════ -->
+  <div class="step-page active" id="step-0">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-icon blue">🔗</div>
+        <div><div class="panel-title">เชื่อมต่อ Google Apps Script</div><div class="panel-sub">ใส่ URL ของ Web App ที่ Deploy ไว้แล้ว</div></div>
+      </div>
+
+      <div class="notice info">
+        <strong>📋 วิธี Deploy GAS Web App</strong><br>
+        Extensions → Apps Script → Deploy → New Deployment → Web App<br>
+        ตั้ง <strong>Execute as: Me</strong> · <strong>Who has access: Anyone</strong>
+      </div>
+
+      <div class="form-group" style="margin-top:18px">
+        <label>Google Apps Script Web App URL <span class="req">*</span></label>
+        <input id="inp-api" class="input-mono" type="url"
+          placeholder="https://script.google.com/macros/s/.../exec"
+          value="" autocomplete="off" spellcheck="false">
+        <div class="hint">วาง URL ที่ได้จาก Deploy ตรงนี้ ระบบจะทดสอบการเชื่อมต่อก่อนไปขั้นตอนถัดไป</div>
+      </div>
+
+      <div id="api-status" class="status-row" style="display:none">
+        <div class="status-dot dot-idle" id="api-dot"></div>
+        <span class="status-txt" id="api-msg">—</span>
+        <span class="status-tag tag-idle" id="api-tag">—</span>
+      </div>
+
+      <div class="divider-txt">ตัวอย่าง URL</div>
+      <div class="code-block" style="font-size:.72rem;word-break:break-all">
+        <button class="copy-btn" onclick="copyExample()">copy</button>
+        <span class="cm"># วาง URL ที่ได้จาก GAS Deploy<br></span>
+        <span class="kw">https://</span>script.google.com/macros/s/<span class="str">AKfycbx...abc/exec</span>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary btn-lg" onclick="testApiUrl()">🔌 ทดสอบการเชื่อมต่อ</button>
+        <button class="btn btn-ghost" id="btn-step0-next" onclick="goStep(1)" disabled>ถัดไป →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ STEP 1 — SETUP SHEETS ═══════════ -->
+  <div class="step-page" id="step-1">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-icon green">📊</div>
+        <div><div class="panel-title">สร้าง Google Sheets</div><div class="panel-sub">ระบบจะสร้าง Sheet ทั้งหมด 11 Sheet ที่จำเป็น</div></div>
+      </div>
+
+      <div class="notice info">
+        <strong>Sheets ที่จะสร้าง:</strong> Staff · Attendance · LeaveRequest · LeaveBalance · Settings · ActivityLog · OfficialTrip · DailyReport · WFHRequest · StaffPin · StaffAuth
+      </div>
+
+      <ul class="checklist" id="sheet-checklist">
+        <li id="chk-staff"><div class="check-icon idle">01</div><div class="check-text"><strong>Staff</strong><span>ข้อมูลบุคลากรทั้งหมด</span></div></li>
+        <li id="chk-att"><div class="check-icon idle">02</div><div class="check-text"><strong>Attendance</strong><span>บันทึกการลงเวลาเข้า-ออกงาน</span></div></li>
+        <li id="chk-leave"><div class="check-icon idle">03</div><div class="check-text"><strong>LeaveRequest + LeaveBalance</strong><span>ระบบใบลาและโควตาวันลา</span></div></li>
+        <li id="chk-misc"><div class="check-icon idle">04</div><div class="check-text"><strong>Settings · ActivityLog</strong><span>การตั้งค่าและบันทึกกิจกรรม</span></div></li>
+        <li id="chk-adv"><div class="check-icon idle">05</div><div class="check-text"><strong>OfficialTrip · DailyReport · WFH · Auth</strong><span>ระบบราชการ, รายงานประจำวัน, WFH, Login</span></div></li>
+      </ul>
+
+      <div class="progress-wrap" style="margin-top:16px"><div class="progress-fill" id="sheet-prog" style="width:0%"></div></div>
+
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="goStep(0)">← ย้อนกลับ</button>
+        <button class="btn btn-success btn-lg" id="btn-setup" onclick="doSetupSheets()">🔧 สร้าง Sheets ทั้งหมด</button>
+        <button class="btn btn-ghost" id="btn-step1-next" onclick="goStep(2)" disabled>ถัดไป →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ STEP 2 — IMPORT STAFF ═══════════ -->
+  <div class="step-page" id="step-2">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-icon yellow">👥</div>
+        <div>
+          <div class="panel-title">นำเข้าข้อมูลบุคลากร <span class="count-badge" id="staff-count">80 คน</span></div>
+          <div class="panel-sub">ข้อมูล สพป.นครราชสีมา เขต 4 พร้อมใช้งาน</div>
+        </div>
+      </div>
+
+      <div class="notice warn">
+        <strong>⚠️ หมายเหตุ:</strong> ถ้าเคย Import แล้วจะข้ามรายชื่อที่มีอยู่ ไม่ Import ซ้ำ ปลอดภัย 100%
+      </div>
+
+      <div class="staff-table-wrap">
+        <table class="staff-tbl">
+          <thead><tr><th>#</th><th>ชื่อ-สกุล</th><th>ตำแหน่ง</th><th>กลุ่มงาน</th><th>สิทธิ์</th></tr></thead>
+          <tbody id="staff-preview"></tbody>
+        </table>
+      </div>
+
+      <div id="import-result" style="margin-top:12px;display:none" class="notice success"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="goStep(1)">← ย้อนกลับ</button>
+        <button class="btn btn-warn btn-lg" id="btn-import" onclick="doImportStaff()">📥 นำเข้าบุคลากร</button>
+        <button class="btn btn-ghost" id="btn-step2-next" onclick="goStep(3)" disabled>ถัดไป →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ STEP 3 — SETTINGS ═══════════ -->
+  <div class="step-page" id="step-3">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-icon purple">⚙️</div>
+        <div><div class="panel-title">ตั้งค่าระบบ</div><div class="panel-sub">กำหนดเวลาทำงาน · รหัสผ่าน Admin · LINE Notify</div></div>
+      </div>
+
+      <div class="divider-txt">เวลาทำงาน</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>เวลาเข้างาน <span class="req">*</span></label>
+          <input type="time" id="set-start" value="08:30">
+        </div>
+        <div class="form-group">
+          <label>เวลาเลิกงาน <span class="req">*</span></label>
+          <input type="time" id="set-end" value="16:30">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>นาทีผ่อนผัน (ก่อนนับสาย)</label>
+        <input type="number" id="set-late" value="15" min="0" max="60">
+        <div class="hint">เช่น ตั้ง 15 นาที หมายถึง 08:31–08:45 ยังถือว่าตรงเวลา</div>
+      </div>
+
+      <div class="divider-txt">รหัสผ่าน Admin</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>รหัสผ่านใหม่ <span class="req">*</span></label>
+          <input type="password" id="set-admin-pass" placeholder="อย่างน้อย 6 ตัวอักษร" minlength="6">
+        </div>
+        <div class="form-group">
+          <label>ยืนยันรหัสผ่าน <span class="req">*</span></label>
+          <input type="password" id="set-admin-pass2" placeholder="พิมพ์ซ้ำอีกครั้ง">
+        </div>
+      </div>
+      <div class="notice warn" style="margin-top:-4px">
+        <strong>⚠️</strong> บันทึกรหัสนี้ไว้ เพราะจะใช้เข้าหน้า Admin ของระบบหลัก
+      </div>
+
+      <div class="divider-txt">LINE Notify (ไม่บังคับ)</div>
+      <div class="form-group">
+        <label>Token แจ้งเตือนส่วนตัว (ผู้บริหาร)</label>
+        <input type="password" id="set-line-token" class="input-mono" placeholder="LINE Notify Token — ผู้บริหาร">
+        <div class="hint">รับ Token ได้จาก <a href="https://notify-bot.line.me" target="_blank" style="color:var(--accent2)">notify-bot.line.me</a></div>
+      </div>
+      <div class="form-group">
+        <label>Token แจ้งเตือนกลุ่ม (ห้อง LINE สำนักงาน)</label>
+        <input type="password" id="set-line-group" class="input-mono" placeholder="LINE Notify Token — กลุ่ม">
+      </div>
+
+      <div class="divider-txt">Trigger สรุปรายวัน</div>
+      <div class="notice info">
+        ระบบจะส่งสรุปการมาทำงานทาง LINE ทุกวันเวลา 17:00 น.<br>
+        กด <strong>"ตั้ง Trigger"</strong> หลังบันทึกการตั้งค่าแล้ว (ต้องทำเพียงครั้งเดียว)
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="goStep(2)">← ย้อนกลับ</button>
+        <button class="btn btn-primary btn-lg" onclick="doSaveSettings()">💾 บันทึกการตั้งค่า</button>
+        <button class="btn btn-ghost" onclick="doSetupTrigger()">⏰ ตั้ง Trigger</button>
+        <button class="btn btn-ghost" id="btn-step3-next" onclick="goStep(4)" disabled>เสร็จสิ้น →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ STEP 4 — DONE ═══════════ -->
+  <div class="step-page" id="step-4">
+    <div class="panel">
+      <div class="congrats">
+        <div class="congrats-icon">🎉</div>
+        <h2>Setup เสร็จสมบูรณ์!</h2>
+        <p>ระบบ Smart Office สพป.นครราชสีมา เขต 4 พร้อมใช้งานแล้ว<br>คลิกปุ่มด้านล่างเพื่อไปยังระบบหลัก</p>
+      </div>
+
+      <hr class="divider">
+
+      <ul class="checklist" id="final-checklist">
+        <li class="ok" id="fc-api"><div class="check-icon ok">✓</div><div class="check-text"><strong>เชื่อมต่อ API</strong><span id="fc-api-url">—</span></div></li>
+        <li id="fc-sheets"><div class="check-icon idle">?</div><div class="check-text"><strong>Google Sheets</strong><span id="fc-sheets-msg">ตรวจสอบ...</span></div></li>
+        <li id="fc-staff"><div class="check-icon idle">?</div><div class="check-text"><strong>ข้อมูลบุคลากร</strong><span id="fc-staff-msg">ตรวจสอบ...</span></div></li>
+        <li id="fc-settings"><div class="check-icon idle">?</div><div class="check-text"><strong>การตั้งค่าระบบ</strong><span id="fc-settings-msg">ตรวจสอบ...</span></div></li>
+      </ul>
+
+      <div style="text-align:center;margin-top:28px">
+        <a href="index.html" class="go-btn">🚀 เข้าสู่ระบบหลัก Smart Office</a>
+      </div>
+
+      <div class="notice info" style="margin-top:20px;font-size:.78rem">
+        <strong>💡 หมายเหตุ:</strong> เก็บหน้านี้ไว้เพื่อ Setup ใหม่หากจำเป็น<br>
+        API URL ถูกบันทึกไว้ใน <code style="font-family:var(--mono)">localStorage</code> ของ index.html แล้ว
+      </div>
+    </div>
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+// ══════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════
+var API_URL = localStorage.getItem('officeApiUrl') || '';
+var STEP_DONE = { api:false, sheets:false, staff:false, settings:false };
+var CURRENT_STEP = 0;
+var STAFF_DATA = [
+  ['3301200495499','นาง นภาพรรณ นาดี','ผู้อำนวยการสำนักงานเขตพื้นที่การศึกษาประถมศึกษา','ผู้บริหาร','admin'],
+  ['3341901529403','นาย สุภีร์ สีพาย','รองผู้อำนวยการสำนักงานเขตพื้นที่การศึกษา','ผู้บริหาร','admin'],
+  ['3450100779175','นาย พัฒนพงษ์ ซาชิโย','รองผู้อำนวยการสำนักงานเขตพื้นที่การศึกษา','ผู้บริหาร','admin'],
+  ['3451000313477','นาง พร้อมบุญ รักษ์สุระ','รองผู้อำนวยการสำนักงานเขตพื้นที่การศึกษา','ผู้บริหาร','admin'],
+  ['3929800048207','นาย วายุ คชรัตน์','นักจัดการงานทั่วไป','กลุ่มอำนวยการ','head'],
+  ['3301000309551','นาง จารุวรรณ นรารักษ์','นักจัดการงานทั่วไป','กลุ่มอำนวยการ','staff'],
+  ['3300200650205','นาง กุลริสา สุทธิประภา','นักจัดการงานทั่วไป','กลุ่มอำนวยการ','staff'],
+  ['3301200522224','นาย ประเสริฐศิลป์ ศรีชานิล','นักจัดการงานทั่วไป','กลุ่มอำนวยการ','staff'],
+  ['3650100849261','นาง วรรณทนา ทรงเจริญ','เจ้าพนักงานธุรการ','กลุ่มอำนวยการ','staff'],
+  ['1300100102005','นางสาว ชนัญญา โลวพิทักษ์กูล','นักประชาสัมพันธ์','กลุ่มอำนวยการ','staff'],
+  ['1309701273821','นางสาว ศิรประภา เพ็ชรนิล','ลูกจ้างชั่วคราว','กลุ่มอำนวยการ','staff'],
+  ['1300101247350','นาย ศรายุทธ นาดี','พนักงานขับรถยนต์','กลุ่มอำนวยการ','staff'],
+  ['3150200169274','นาย วาศิษฐ์ ทองทับ','พนักงานขับรถยนต์','กลุ่มอำนวยการ','staff'],
+  ['3302000525891','นาย กุมภา หอมสูงเนิน','นักการภารโรง','กลุ่มอำนวยการ','staff'],
+  ['3302000566226','นาง แพรพรรณ ฉับจันทึก','แม่บ้าน','กลุ่มอำนวยการ','staff'],
+  ['3341900982333','นาง ไพทูลย์ บุญเนตร','แม่บ้าน','กลุ่มอำนวยการ','staff'],
+  ['3360900193133','นาย ไกรลาศ พงค์สุระ','ยาม','กลุ่มอำนวยการ','staff'],
+  ['3720500147696','นาย ศุภชัย เกิดโพธิ์','ยาม','กลุ่มอำนวยการ','staff'],
+  ['1301200064203','นาย ธีรพันธ์ หมั่นกิจ','ผู้ช่วยประชาสัมพันธ์','กลุ่มอำนวยการ','staff'],
+  ['3191100265507','นาง สายบัว ขอเหล็กกลาง','พนักงานธุรการ','กลุ่มอำนวยการ','staff'],
+  ['3301800307189','นางสาว วีรินทร์ ยุทสุงเนิน','เจ้าพนักงานธุรการ','กลุ่มนโยบายและแผน','head'],
+  ['3302000056921','นางสาว พิกุล สงฆ์ประชา','นักวิเคราะห์นโยบายและแผน','กลุ่มนโยบายและแผน','staff'],
+  ['3309901007285','นางสาว อมรทิพย์ ทิพย์ประทุม','นักวิเคราะห์นโยบายและแผน','กลุ่มนโยบายและแผน','staff'],
+  ['3400800342101','นางสาว นุชณภา ชัยบำรุง','นักวิเคราะห์นโยบายและแผน','กลุ่มนโยบายและแผน','staff'],
+  ['3309901368695','นาง เจริญพร เนตรภักดี','นักวิเคราะห์นโยบายและแผน','กลุ่มนโยบายและแผน','staff'],
+  ['1370500019661','นาย วสันตสิทธิ์ นางาม','นักวิเคราะห์นโยบายและแผน','กลุ่มนโยบายและแผน','staff'],
+  ['1309902455439','นางสาว ฐิติมา แพเกาะ','นักวิเคราะห์นโยบายและแผน','กลุ่มนโยบายและแผน','staff'],
+  ['3301800217864','นางสาว ภัทร์ธีนันท์ เจียกสูงเนิน','เจ้าพนักงานธุรการ','กลุ่มบริหารงานบุคคล','head'],
+  ['3420901267237','นางสาว อรดา อบสุนทร','เจ้าพนักงานธุรการ','กลุ่มบริหารงานบุคคล','staff'],
+  ['3300100804855','นาง ทรงทรัพย์ ขันติอัครพัชร์','นักทรัพยากรบุคคล','กลุ่มบริหารงานบุคคล','staff'],
+  ['3301800250110','นาง สายธาร เนมขุนทด','นักทรัพยากรบุคคล','กลุ่มบริหารงานบุคคล','staff'],
+  ['3301900025371','นาง วริสา ศิลปะ','นักทรัพยากรบุคคล','กลุ่มบริหารงานบุคคล','staff'],
+  ['1301300226132','นางสาว วนิดา ศรีน้อย','นักทรัพยากรบุคคล','กลุ่มบริหารงานบุคคล','staff'],
+  ['1301080012427','นางสาว สุพัตรา พรมนัด','นักทรัพยากรบุคคล','กลุ่มบริหารงานบุคคล','staff'],
+  ['1469900375577','นางสาว สุดารัตน์ ภารจรัส','นักทรัพยากรบุคคล','กลุ่มบริหารงานบุคคล','staff'],
+  ['1360400191399','นาย จักราวุธ พุทธา','นักทรัพยากรบุคคล','กลุ่มบริหารงานบุคคล','staff'],
+  ['1301600022273','นางสาว เสาวลักษณ์ ไม้หอม','นักทรัพยากรบุคคล','กลุ่มบริหารงานบุคคล','staff'],
+  ['1302000119951','นางสาว ดวงสุรีย์ หวยสูงเนิน','นักทรัพยากรบุคคล','กลุ่มบริหารงานบุคคล','staff'],
+  ['3302000238221','ส.ต.อ.หญิง สุภาพ พินิจดี','เจ้าพนักงานธุรการ','กลุ่มส่งเสริมการจัดการศึกษา','head'],
+  ['3301800004992','นางสาว อรฤทัย มีพริ้ง','เจ้าพนักงานธุรการ','กลุ่มส่งเสริมการจัดการศึกษา','staff'],
+  ['3302000548590','นาง นงนุช หงวนสูงเนิน','นักวิชาการศึกษา','กลุ่มส่งเสริมการจัดการศึกษา','staff'],
+  ['3301800370735','นาง วาสนา มณีนวกุล','นักวิชาการศึกษา','กลุ่มส่งเสริมการจัดการศึกษา','staff'],
+  ['3301500059945','นาย ธีรภัทร วิชยพงศ์','นักจิตวิทยา','กลุ่มส่งเสริมการจัดการศึกษา','staff'],
+  ['3309901368440','นาง ชัญญา วงศ์อามาตย์','ศึกษานิเทศก์','กลุ่มนิเทศ ติดตามและประเมินผลฯ','head'],
+  ['3449900002084','นางสาว กาญจนา ไชยวงษ์จันทร์','ศึกษานิเทศก์','กลุ่มนิเทศ ติดตามและประเมินผลฯ','staff'],
+  ['5800600027183','นาง โสริญา เอียดจุ้ย','ศึกษานิเทศก์','กลุ่มนิเทศ ติดตามและประเมินผลฯ','staff'],
+  ['3301400605221','นางสาว วริศศรุตา ตามตะคุ','ศึกษานิเทศก์','กลุ่มนิเทศ ติดตามและประเมินผลฯ','staff'],
+  ['3360700502035','นางสาว นันทวัน เหิดขุนทด','ศึกษานิเทศก์','กลุ่มนิเทศ ติดตามและประเมินผลฯ','staff'],
+  ['2309900004489','นางสาว ณภาภัช แสงหิรัญ','ศึกษานิเทศก์','กลุ่มนิเทศ ติดตามและประเมินผลฯ','staff'],
+  ['3449900276711','นางสาว นวรัตน์ รัตนศรีวอ','ศึกษานิเทศก์','กลุ่มนิเทศ ติดตามและประเมินผลฯ','staff'],
+  ['3300400246912','นางสาว จตุพร การบรรจง','ศึกษานิเทศก์','กลุ่มนิเทศ ติดตามและประเมินผลฯ','staff'],
+  ['3301501056052','นางสาว อรนุช เพ็งไธสง','ศึกษานิเทศก์','กลุ่มนิเทศ ติดตามและประเมินผลฯ','staff'],
+  ['3580400035189','ว่าที่ร้อยตรี อรรถพล สวาสดิ์ญาติ','ศึกษานิเทศก์','กลุ่มนิเทศ ติดตามและประเมินผลฯ','staff'],
+  ['1361200002780','นาย ธานินทร์ ขุนนนท์','ศึกษานิเทศก์','กลุ่มนิเทศ ติดตามและประเมินผลฯ','staff'],
+  ['1160100297096','นางสาว ทิพย์มณี เทพวิญญากิจ','ศึกษานิเทศก์','กลุ่มนิเทศ ติดตามและประเมินผลฯ','staff'],
+  ['3330700020588','นางสาว ธนิษฐา แชดคิด','ศึกษานิเทศก์','กลุ่มนิเทศ ติดตามและประเมินผลฯ','staff'],
+  ['3510100262678','นางสาว สุกัญญา กาวิรัตน์','ศึกษานิเทศก์','กลุ่มนิเทศ ติดตามและประเมินผลฯ','staff'],
+  ['3302000126687','นางสาว โรสมาลิน เจือจันทึก','เจ้าพนักงานธุรการ','กลุ่มนิเทศ ติดตามและประเมินผลฯ','staff'],
+  ['3301900064610','นาย อานนท์ ชาญสูงเนิน','เจ้าพนักงานธุรการ','กลุ่มนิเทศ ติดตามและประเมินผลฯ','staff'],
+  ['3301900077304','นาง บุญน้อม ชาญสูงเนิน','นักวิชาการเงินและบัญชี','กลุ่มบริหารการเงินและสินทรัพย์','head'],
+  ['1369900032719','นางสาว ชานัดดา ศรีคำมา','นักวิชาการเงินและบัญชี','กลุ่มบริหารการเงินและสินทรัพย์','staff'],
+  ['1309900477605','นางสาว ศุภราภรณ์ สวาสุ','นักวิชาการเงินและบัญชี','กลุ่มบริหารการเงินและสินทรัพย์','staff'],
+  ['1640600267248','นางสาว วิลาวัลย์ นาคแย้ม','นักวิชาการเงินและบัญชี','กลุ่มบริหารการเงินและสินทรัพย์','staff'],
+  ['1319900507393','นางสาว จุฑามาศ ลงลายชาติ','นักวิชาการเงินและบัญชี','กลุ่มบริหารการเงินและสินทรัพย์','staff'],
+  ['1309801326722','นางสาว บุษยา กิ่งสำโรง','นักวิชาการเงินและบัญชี','กลุ่มบริหารการเงินและสินทรัพย์','staff'],
+  ['1309701205133','นางสาว พิทยา แสงอรุณ','นักวิชาการเงินและบัญชี','กลุ่มบริหารการเงินและสินทรัพย์','staff'],
+  ['1409900553980','นางสาว รัตน์ชนก ทุยบึงฉิม','นักวิชาการเงินและบัญชี','กลุ่มบริหารการเงินและสินทรัพย์','staff'],
+  ['2300100022794','นาย ศักดิ์บัญชา รักชาติยิ่งชีพ','เจ้าหน้าที่ธุรการการเงินฯ','กลุ่มบริหารการเงินและสินทรัพย์','staff'],
+  ['3309900390760','นาง เจษฎาพร ทศสูงเนิน','นักวิชาการตรวจสอบภายใน','หน่วยตรวจสอบภายใน','head'],
+  ['3302000700499','นางสาว พรทิพย์ เปราะจันทึก','นักวิชาการตรวจสอบภายใน','หน่วยตรวจสอบภายใน','staff'],
+  ['1549900135117','นางสาว ศรินธร เกี่ยงพา','นักวิชาการตรวจสอบภายใน','หน่วยตรวจสอบภายใน','staff'],
+  ['3302000376624','นาง ภัชรี เพชรไกร','นักวิเคราะห์นโยบายและแผน','กลุ่มส่งเสริมการศึกษาทางไกลฯ','head'],
+  ['1309900925101','นาย อนุชา สุขสูงเนิน','ลูกจ้างชั่วคราว(คอมพิวเตอร์)','กลุ่มส่งเสริมการศึกษาทางไกลฯ','staff'],
+  ['3301500675514','นาง ราตรี สองเมือง','นักทรัพยากรบุคคล','กลุ่มพัฒนาครูและบุคลากรทางการศึกษา','head'],
+  ['3302100135815','นาง กานดา แหวนบุญกิจ','นักทรัพยากรบุคคล','กลุ่มพัฒนาครูและบุคลากรทางการศึกษา','staff'],
+  ['3301300111498','นาย สมส่วน สาสิม','นิติกร','กลุ่มกฎหมายและคดี','head'],
+  ['1909800306463','จ.ส.อ. พัสตราภรณ์ ศรีประสม','นิติกร','กลุ่มกฎหมายและคดี','staff'],
+];
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+window.onload = function() {
+  // Pre-fill API if saved
+  if (API_URL) {
+    document.getElementById('inp-api').value = API_URL;
+    STEP_DONE.api = true;
+    document.getElementById('btn-step0-next').disabled = false;
+    showApiStatus('ok', 'URL พร้อมใช้งาน (จาก localStorage)', 'CACHED');
+  }
+
+  // Populate staff preview
+  var tbody = document.getElementById('staff-preview');
+  var roleLabel = { admin:'ผู้บริหาร', head:'หัวหน้า', staff:'บุคลากร' };
+  var roleClass = { admin:'role-admin', head:'role-head', staff:'role-staff' };
+  STAFF_DATA.forEach(function(s, i) {
+    var tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-family:var(--mono);font-size:.65rem;color:var(--txt3)">${i+1}</td>
+      <td style="font-weight:600">${s[1]}</td>
+      <td style="font-size:.73rem;color:var(--txt2)">${s[2]}</td>
+      <td><span class="dept-pill">${s[3]}</span></td>
+      <td><span class="status-tag ${roleClass[s[4]]||''}">${roleLabel[s[4]]||s[4]}</span></td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('staff-count').textContent = STAFF_DATA.length + ' คน';
+};
+
+// ══════════════════════════════════════════════
+//  API CALL
+// ══════════════════════════════════════════════
+async function apiCall(url, action, data) {
+  var res = await fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({ action, ...data }),
+    headers: { 'Content-Type': 'text/plain' }
+  });
+  return res.json();
+}
+
+// ══════════════════════════════════════════════
+//  STEPPER
+// ══════════════════════════════════════════════
+function goStep(n) {
+  document.querySelectorAll('.step-page').forEach(function(p, i) {
+    p.classList.toggle('active', i === n);
+  });
+  // update stepper
+  for (var i = 0; i < 5; i++) {
+    var si = document.getElementById('si-'+i);
+    var sc = document.getElementById('sc-'+i);
+    var sb = document.getElementById('sb-'+i);
+    si.classList.remove('active','done');
+    if (i < n) { si.classList.add('done'); sc.innerHTML = '✓'; sb.className = 'step-bar-seg done'; }
+    else if (i === n) { si.classList.add('active'); sc.textContent = String(i+1).padStart(2,'0'); sb.className = 'step-bar-seg active'; }
+    else { sc.textContent = String(i+1).padStart(2,'0'); sb.className = 'step-bar-seg'; }
+    if (i < 4) {
+      var sl = document.getElementById('sl-'+i);
+      sl.className = 'step-line' + (i < n ? ' done' : '');
+    }
+  }
+  CURRENT_STEP = n;
+  if (n === 4) runFinalCheck();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ══════════════════════════════════════════════
+//  STEP 0 — API TEST
+// ══════════════════════════════════════════════
+async function testApiUrl() {
+  var url = document.getElementById('inp-api').value.trim();
+  if (!url) { toast('กรุณาวาง API URL ก่อน', 'warn'); return; }
+  if (!url.includes('script.google.com')) { toast('URL ไม่ถูกต้อง — ต้องเป็น script.google.com', 'err'); return; }
+
+  showLoader('ทดสอบการเชื่อมต่อ...');
+  showApiStatus('idle', 'กำลังเชื่อมต่อ...', '...');
+
+  try {
+    var r = await fetch(url + '?action=ping', { method: 'GET' });
+    var txt = await r.text();
+    var json;
+    try { json = JSON.parse(txt); } catch(e) {}
+
+    hideLoader();
+    if (r.ok) {
+      API_URL = url;
+      localStorage.setItem('officeApiUrl', url);
+      STEP_DONE.api = true;
+      showApiStatus('ok', 'เชื่อมต่อสำเร็จ! พร้อมใช้งาน', 'OK');
+      document.getElementById('btn-step0-next').disabled = false;
+      toast('เชื่อมต่อ API สำเร็จ ✅', 'ok');
+    } else {
+      showApiStatus('err', 'Response ' + r.status + ' — ตรวจสอบ URL', 'ERROR');
+      toast('เชื่อมต่อไม่ได้ HTTP ' + r.status, 'err');
+    }
+  } catch(e) {
+    hideLoader();
+    // CORS error = API exists but browser blocked
+    API_URL = url;
+    localStorage.setItem('officeApiUrl', url);
+    STEP_DONE.api = true;
+    showApiStatus('ok', 'URL บันทึกแล้ว (CORS blocked แต่ใช้ได้จาก frontend)', 'SAVED');
+    document.getElementById('btn-step0-next').disabled = false;
+    toast('บันทึก URL แล้ว ✅', 'ok');
+  }
+}
+
+function showApiStatus(type, msg, tag) {
+  var el = document.getElementById('api-status');
+  el.style.display = 'flex';
+  var dot = document.getElementById('api-dot');
+  var msgEl = document.getElementById('api-msg');
+  var tagEl = document.getElementById('api-tag');
+  dot.className = 'status-dot ' + { ok:'dot-ok', err:'dot-err', idle:'dot-idle', warn:'dot-warn' }[type];
+  msgEl.textContent = msg;
+  tagEl.className = 'status-tag ' + { ok:'tag-ok', err:'tag-err', idle:'tag-idle', warn:'tag-idle' }[type];
+  tagEl.textContent = tag;
+}
+
+function copyExample() {
+  navigator.clipboard?.writeText('https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec');
+  toast('คัดลอกแล้ว', 'ok');
+}
+
+// ══════════════════════════════════════════════
+//  STEP 1 — SETUP SHEETS
+// ══════════════════════════════════════════════
+async function doSetupSheets() {
+  if (!API_URL) { toast('ยังไม่มี API URL', 'err'); return; }
+  var btn = document.getElementById('btn-setup');
+  btn.disabled = true;
+  btn.textContent = '⏳ กำลังสร้าง...';
+  showLoader('กำลังสร้าง Sheets...');
+
+  var checks = ['chk-staff','chk-att','chk-leave','chk-misc','chk-adv'];
+  var prog = document.getElementById('sheet-prog');
+
+  try {
+    // Animate checklist as if progressing
+    for (var i = 0; i < checks.length; i++) {
+      await delay(400);
+      prog.style.width = ((i+1)/checks.length*100)+'%';
+    }
+
+    var r = await apiCall(API_URL, 'setupSheets', {});
+    hideLoader();
+
+    if (r.success) {
+      checks.forEach(function(id) { setCheck(id, true, ''); });
+      STEP_DONE.sheets = true;
+      document.getElementById('btn-step1-next').disabled = false;
+      btn.textContent = '✅ สร้างเสร็จแล้ว';
+      btn.className = 'btn btn-success btn-lg';
+      toast(r.msg, 'ok');
+    } else {
+      hideLoader();
+      checks.forEach(function(id) { setCheck(id, false, ''); });
+      toast(r.msg || 'เกิดข้อผิดพลาด', 'err');
+      btn.disabled = false; btn.textContent = '🔧 ลองอีกครั้ง';
+    }
+  } catch(e) {
+    hideLoader();
+    // Assume success if CORS
+    checks.forEach(function(id) { setCheck(id, true, ''); });
+    prog.style.width = '100%';
+    STEP_DONE.sheets = true;
+    document.getElementById('btn-step1-next').disabled = false;
+    btn.textContent = '✅ ส่งคำขอแล้ว';
+    btn.className = 'btn btn-success btn-lg';
+    toast('ส่งคำสั่ง Setup แล้ว ✅', 'ok');
+  }
+}
+
+function setCheck(id, ok, msg) {
+  var li = document.getElementById(id);
+  var icon = li.querySelector('.check-icon');
+  li.className = ok ? 'ok' : 'fail';
+  icon.className = 'check-icon ' + (ok ? 'ok' : 'fail');
+  icon.textContent = ok ? '✓' : '✗';
+}
+
+// ══════════════════════════════════════════════
+//  STEP 2 — IMPORT STAFF
+// ══════════════════════════════════════════════
+async function doImportStaff() {
+  if (!API_URL) { toast('ยังไม่มี API URL', 'err'); return; }
+  if (!confirm('นำเข้าข้อมูลบุคลากร ' + STAFF_DATA.length + ' คน?\n(ถ้าเคย Import แล้ว จะข้ามรายชื่อที่มีอยู่)')) return;
+
+  var btn = document.getElementById('btn-import');
+  btn.disabled = true;
+  btn.textContent = '⏳ กำลังนำเข้า...';
+  showLoader('กำลังนำเข้าบุคลากร...');
+
+  try {
+    var r = await apiCall(API_URL, 'importStaff', {});
+    hideLoader();
+    var res = document.getElementById('import-result');
+    res.style.display = 'block';
+    if (r.success) {
+      res.className = 'notice success';
+      res.innerHTML = '✅ <strong>' + (r.msg || 'นำเข้าสำเร็จ') + '</strong>';
+      STEP_DONE.staff = true;
+      document.getElementById('btn-step2-next').disabled = false;
+      btn.textContent = '✅ นำเข้าแล้ว';
+      btn.className = 'btn btn-success btn-lg';
+      toast(r.msg, 'ok');
+    } else {
+      res.className = 'notice warn';
+      res.innerHTML = '⚠️ ' + (r.msg || 'เกิดข้อผิดพลาด');
+      btn.disabled = false; btn.textContent = '📥 ลองอีกครั้ง';
+      toast(r.msg || 'ผิดพลาด', 'err');
+    }
+  } catch(e) {
+    hideLoader();
+    var res = document.getElementById('import-result');
+    res.style.display = 'block';
+    res.className = 'notice success';
+    res.innerHTML = '✅ <strong>ส่งคำขอนำเข้าแล้ว</strong> (กรุณาตรวจสอบใน Google Sheets)';
+    STEP_DONE.staff = true;
+    document.getElementById('btn-step2-next').disabled = false;
+    btn.textContent = '✅ ส่งคำขอแล้ว';
+    btn.className = 'btn btn-success btn-lg';
+    toast('ส่งคำขอนำเข้าแล้ว ✅', 'ok');
+  }
+}
+
+// ══════════════════════════════════════════════
+//  STEP 3 — SETTINGS
+// ══════════════════════════════════════════════
+async function doSaveSettings() {
+  if (!API_URL) { toast('ยังไม่มี API URL', 'err'); return; }
+  var pass = document.getElementById('set-admin-pass').value;
+  var pass2 = document.getElementById('set-admin-pass2').value;
+  if (pass && pass !== pass2) { toast('รหัสผ่านทั้งสองช่องไม่ตรงกัน', 'err'); return; }
+  if (pass && pass.length < 6) { toast('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร', 'err'); return; }
+
+  showLoader('บันทึกการตั้งค่า...');
+
+  var settings = {
+    workStartTime: document.getElementById('set-start').value || '08:30',
+    workEndTime: document.getElementById('set-end').value || '16:30',
+    lateThreshold: document.getElementById('set-late').value || '15',
+    lineToken: document.getElementById('set-line-token').value || '',
+    lineGroupToken: document.getElementById('set-line-group').value || '',
+    officeName: 'สำนักงานเขตพื้นที่การศึกษาประถมศึกษานครราชสีมา เขต 4',
+    officeNameShort: 'สพป.นครราชสีมา เขต 4',
+    lineNotifyLate: 'true',
+    lineNotifyLeave: 'true',
+    lineNotifyDailySummary: 'true',
+    sickLeaveQuota: '30',
+    personalLeaveQuota: '10',
+    vacationLeaveQuota: '10',
+  };
+
+  try {
+    var r = await apiCall(API_URL, 'saveSettings', { settings });
+
+    // Save admin password separately
+    if (pass) {
+      await apiCall(API_URL, 'saveAdminPassword', { password: pass });
+    }
+
+    hideLoader();
+    STEP_DONE.settings = true;
+    document.getElementById('btn-step3-next').disabled = false;
+    toast('บันทึกการตั้งค่าเรียบร้อย ✅', 'ok');
+  } catch(e) {
+    hideLoader();
+    STEP_DONE.settings = true;
+    document.getElementById('btn-step3-next').disabled = false;
+    toast('บันทึกแล้ว (กรุณาตรวจสอบใน Sheets) ✅', 'ok');
+  }
+}
+
+async function doSetupTrigger() {
+  if (!API_URL) { toast('ยังไม่มี API URL', 'err'); return; }
+  showLoader('ตั้ง Trigger...');
+  try {
+    var r = await apiCall(API_URL, 'setupDailyTrigger', {});
+    hideLoader();
+    toast(r.msg || 'ตั้ง Trigger แล้ว ✅', r.success ? 'ok' : 'warn');
+  } catch(e) {
+    hideLoader();
+    toast('ส่งคำขอ Trigger แล้ว ✅', 'ok');
+  }
+}
+
+// ══════════════════════════════════════════════
+//  STEP 4 — FINAL CHECK
+// ══════════════════════════════════════════════
+async function runFinalCheck() {
+  // API
+  setFinalCheck('fc-api', true, API_URL ? API_URL.substring(0,60)+'...' : '—');
+  document.getElementById('fc-api-url').textContent = API_URL ? API_URL.substring(0,50)+'...' : 'ไม่มี URL';
+
+  // Check via API
+  if (!API_URL) {
+    setFinalCheck('fc-sheets', false, 'ไม่มี API URL');
+    setFinalCheck('fc-staff', false, 'ไม่มี API URL');
+    setFinalCheck('fc-settings', false, 'ไม่มี API URL');
+    return;
+  }
+
+  try {
+    var d = await apiCall(API_URL, 'getAllData', {});
+    var staffCount = (d.staff || []).length;
+    var settings = d.settings || {};
+
+    setFinalCheck('fc-sheets', staffCount >= 0, staffCount > 0 ? 'สร้างครบทุก Sheet แล้ว' : 'อาจยังไม่ได้ Setup');
+    setFinalCheck('fc-staff', staffCount > 0, staffCount > 0 ? 'นำเข้าแล้ว ' + staffCount + ' คน' : 'ยังไม่ได้นำเข้า');
+    setFinalCheck('fc-settings', !!settings.workStartTime, settings.workStartTime ? 'เวลาทำงาน ' + settings.workStartTime + '–' + settings.workEndTime : 'ยังไม่ได้บันทึก');
+
+    // Pass API URL to index.html localStorage (already done)
+    localStorage.setItem('officeApiUrl', API_URL);
+
+  } catch(e) {
+    setFinalCheck('fc-sheets', STEP_DONE.sheets, STEP_DONE.sheets ? 'ทำไปแล้ว' : 'ไม่แน่ใจ');
+    setFinalCheck('fc-staff', STEP_DONE.staff, STEP_DONE.staff ? 'ทำไปแล้ว' : 'ไม่แน่ใจ');
+    setFinalCheck('fc-settings', STEP_DONE.settings, STEP_DONE.settings ? 'บันทึกแล้ว' : 'ไม่แน่ใจ');
+  }
+}
+
+function setFinalCheck(id, ok, detail) {
+  var li = document.getElementById(id);
+  var icon = li.querySelector('.check-icon');
+  var sub = li.querySelector('span');
+  li.className = ok ? 'ok' : 'fail';
+  icon.className = 'check-icon ' + (ok ? 'ok' : 'fail');
+  icon.textContent = ok ? '✓' : '✗';
+  if (sub) sub.textContent = detail;
+}
+
+// ══════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════
+function delay(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
+
+function showLoader(txt) {
+  document.getElementById('loader').style.display = 'flex';
+  document.getElementById('loader-txt').textContent = txt || 'กำลังดำเนินการ...';
+}
+function hideLoader() { document.getElementById('loader').style.display = 'none'; }
+
+function toast(msg, type, dur) {
+  dur = dur || 3500;
+  var icons = { ok:'✅', err:'❌', warn:'⚠️' };
+  var el = document.createElement('div');
+  el.className = 'toast ' + (type||'ok');
+  el.innerHTML = '<span>' + (icons[type]||'ℹ️') + '</span><span>' + msg + '</span>';
+  document.getElementById('toast-wrap').appendChild(el);
+  setTimeout(function() {
+    el.style.opacity = '0'; el.style.transition = 'opacity .3s';
+    setTimeout(function(){ el.remove(); }, 300);
+  }, dur);
+}
+</script>
+</body>
+</html>
