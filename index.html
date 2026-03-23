@@ -217,7 +217,7 @@ tr:hover td{background:#fafbfc}
     <div class="nav-item" onclick="go('report',this)"><span class="material-icons">bar_chart</span><span>รายงานการมาทำงาน</span></div>
     <div class="nav-item" onclick="go('leavereport',this)"><span class="material-icons">summarize</span><span>รายงานวันลา</span></div>
     <div class="nav-sec">ระบบ</div>
-    <div class="nav-item" id="nav-admin" style="display:none" onclick="go('admin',this)"><span class="material-icons">admin_panel_settings</span><span>ตั้งค่าระบบ</span></div>
+    <div class="nav-item" id="nav-admin" onclick="go('admin',this)"><span class="material-icons">admin_panel_settings</span><span>ตั้งค่าระบบ</span></div>
     <div class="nav-item" onclick="go('profile',this)"><span class="material-icons">person</span><span>โปรไฟล์ของฉัน</span></div>
   </nav>
   <div class="sb-footer">
@@ -247,6 +247,18 @@ tr:hover td{background:#fafbfc}
         <h2 id="print-title-txt">สำนักงานเขตพื้นที่การศึกษาประถมศึกษานครราชสีมา เขต 4</h2>
         <h3>รายงานการมาปฏิบัติราชการ</h3>
         <p style="font-size:.82rem;color:#666;margin-top:4px">วันที่: <span id="print-date-txt"></span></p>
+      </div>
+      <div id="api-banner" style="display:none;background:#fef9c3;border:2px solid #f59e0b;border-radius:12px;padding:16px 20px;margin-bottom:18px">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <span style="font-size:1.4rem">⚙️</span>
+          <div style="flex:1">
+            <div style="font-weight:800;color:#b45309;margin-bottom:2px">ยังไม่ได้ตั้งค่า API URL</div>
+            <div style="font-size:.82rem;color:#92400e">ไปที่เมนู <strong>ตั้งค่าระบบ</strong> ด้านซ้าย แล้ววาง URL ของ Google Apps Script</div>
+          </div>
+          <button class="btn btn-warn btn-sm" onclick="go('admin',document.getElementById('nav-admin'))">
+            <span class="material-icons">settings</span> ตั้งค่าเลย
+          </button>
+        </div>
       </div>
       <div class="stat-grid">
         <div class="stat-card" style="--accent:#3b82f6"><h3>บุคลากรทั้งหมด</h3><div class="value" id="d-total">0</div><div class="sub">คน</div></div>
@@ -612,7 +624,7 @@ window.onload = async () => {
   document.getElementById('print-date-txt').innerText = thaiDate(new Date(), true);
 
   if (!API_URL) {
-    toast('กรุณาตั้งค่า API URL ในหน้า Admin ก่อน', 'warn');
+    document.getElementById('api-banner').style.display = 'block';
     hideLoader();
     return;
   }
