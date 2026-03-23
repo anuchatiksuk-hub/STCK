@@ -218,6 +218,12 @@ tr:hover td{background:#fafbfc}
     <div class="nav-item" onclick="go('leavereport',this)"><span class="material-icons">summarize</span><span>รายงานวันลา</span></div>
     <div class="nav-sec">ระบบ</div>
     <div class="nav-item" id="nav-admin" onclick="go('admin',this)"><span class="material-icons">admin_panel_settings</span><span>ตั้งค่าระบบ</span></div>
+    <div class="nav-sec">เพิ่มเติม</div>
+    <div class="nav-item" onclick="go('pin',this)"><span class="material-icons">pin</span><span>ตั้ง / เปลี่ยน PIN</span></div>
+    <div class="nav-item" onclick="go('officialtrip',this)"><span class="material-icons">directions_car</span><span>ปฏิบัติราชการนอกสถานที่</span></div>
+    <div class="nav-item" onclick="go('dailyreport',this)"><span class="material-icons">assignment</span><span>รายงานผลประจำวัน</span></div>
+    <div class="nav-item" onclick="go('wfh',this)"><span class="material-icons">home_work</span><span>Work From Home</span></div>
+    <div class="nav-item" id="nav-approve-all" style="display:none" onclick="go('approveall',this)"><span class="material-icons">rule</span><span>อนุมัติทั้งหมด</span><span class="nav-badge" id="approve-all-badge">0</span></div>
     <div class="nav-item" onclick="go('profile',this)"><span class="material-icons">person</span><span>โปรไฟล์ของฉัน</span></div>
   </nav>
   <div class="sb-footer">
@@ -531,6 +537,188 @@ tr:hover td{background:#fafbfc}
       </div>
     </div>
 
+
+    <!-- PIN SETUP -->
+    <div id="pin" class="page">
+      <div class="card" style="max-width:420px;margin:0 auto">
+        <div class="card-title" style="margin-bottom:18px"><span class="material-icons" style="color:var(--p2)">pin</span> ตั้งค่า / เปลี่ยน PIN</div>
+        <div id="pin-content">
+          <div class="form-group">
+            <label>🔍 ค้นหาชื่อของคุณก่อน</label>
+            <input type="text" id="pin-search" placeholder="พิมพ์ชื่อ..." onkeyup="filterPinStaff()">
+          </div>
+          <select id="pin-staff-sel" size="6" style="margin-bottom:14px;font-size:.88rem"></select>
+          <div id="pin-form-wrap" style="display:none">
+            <div style="background:var(--bg);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:.85rem">
+              <div id="pin-staff-info" style="font-weight:700"></div>
+            </div>
+            <div id="pin-new-section">
+              <div class="form-group"><label>PIN ใหม่ (4 หลักขึ้นไป)</label>
+                <input type="password" id="pin-new" maxlength="8" placeholder="กรอก PIN" inputmode="numeric" pattern="[0-9]*"></div>
+              <div class="form-group"><label>ยืนยัน PIN</label>
+                <input type="password" id="pin-confirm" maxlength="8" placeholder="กรอกซ้ำ" inputmode="numeric" pattern="[0-9]*"></div>
+              <button class="btn btn-success" style="width:100%;justify-content:center" onclick="doSetPin()">
+                <span class="material-icons">lock</span> ตั้ง PIN
+              </button>
+            </div>
+            <div id="pin-change-section" style="display:none">
+              <div class="form-group"><label>PIN เดิม</label>
+                <input type="password" id="pin-old" maxlength="8" placeholder="PIN ปัจจุบัน" inputmode="numeric"></div>
+              <div class="form-group"><label>PIN ใหม่</label>
+                <input type="password" id="pin-new2" maxlength="8" placeholder="PIN ใหม่" inputmode="numeric"></div>
+              <div class="form-group"><label>ยืนยัน PIN ใหม่</label>
+                <input type="password" id="pin-confirm2" maxlength="8" placeholder="ยืนยัน PIN ใหม่" inputmode="numeric"></div>
+              <button class="btn btn-warn" style="width:100%;justify-content:center" onclick="doChangePin()">
+                <span class="material-icons">lock_reset</span> เปลี่ยน PIN
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OFFICIAL TRIP -->
+    <div id="officialtrip" class="page">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="material-icons" style="color:var(--p2)">directions_car</span> แจ้งปฏิบัติราชการนอกสถานที่</div>
+        </div>
+        <div id="trip-user-check" style="background:#fef9c3;border:1px solid #fcd34d;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:.85rem;display:none">
+          ⚠️ กรุณาลงเวลาเข้างานด้วย PIN ก่อน เพื่อระบุตัวตน
+        </div>
+        <div id="trip-form">
+          <div class="form-row">
+            <div class="form-group"><label>วันที่</label><input type="date" id="trip-date"></div>
+            <div class="form-group"><label>สถานที่ปฏิบัติราชการ</label><input type="text" id="trip-destination" placeholder="เช่น โรงเรียนบ้านสวาย"></div>
+          </div>
+          <div class="form-group"><label>เรื่อง / วัตถุประสงค์</label>
+            <textarea id="trip-purpose" rows="3" placeholder="ระบุเหตุผลการออกนอกสถานที่..."></textarea></div>
+          <button class="btn btn-primary" onclick="submitOfficialTrip()">
+            <span class="material-icons">send</span> แจ้งปฏิบัติราชการ
+          </button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="material-icons" style="color:var(--p2)">history</span> ประวัติ / บันทึกเวลา</div>
+          <button class="btn btn-ghost btn-sm" onclick="loadMyTrips()"><span class="material-icons">refresh</span></button>
+        </div>
+        <div id="trip-history"></div>
+      </div>
+      <div class="card" id="trip-approve-card" style="display:none">
+        <div class="card-header">
+          <div class="card-title"><span class="material-icons" style="color:var(--warn)">pending_actions</span> รออนุมัติ (ผู้บริหาร)</div>
+          <button class="btn btn-ghost btn-sm" onclick="loadPendingTrips()"><span class="material-icons">refresh</span></button>
+        </div>
+        <div id="trip-pending-list"></div>
+      </div>
+    </div>
+
+    <!-- DAILY REPORT -->
+    <div id="dailyreport" class="page">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="material-icons" style="color:var(--p2)">assignment</span> รายงานผลการปฏิบัติงานประจำวัน</div>
+          <div style="font-size:.82rem;color:var(--txt2)" id="dr-today-label"></div>
+        </div>
+        <div id="dr-already" style="display:none;background:#dcfce7;border:1px solid #86efac;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:.85rem;color:#15803d">
+          ✅ ส่งรายงานวันนี้แล้ว
+        </div>
+        <div id="dr-form">
+          <div class="form-group"><label>งานที่ปฏิบัติวันนี้ <span style="color:var(--danger)">*</span></label>
+            <textarea id="dr-work" rows="4" placeholder="1. ประชุม...&#10;2. จัดทำเอกสาร...&#10;3. ติดตามงาน..."></textarea></div>
+          <div class="form-group"><label>ผลการปฏิบัติงาน / ผลลัพธ์ <span style="color:var(--danger)">*</span></label>
+            <textarea id="dr-result" rows="3" placeholder="สรุปผลงานที่ได้..."></textarea></div>
+          <div class="form-row">
+            <div class="form-group"><label>ปัญหา / อุปสรรค (ถ้ามี)</label>
+              <textarea id="dr-problem" rows="2" placeholder="ระบุปัญหา..."></textarea></div>
+            <div class="form-group"><label>แผนงานวันพรุ่งนี้</label>
+              <textarea id="dr-next" rows="2" placeholder="งานที่จะทำต่อ..."></textarea></div>
+          </div>
+          <button class="btn btn-primary" onclick="submitDailyReport()">
+            <span class="material-icons">send</span> ส่งรายงาน
+          </button>
+        </div>
+      </div>
+      <div class="card" id="dr-view-card">
+        <div class="card-header">
+          <div class="card-title"><span class="material-icons" style="color:var(--p2)">group</span> รายงานของกลุ่มงาน</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input type="date" id="dr-view-date" onchange="loadDeptReports()">
+            <select id="dr-view-dept" onchange="loadDeptReports()" style="width:180px">
+              <option value="ALL">ทุกกลุ่มงาน</option>
+            </select>
+          </div>
+        </div>
+        <div id="dr-dept-list"></div>
+      </div>
+    </div>
+
+    <!-- WORK FROM HOME -->
+    <div id="wfh" class="page">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="material-icons" style="color:var(--p2)">home_work</span> Work From Home</div>
+        </div>
+        <div id="wfh-today-status" style="display:none;margin-bottom:14px"></div>
+        <div id="wfh-form">
+          <div class="form-row">
+            <div class="form-group"><label>วันที่ WFH</label><input type="date" id="wfh-date"></div>
+          </div>
+          <div class="form-group"><label>แผนงานวันนี้ <span style="color:var(--danger)">*</span></label>
+            <textarea id="wfh-plan" rows="4" placeholder="ระบุงานที่จะทำที่บ้าน...&#10;1. &#10;2. "></textarea></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="submitWFH()">
+              <span class="material-icons">send</span> ขอ WFH วันนี้
+            </button>
+            <button class="btn btn-success" id="wfh-checkin-btn" onclick="doWFHCheckIn()" style="display:none">
+              <span class="material-icons">login</span> เช็คอิน WFH
+            </button>
+            <button class="btn btn-ghost" id="wfh-checkout-btn" onclick="doWFHCheckOut()" style="display:none">
+              <span class="material-icons">logout</span> เช็คเอาท์ WFH
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:14px"><span class="material-icons" style="color:var(--p2)">history</span> ประวัติ WFH ของฉัน</div>
+        <div id="wfh-history"></div>
+      </div>
+      <div class="card" id="wfh-approve-card" style="display:none">
+        <div class="card-header">
+          <div class="card-title"><span class="material-icons" style="color:var(--warn)">pending_actions</span> รออนุมัติ WFH (ผู้บริหาร)</div>
+          <button class="btn btn-ghost btn-sm" onclick="loadPendingWFH()"><span class="material-icons">refresh</span></button>
+        </div>
+        <div id="wfh-pending-list"></div>
+      </div>
+    </div>
+
+    <!-- APPROVE ALL -->
+    <div id="approveall" class="page">
+      <div class="tabs" id="approveall-tabs">
+        <div class="tab active" onclick="switchApproveTab('trip',this)">🚗 ปฏิบัติราชการ</div>
+        <div class="tab" onclick="switchApproveTab('wfh',this)">🏠 WFH</div>
+      </div>
+      <div id="approveall-trip">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="material-icons" style="color:var(--warn)">directions_car</span> รออนุมัติปฏิบัติราชการ</div>
+            <button class="btn btn-ghost btn-sm" onclick="loadAllPendingTrips()"><span class="material-icons">refresh</span></button>
+          </div>
+          <div id="all-pending-trips"></div>
+        </div>
+      </div>
+      <div id="approveall-wfh" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><span class="material-icons" style="color:var(--warn)">home_work</span> รออนุมัติ WFH</div>
+            <button class="btn btn-ghost btn-sm" onclick="loadAllPendingWFH()"><span class="material-icons">refresh</span></button>
+          </div>
+          <div id="all-pending-wfh"></div>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </div><!-- /main -->
 
@@ -591,7 +779,7 @@ window.onload = async () => {
   if (gateUrl && API_URL) gateUrl.value = API_URL;
 
   // Pre-fill dept selects
-  ['dash-dept-filter','clock-dept','rep-dept','lr-dept'].forEach(id => {
+  ['dash-dept-filter','clock-dept','rep-dept','lr-dept','dr-view-dept'].forEach(id => {
     var el = document.getElementById(id);
     if (!el) return;
     DEPTS.forEach(d => {
@@ -621,6 +809,12 @@ window.onload = async () => {
 
   // Set today date defaults
   var today = fmtDate(new Date());
+  var wfhDate = document.getElementById('wfh-date');
+  if (wfhDate) wfhDate.value = today;
+  var tripDate = document.getElementById('trip-date');
+  if (tripDate) tripDate.value = today;
+  var drViewDate = document.getElementById('dr-view-date');
+  if (drViewDate) drViewDate.value = today;
   var manualDate = document.getElementById('manual-date');
   if (manualDate) manualDate.value = today;
   var leaveStart = document.getElementById('leave-start');
@@ -696,7 +890,7 @@ async function refreshData() {
 //  DASHBOARD
 // ============================================================
 function renderDashboard() {
-  var total = DATA.staff.filter(s => s.dept !== 'ผู้บริหาร').length + DATA.staff.filter(s => s.dept === 'ผู้บริหาร').length;
+  var total = DATA.staff.length;
   var att = DATA.todayAttendance;
   var present = att.filter(r => r.status === 'มาทำงาน').length;
   var late = att.filter(r => r.status === 'สาย').length;
@@ -1182,6 +1376,9 @@ async function doAdminLogin() {
       document.getElementById('admin-content').style.display = 'block';
       document.getElementById('nav-admin').style.display = 'flex';
       document.getElementById('nav-approve').style.display = 'flex';
+      document.getElementById('nav-approve-all').style.display = 'flex';
+      document.getElementById('trip-approve-card').style.display = 'block';
+      document.getElementById('wfh-approve-card').style.display = 'block';
       document.getElementById('manual-att-card').style.display = 'block';
       // ใส่ค่าตั้งค่าที่มีอยู่
       var s = DATA.settings;
@@ -1313,7 +1510,10 @@ var pageTitles = {
   dashboard:'📊 ภาพรวมวันนี้', clock:'⏰ ลงเวลาเข้า-ออกงาน',
   facecheck:'🤖 สแกนใบหน้า AI', myleave:'📋 ใบลา / โควตาวันลา',
   approve:'✅ อนุมัติใบลา', report:'📈 รายงานการมาทำงาน',
-  leavereport:'📄 รายงานวันลา', admin:'🛡️ ตั้งค่าระบบ', profile:'👤 โปรไฟล์'
+  leavereport:'📄 รายงานวันลา', admin:'🛡️ ตั้งค่าระบบ', profile:'👤 โปรไฟล์',
+  pin:'🔐 ตั้งค่า PIN', officialtrip:'🚗 ปฏิบัติราชการนอกสถานที่',
+  dailyreport:'📝 รายงานผลประจำวัน', wfh:'🏠 Work From Home',
+  approveall:'✅ อนุมัติคำขอทั้งหมด'
 };
 
 function go(p, navEl) {
@@ -1330,6 +1530,11 @@ function go(p, navEl) {
     setTimeout(() => { document.getElementById('admin-gate').style.display='block'; document.getElementById('admin-content').style.display='none'; }, 50);
   }
   if (p === 'profile') renderProfile();
+  if (p === 'pin') initPinPage();
+  if (p === 'officialtrip') { initTripDate(); loadMyTrips(); if(ADMIN_SESSION) { document.getElementById('trip-approve-card').style.display='block'; loadPendingTrips(); } }
+  if (p === 'dailyreport') initDailyReport();
+  if (p === 'wfh') initWFHPage();
+  if (p === 'approveall') { loadAllPendingTrips(); loadAllPendingWFH(); }
   if (window.innerWidth <= 1024) closeSidebar();
 }
 
@@ -1377,3 +1582,451 @@ function closeSidebar() { document.getElementById('sidebar').classList.remove('o
 </script>
 </body>
 </html>
+<script>
+// ============================================================
+//  PIN FUNCTIONS
+// ============================================================
+var PIN_STAFF_SEL_DATA = [];
+
+function initPinPage() {
+  PIN_STAFF_SEL_DATA = DATA.staff;
+  filterPinStaff();
+  document.getElementById('pin-form-wrap').style.display = 'none';
+}
+
+function filterPinStaff() {
+  var q = (document.getElementById('pin-search')?.value || '').toLowerCase();
+  var sel = document.getElementById('pin-staff-sel');
+  if (!sel) return;
+  sel.innerHTML = '';
+  PIN_STAFF_SEL_DATA.filter(s => !q || s.name.toLowerCase().includes(q)).forEach(s => {
+    var o = document.createElement('option');
+    o.value = JSON.stringify({ id: s.id, name: s.name, dept: s.dept, hasPin: s.hasPin });
+    o.text = (s.hasPin ? '🔐 ' : '⚪ ') + s.name + ' — ' + s.dept;
+    sel.add(o);
+  });
+  sel.onchange = () => {
+    var val = sel.value; if (!val) return;
+    var st = JSON.parse(val);
+    document.getElementById('pin-staff-info').innerText = st.name + ' | ' + st.dept;
+    document.getElementById('pin-form-wrap').style.display = 'block';
+    document.getElementById('pin-new-section').style.display = st.hasPin ? 'none' : 'block';
+    document.getElementById('pin-change-section').style.display = st.hasPin ? 'block' : 'none';
+  };
+}
+
+async function doSetPin() {
+  var sel = document.getElementById('pin-staff-sel');
+  var st = sel.value ? JSON.parse(sel.value) : null;
+  if (!st) { toast('เลือกชื่อก่อน', 'error'); return; }
+  var pin = document.getElementById('pin-new').value;
+  var pin2 = document.getElementById('pin-confirm').value;
+  if (pin.length < 4) { toast('PIN ต้องมีอย่างน้อย 4 หลัก', 'error'); return; }
+  if (pin !== pin2) { toast('PIN ไม่ตรงกัน', 'error'); return; }
+  showLoader('กำลังตั้ง PIN...');
+  try {
+    var r = await api('setPinFirstTime', { id: st.id, pin });
+    hideLoader(); toast(r.msg, r.success ? 'success' : 'error');
+    if (r.success) { document.getElementById('pin-new').value = ''; document.getElementById('pin-confirm').value = ''; refreshData(); }
+  } catch(e) { hideLoader(); toast('เกิดข้อผิดพลาด', 'error'); }
+}
+
+async function doChangePin() {
+  var sel = document.getElementById('pin-staff-sel');
+  var st = sel.value ? JSON.parse(sel.value) : null;
+  if (!st) { toast('เลือกชื่อก่อน', 'error'); return; }
+  var oldPin = document.getElementById('pin-old').value;
+  var newPin = document.getElementById('pin-new2').value;
+  var confirmPin = document.getElementById('pin-confirm2').value;
+  if (newPin.length < 4) { toast('PIN ใหม่ต้องมีอย่างน้อย 4 หลัก', 'error'); return; }
+  if (newPin !== confirmPin) { toast('PIN ใหม่ไม่ตรงกัน', 'error'); return; }
+  showLoader('เปลี่ยน PIN...');
+  try {
+    var r = await api('changePin', { id: st.id, oldPin, newPin });
+    hideLoader(); toast(r.msg, r.success ? 'success' : 'error');
+    if (r.success) { ['pin-old','pin-new2','pin-confirm2'].forEach(id => document.getElementById(id).value = ''); }
+  } catch(e) { hideLoader(); toast('เกิดข้อผิดพลาด', 'error'); }
+}
+
+// ลงเวลาด้วย PIN — แสดง numpad
+function openPinClock() {
+  var html = `
+    <div style="text-align:center;padding:20px">
+      <div style="font-size:1.1rem;font-weight:800;margin-bottom:16px">กรอก PIN เพื่อลงเวลา</div>
+      <input type="password" id="pin-clock-input" maxlength="8" inputmode="numeric" pattern="[0-9]*"
+        style="font-size:1.5rem;text-align:center;letter-spacing:.3em;padding:12px;width:100%;margin-bottom:14px;border:2px solid var(--border);border-radius:10px;outline:none"
+        placeholder="••••">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+        ${[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map(n => `
+          <button onclick="${n==='⌫'?"var el=document.getElementById('pin-clock-input');el.value=el.value.slice(0,-1)":`document.getElementById('pin-clock-input').value+=\'${n}\'`}"
+            style="padding:14px;font-size:1.2rem;font-weight:700;border:1px solid var(--border);border-radius:10px;background:${n===''?'transparent':'var(--bg)'};cursor:${n===''?'default':'pointer'};transition:all .15s"
+            ${n===''?'disabled':''}>
+            ${n}
+          </button>`).join('')}
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-success" style="flex:1;justify-content:center" onclick="doClockByPin('in')">
+          <span class="material-icons">login</span> เข้างาน
+        </button>
+        <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="doClockByPin('out')">
+          <span class="material-icons">logout</span> ออกงาน
+        </button>
+      </div>
+    </div>`;
+  document.getElementById('clock-result').innerHTML = html;
+  document.getElementById('clock-result-card').style.display = 'block';
+  setTimeout(() => document.getElementById('pin-clock-input')?.focus(), 100);
+}
+
+async function doClockByPin(type) {
+  var pin = document.getElementById('pin-clock-input')?.value;
+  if (!pin || pin.length < 4) { toast('กรอก PIN ให้ครบก่อน', 'error'); return; }
+  showLoader('กำลังตรวจสอบ...');
+  try {
+    var r = await api(type === 'in' ? 'clockInByPin' : 'clockOutByPin', { pin });
+    hideLoader();
+    if (r.firstTime) {
+      toast('ยังไม่มี PIN กรุณาตั้ง PIN ก่อนที่เมนู "ตั้ง / เปลี่ยน PIN"', 'warn', 5000);
+      document.getElementById('pin-clock-input').value = '';
+      return;
+    }
+    toast(r.msg, r.success ? (r.status === 'สาย' ? 'warn' : 'success') : 'error');
+    if (r.success && r.staff) {
+      CURRENT_USER = r.staff;
+      localStorage.setItem('currentUser', JSON.stringify(CURRENT_USER));
+      renderUserBadge();
+    }
+    document.getElementById('pin-clock-input').value = '';
+    if (r.success) setTimeout(refreshData, 500);
+  } catch(e) { hideLoader(); toast('เกิดข้อผิดพลาด', 'error'); }
+}
+
+// ============================================================
+//  OFFICIAL TRIP FUNCTIONS
+// ============================================================
+function initTripDate() {
+  var el = document.getElementById('trip-date');
+  if (el && !el.value) el.value = fmtDate(new Date());
+}
+
+async function submitOfficialTrip() {
+  if (!CURRENT_USER) { toast('กรุณาลงเวลาเข้างานก่อน', 'warn'); return; }
+  var destination = document.getElementById('trip-destination').value.trim();
+  var purpose = document.getElementById('trip-purpose').value.trim();
+  var date = document.getElementById('trip-date').value;
+  if (!destination || !purpose) { toast('กรุณากรอกข้อมูลให้ครบ', 'error'); return; }
+  showLoader('กำลังส่ง...');
+  try {
+    var r = await api('submitOfficialTrip', { trip: { staffId: CURRENT_USER.id, name: CURRENT_USER.name, dept: CURRENT_USER.dept, date, destination, purpose } });
+    hideLoader(); toast(r.msg, r.success ? 'success' : 'error');
+    if (r.success) { document.getElementById('trip-destination').value = ''; document.getElementById('trip-purpose').value = ''; loadMyTrips(); }
+  } catch(e) { hideLoader(); toast('เกิดข้อผิดพลาด', 'error'); }
+}
+
+async function loadMyTrips() {
+  var staffId = CURRENT_USER?.id;
+  if (!staffId) { document.getElementById('trip-history').innerHTML = '<div class="empty"><span class="material-icons">info</span><p>กรุณาลงเวลาเข้างานก่อน</p></div>'; return; }
+  try {
+    var r = await api('getOfficialTrips', { status: 'all', staffId });
+    var el = document.getElementById('trip-history');
+    if (!r.list?.length) { el.innerHTML = '<div class="empty"><span class="material-icons">directions_car</span><p>ยังไม่มีประวัติ</p></div>'; return; }
+    el.innerHTML = r.list.map(t => {
+      var sc = { pending:'badge-pending', approved:'badge-approved', rejected:'badge-rejected' }[t.status] || '';
+      var stTh = { pending:'รออนุมัติ', approved:'อนุมัติแล้ว', rejected:'ไม่อนุมัติ' }[t.status] || t.status;
+      var timeBtns = t.status === 'approved' ? `
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <button class="btn btn-success btn-sm" onclick="recordTime('${t.tripId}','depart')">
+            <span class="material-icons">directions_run</span> บันทึกเวลาออก${t.departTime?' ('+t.departTime+')':''}
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="recordTime('${t.tripId}','return')">
+            <span class="material-icons">home</span> บันทึกเวลากลับ${t.returnTime?' ('+t.returnTime+')':''}
+          </button>
+        </div>` : '';
+      return `<div style="padding:12px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-weight:700">📍 ${t.destination}</div>
+            <div style="font-size:.8rem;color:var(--txt2);margin-top:2px">${t.date} | ${t.purpose}</div>
+            ${t.departTime ? `<div style="font-size:.78rem;color:var(--info);margin-top:2px">ออก: ${t.departTime} น. ${t.returnTime?'| กลับ: '+t.returnTime+' น.':''}</div>` : ''}
+          </div>
+          <span class="badge ${sc}">${stTh}</span>
+        </div>
+        ${timeBtns}
+      </div>`;
+    }).join('');
+  } catch(e) {}
+}
+
+async function recordTime(tripId, type) {
+  if (!CURRENT_USER) { toast('กรุณาลงเวลาเข้างานก่อน', 'warn'); return; }
+  showLoader('บันทึก...');
+  try {
+    var r = await api('recordTripTime', { tripId, type, staffId: CURRENT_USER.id });
+    hideLoader(); toast(r.msg, r.success ? 'success' : 'error');
+    if (r.success) loadMyTrips();
+  } catch(e) { hideLoader(); }
+}
+
+async function loadPendingTrips() {
+  try {
+    var r = await api('getOfficialTrips', { status: 'pending' });
+    renderTripApproveList(r.list || [], 'trip-pending-list');
+  } catch(e) {}
+}
+
+async function loadAllPendingTrips() {
+  try {
+    var r = await api('getOfficialTrips', { status: 'pending' });
+    renderTripApproveList(r.list || [], 'all-pending-trips');
+  } catch(e) {}
+}
+
+function renderTripApproveList(list, containerId) {
+  var el = document.getElementById(containerId);
+  if (!el) return;
+  if (!list.length) { el.innerHTML = '<div class="empty"><span class="material-icons">check_circle</span><p>ไม่มีรออนุมัติ</p></div>'; return; }
+  el.innerHTML = list.map(t => `
+    <div style="padding:12px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-weight:800">${t.name} <span style="font-size:.78rem;color:var(--txt2)">${t.dept}</span></div>
+          <div style="font-weight:700;color:var(--p);margin-top:4px">📍 ${t.destination}</div>
+          <div style="font-size:.8rem;color:var(--txt2)">${t.date} | ${t.purpose}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:flex-start">
+          <button class="btn btn-danger btn-sm" onclick="doApproveTrip('${t.tripId}','rejected')">❌ ไม่อนุมัติ</button>
+          <button class="btn btn-success btn-sm" onclick="doApproveTrip('${t.tripId}','approved')">✅ อนุมัติ</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+async function doApproveTrip(tripId, status) {
+  if (!CURRENT_USER) { toast('กรุณาล็อกอินก่อน', 'warn'); return; }
+  var note = status === 'rejected' ? prompt('เหตุผลที่ไม่อนุมัติ (ถ้ามี):') || '' : '';
+  showLoader('กำลังดำเนินการ...');
+  try {
+    var r = await api('approveOfficialTrip', { tripId, approver: CURRENT_USER, status, note });
+    hideLoader(); toast(r.msg, r.success ? 'success' : 'error');
+    if (r.success) { loadAllPendingTrips(); loadPendingTrips(); }
+  } catch(e) { hideLoader(); }
+}
+
+// ============================================================
+//  DAILY REPORT FUNCTIONS
+// ============================================================
+function initDailyReport() {
+  var today = fmtDate(new Date());
+  document.getElementById('dr-today-label').innerText = thaiDate(today, true);
+  if (CURRENT_USER) checkTodayReport();
+  loadDeptReports();
+}
+
+async function checkTodayReport() {
+  try {
+    var r = await api('getTodayReport', { staffId: CURRENT_USER.id });
+    var alreadyEl = document.getElementById('dr-already');
+    var formEl = document.getElementById('dr-form');
+    if (r.list?.length) {
+      alreadyEl.style.display = 'block';
+      var rpt = r.list[0];
+      alreadyEl.innerHTML = `✅ ส่งรายงานวันนี้แล้ว (${rpt.submitTime})<br>
+        <div style="margin-top:6px;font-size:.8rem;color:#166534"><strong>งาน:</strong> ${rpt.workItems}</div>`;
+      formEl.style.display = 'none';
+    } else {
+      alreadyEl.style.display = 'none';
+      formEl.style.display = 'block';
+    }
+  } catch(e) {}
+}
+
+async function submitDailyReport() {
+  if (!CURRENT_USER) { toast('กรุณาลงเวลาเข้างานก่อน', 'warn'); return; }
+  var workItems = document.getElementById('dr-work').value.trim();
+  var results = document.getElementById('dr-result').value.trim();
+  var problems = document.getElementById('dr-problem').value.trim();
+  var nextPlan = document.getElementById('dr-next').value.trim();
+  if (!workItems || !results) { toast('กรุณากรอกงานที่ทำและผลลัพธ์', 'error'); return; }
+  showLoader('กำลังส่งรายงาน...');
+  try {
+    var r = await api('submitDailyReport', { report: { staffId: CURRENT_USER.id, name: CURRENT_USER.name, dept: CURRENT_USER.dept, workItems, results, problems, nextPlan } });
+    hideLoader(); toast(r.msg, r.success ? 'success' : 'error');
+    if (r.success) { ['dr-work','dr-result','dr-problem','dr-next'].forEach(id => document.getElementById(id).value = ''); checkTodayReport(); loadDeptReports(); }
+  } catch(e) { hideLoader(); toast('เกิดข้อผิดพลาด', 'error'); }
+}
+
+async function loadDeptReports() {
+  var date = document.getElementById('dr-view-date')?.value || fmtDate(new Date());
+  var dept = document.getElementById('dr-view-dept')?.value || 'ALL';
+  try {
+    var r = await api('getDailyReports', { date, dept });
+    var el = document.getElementById('dr-dept-list');
+    if (!r.list?.length) { el.innerHTML = '<div class="empty"><span class="material-icons">assignment</span><p>ยังไม่มีรายงานวันนี้</p></div>'; return; }
+    el.innerHTML = r.list.map(rpt => `
+      <div style="padding:12px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px">
+          <div><span style="font-weight:800">${rpt.name}</span> <span style="font-size:.75rem;color:var(--txt2)">${rpt.dept}</span></div>
+          <span style="font-size:.72rem;color:var(--txt2)">${rpt.submitTime}</span>
+        </div>
+        <div style="margin-top:8px;font-size:.82rem">
+          <div><strong>งาน:</strong> ${rpt.workItems}</div>
+          <div style="margin-top:4px"><strong>ผล:</strong> ${rpt.results}</div>
+          ${rpt.problems ? `<div style="margin-top:4px;color:var(--danger)"><strong>ปัญหา:</strong> ${rpt.problems}</div>` : ''}
+          ${rpt.nextPlan ? `<div style="margin-top:4px;color:var(--info)"><strong>พรุ่งนี้:</strong> ${rpt.nextPlan}</div>` : ''}
+        </div>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+// ============================================================
+//  WFH FUNCTIONS
+// ============================================================
+function initWFHPage() {
+  var el = document.getElementById('wfh-date');
+  if (el && !el.value) el.value = fmtDate(new Date());
+  if (CURRENT_USER) checkTodayWFH();
+  loadWFHHistory();
+  if (ADMIN_SESSION) loadPendingWFH();
+}
+
+async function checkTodayWFH() {
+  var today = fmtDate(new Date());
+  try {
+    var r = await api('getWFHRequests', { status: 'all', staffId: CURRENT_USER.id, date: today });
+    var statusEl = document.getElementById('wfh-today-status');
+    var ciBtn = document.getElementById('wfh-checkin-btn');
+    var coBtn = document.getElementById('wfh-checkout-btn');
+    if (r.list?.length) {
+      var wfh = r.list[0];
+      var color = { pending:'#fef9c3', approved:'#dcfce7', rejected:'#fee2e2' }[wfh.status] || '';
+      var stTh = { pending:'รออนุมัติ', approved:'✅ อนุมัติแล้ว', rejected:'❌ ไม่อนุมัติ' }[wfh.status] || wfh.status;
+      statusEl.style.display = 'block';
+      statusEl.style.cssText = `display:block;background:${color};border-radius:10px;padding:12px 14px;font-size:.85rem;margin-bottom:14px`;
+      statusEl.innerHTML = `${stTh} — WFH วันนี้ ${wfh.checkIn ? '| เช็คอิน: '+wfh.checkIn+' น.' : ''} ${wfh.checkOut ? '| เช็คเอาท์: '+wfh.checkOut+' น.' : ''}`;
+      if (wfh.status === 'approved') {
+        ciBtn.style.display = wfh.checkIn ? 'none' : 'flex';
+        coBtn.style.display = wfh.checkIn && !wfh.checkOut ? 'flex' : 'none';
+        document.getElementById('wfh-form').querySelector('button').style.display = 'none';
+      }
+    }
+  } catch(e) {}
+}
+
+async function submitWFH() {
+  if (!CURRENT_USER) { toast('กรุณาลงเวลาเข้างานก่อน', 'warn'); return; }
+  var workPlan = document.getElementById('wfh-plan').value.trim();
+  var date = document.getElementById('wfh-date').value;
+  if (!workPlan) { toast('กรุณาระบุแผนงาน', 'error'); return; }
+  showLoader('กำลังส่งคำขอ...');
+  try {
+    var r = await api('submitWFH', { wfh: { staffId: CURRENT_USER.id, name: CURRENT_USER.name, dept: CURRENT_USER.dept, date, workPlan } });
+    hideLoader(); toast(r.msg, r.success ? 'success' : 'error');
+    if (r.success) { document.getElementById('wfh-plan').value = ''; loadWFHHistory(); checkTodayWFH(); }
+  } catch(e) { hideLoader(); toast('เกิดข้อผิดพลาด', 'error'); }
+}
+
+async function doWFHCheckIn() {
+  if (!CURRENT_USER) return;
+  showLoader('เช็คอิน WFH...');
+  try {
+    var r = await api('wfhCheckIn', { staffId: CURRENT_USER.id, name: CURRENT_USER.name, dept: CURRENT_USER.dept });
+    hideLoader(); toast(r.msg, r.success ? 'success' : 'error');
+    if (r.success) checkTodayWFH();
+  } catch(e) { hideLoader(); }
+}
+
+async function doWFHCheckOut() {
+  if (!CURRENT_USER) return;
+  showLoader('เช็คเอาท์ WFH...');
+  try {
+    var r = await api('wfhCheckOut', { staffId: CURRENT_USER.id, name: CURRENT_USER.name });
+    hideLoader(); toast(r.msg, r.success ? 'success' : 'error');
+    if (r.success) checkTodayWFH();
+  } catch(e) { hideLoader(); }
+}
+
+async function loadWFHHistory() {
+  var staffId = CURRENT_USER?.id;
+  if (!staffId) return;
+  try {
+    var r = await api('getWFHRequests', { status: 'all', staffId });
+    var el = document.getElementById('wfh-history');
+    if (!r.list?.length) { el.innerHTML = '<div class="empty"><span class="material-icons">home_work</span><p>ยังไม่มีประวัติ WFH</p></div>'; return; }
+    el.innerHTML = r.list.map(w => {
+      var sc = { pending:'badge-pending', approved:'badge-approved', rejected:'badge-rejected' }[w.status] || '';
+      var stTh = { pending:'รออนุมัติ', approved:'อนุมัติแล้ว', rejected:'ไม่อนุมัติ' }[w.status] || w.status;
+      return `<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap">
+        <div style="flex:1">
+          <div style="font-weight:700">${w.date}</div>
+          <div style="font-size:.78rem;color:var(--txt2);margin-top:2px">${w.workPlan.substring(0,80)}${w.workPlan.length>80?'...':''}</div>
+          ${w.checkIn ? `<div style="font-size:.75rem;color:var(--success)">เช็คอิน: ${w.checkIn} ${w.checkOut?'| เช็คเอาท์: '+w.checkOut:''}</div>` : ''}
+        </div>
+        <span class="badge ${sc}">${stTh}</span>
+      </div>`;
+    }).join('');
+  } catch(e) {}
+}
+
+async function loadPendingWFH() {
+  try {
+    var r = await api('getWFHRequests', { status: 'pending' });
+    renderWFHApproveList(r.list || [], 'wfh-pending-list');
+  } catch(e) {}
+}
+
+async function loadAllPendingWFH() {
+  try {
+    var r = await api('getWFHRequests', { status: 'pending' });
+    renderWFHApproveList(r.list || [], 'all-pending-wfh');
+  } catch(e) {}
+}
+
+function renderWFHApproveList(list, containerId) {
+  var el = document.getElementById(containerId);
+  if (!el) return;
+  if (!list.length) { el.innerHTML = '<div class="empty"><span class="material-icons">check_circle</span><p>ไม่มีรออนุมัติ</p></div>'; return; }
+  el.innerHTML = list.map(w => `
+    <div style="padding:12px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-weight:800">${w.name} <span style="font-size:.78rem;color:var(--txt2)">${w.dept}</span></div>
+          <div style="color:var(--p);font-weight:700">🏠 WFH ${w.date}</div>
+          <div style="font-size:.8rem;color:var(--txt2);margin-top:2px">${w.workPlan.substring(0,100)}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:flex-start">
+          <button class="btn btn-danger btn-sm" onclick="doApproveWFH('${w.wfhId}','rejected')">❌</button>
+          <button class="btn btn-success btn-sm" onclick="doApproveWFH('${w.wfhId}','approved')">✅ อนุมัติ</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+async function doApproveWFH(wfhId, status) {
+  if (!CURRENT_USER) { toast('กรุณาล็อกอินก่อน', 'warn'); return; }
+  var note = status === 'rejected' ? prompt('เหตุผล (ถ้ามี):') || '' : '';
+  showLoader('...');
+  try {
+    var r = await api('approveWFH', { wfhId, approver: CURRENT_USER, status, note });
+    hideLoader(); toast(r.msg, r.success ? 'success' : 'error');
+    if (r.success) { loadAllPendingWFH(); loadPendingWFH(); }
+  } catch(e) { hideLoader(); }
+}
+
+function switchApproveTab(tab, el) {
+  document.querySelectorAll('#approveall-tabs .tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('approveall-trip').style.display = tab === 'trip' ? 'block' : 'none';
+  document.getElementById('approveall-wfh').style.display = tab === 'wfh' ? 'block' : 'none';
+}
+
+// เพิ่มปุ่ม PIN ในหน้าลงเวลา
+document.addEventListener('DOMContentLoaded', () => {
+  var clockCard = document.querySelector('#clock .card');
+  if (clockCard) {
+    var pinBtn = document.createElement('div');
+    pinBtn.style.cssText = 'margin-top:14px;padding:14px;background:var(--p-light);border-radius:10px;text-align:center';
+    pinBtn.innerHTML = '<div style="font-size:.85rem;font-weight:700;color:var(--p);margin-bottom:8px">⚡ ลงเวลาด้วย PIN (เร็วกว่า)</div><button class="btn btn-primary" style="justify-content:center" onclick="openPinClock()"><span class="material-icons">pin</span> กรอก PIN</button>';
+    clockCard.appendChild(pinBtn);
+  }
+});
+</script>
