@@ -479,19 +479,27 @@ tr:hover td{background:#fafbfc}
 
     <!-- ADMIN -->
     <div id="admin" class="page">
-      <div id="admin-gate" class="card" style="max-width:420px;margin:40px auto;text-align:center;padding:32px">
-        <span class="material-icons" style="font-size:48px;color:var(--p);display:block;margin-bottom:12px">admin_panel_settings</span>
-        <h3 style="margin-bottom:6px">Admin Login</h3>
-        <p style="color:var(--txt2);font-size:.85rem;margin-bottom:18px">กรุณาตั้งค่า API URL และใส่รหัสผ่าน</p>
-        <div class="form-group" style="text-align:left">
-          <label>🔗 Google Apps Script URL <span style="color:var(--danger)">*</span></label>
-          <input type="text" id="gate-api-url" placeholder="https://script.google.com/macros/s/.../exec" style="font-size:.75rem;font-family:monospace" onkeydown="if(event.key==='Enter')doAdminLogin()">
-          <small style="color:var(--txt2);font-size:.72rem;margin-top:4px;display:block">วาง URL จาก GAS Deploy → Manage deployments</small>
+      <!-- ทุกคนเห็น: ตั้งค่า API URL -->
+      <div class="card" id="api-setup-card">
+        <div class="card-title" style="margin-bottom:14px"><span class="material-icons" style="color:var(--warn)">link</span> ตั้งค่า API URL</div>
+        <div class="form-group">
+          <label>🔗 Google Apps Script URL</label>
+          <input type="text" id="gate-api-url" placeholder="https://script.google.com/macros/s/.../exec" style="font-size:.78rem;font-family:monospace" onchange="saveApiUrlQuick()">
+          <small style="color:var(--txt2);font-size:.72rem;margin-top:4px;display:block">วาง URL จาก GAS Deploy → Manage deployments (ต้องตั้งก่อนใช้งาน)</small>
         </div>
-        <div class="form-group" style="text-align:left"><label>รหัสผ่าน Admin</label><input type="password" id="admin-pass" placeholder="ครั้งแรก: ว่างไว้แล้วกดเข้า" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
+        <button class="btn btn-success btn-sm" onclick="saveApiUrlQuick()"><span class="material-icons">save</span> บันทึก URL</button>
+      </div>
+
+      <!-- เฉพาะ Admin ขึ้นไป -->
+      <div id="admin-gate" class="card" style="display:none;max-width:420px;margin:0 auto;text-align:center;padding:32px">
+        <span class="material-icons" style="font-size:48px;color:var(--p);display:block;margin-bottom:12px">admin_panel_settings</span>
+        <h3 style="margin-bottom:6px">ยืนยันตัวตน Admin</h3>
+        <p style="color:var(--txt2);font-size:.85rem;margin-bottom:18px">กรุณาใส่รหัสผ่าน GAS Admin</p>
+        <div class="form-group" style="text-align:left"><label>รหัสผ่าน GAS Admin</label>
+          <input type="password" id="admin-pass" placeholder="รหัสผ่าน GAS" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
         <p id="admin-err" style="color:var(--danger);font-size:.82rem;margin-bottom:10px;display:none">❌ รหัสผ่านไม่ถูกต้อง</p>
-        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="doAdminLogin()"><span class="material-icons">lock_open</span> เข้าสู่ระบบ</button>
-        <p style="margin-top:12px;font-size:.75rem;color:var(--txt2)">💡 ครั้งแรก: ไม่ต้องใส่รหัสผ่าน กดเข้าได้เลย</p>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="doAdminLogin()"><span class="material-icons">lock_open</span> เข้าสู่ระบบ Admin</button>
+        <p style="margin-top:12px;font-size:.75rem;color:var(--txt2)">💡 ครั้งแรก: ไม่ต้องใส่รหัส กดเข้าได้เลย</p>
       </div>
       <div id="admin-content" style="display:none">
         <div class="card">
@@ -522,6 +530,16 @@ tr:hover td{background:#fafbfc}
             <button class="btn btn-ghost" onclick="clearCache()"><span class="material-icons">cached</span> Clear Cache</button>
             <button class="btn btn-ghost" onclick="setupTrigger()"><span class="material-icons">schedule</span> ตั้ง Daily Trigger</button>
           </div>
+        </div>
+        <div class="card" id="role-manager-card" style="display:none">
+          <div class="card-header">
+            <div class="card-title"><span class="material-icons" style="color:var(--purple)">manage_accounts</span> จัดการสิทธิ์บุคลากร</div>
+            <button class="btn btn-ghost btn-sm" onclick="loadRoleManager()"><span class="material-icons">refresh</span></button>
+          </div>
+          <div style="font-size:.78rem;color:var(--txt2);margin-bottom:10px;background:var(--bg);padding:10px;border-radius:8px">
+            👑 SuperAdmin | 🔑 ผู้บริหาร (อนุมัติได้) | 📋 บุคคล/HR (ดูรายงานทุกคน) | 👤 เจ้าหน้าที่ (ลงเวลา+รายงานตัวเอง)
+          </div>
+          <div id="role-manager-list"></div>
         </div>
         <div class="card">
           <div class="card-header"><div class="card-title"><span class="material-icons" style="color:var(--p2)">history</span> Activity Log</div><button class="btn btn-ghost btn-sm" onclick="loadLog()"><span class="material-icons">refresh</span></button></div>
@@ -743,6 +761,14 @@ var API_URL = localStorage.getItem('officeApiUrl') || '';
 var DATA = { staff:[], todayAttendance:[], settings:{}, pendingLeaveCount:0 };
 var CURRENT_USER = JSON.parse(localStorage.getItem('currentUser') || 'null');
 var ADMIN_SESSION = false;
+// systemRole: superadmin | admin | hr | staff
+var SYSTEM_ROLE = CURRENT_USER?.systemRole || 'staff';
+
+// Role helpers
+function canViewAll()    { return ['superadmin','admin','hr'].includes(SYSTEM_ROLE); }
+function canApprove()    { return ['superadmin','admin'].includes(SYSTEM_ROLE); }
+function isSuperAdmin()  { return SYSTEM_ROLE === 'superadmin'; }
+function isHR()          { return SYSTEM_ROLE === 'hr' || isSuperAdmin(); }
 var camStream = null, detectionInterval = null, AUTO_MODE = false;
 var PENDING_LEAVE_ID = null;
 var AUTO_REFRESH_TIMER = null;
@@ -831,14 +857,36 @@ window.onload = async () => {
     return;
   }
   await refreshData();
-  restoreUser();
+  if (CURRENT_USER) {
+    SYSTEM_ROLE = CURRENT_USER.systemRole || 'staff';
+    applyRoleUI();
+    renderUserBadge();
+    loadMyLeaveBalance();
+    go('dashboard', document.querySelector('.nav-item'));
+  } else {
+    showLoginScreen();
+  }
 };
 
 function restoreUser() {
   if (CURRENT_USER) {
+    SYSTEM_ROLE = CURRENT_USER.systemRole || 'staff';
+    applyRoleUI();
     renderUserBadge();
     loadMyLeaveBalance();
+  } else {
+    showLoginScreen();
   }
+}
+
+function applyRoleUI() {
+  // ซ่อน/แสดงเมนูตาม role
+  var navApprove = document.getElementById('nav-approve');
+  var navApproveAll = document.getElementById('nav-approve-all');
+  var navAdmin = document.getElementById('nav-admin');
+  if (navApprove) navApprove.style.display = canApprove() ? 'flex' : 'none';
+  if (navApproveAll) navApproveAll.style.display = canApprove() ? 'flex' : 'none';
+  if (navAdmin) navAdmin.style.display = 'flex'; // ทุกคนเข้าได้ แต่เห็นได้แค่บางส่วน
 }
 
 // ============================================================
@@ -941,7 +989,8 @@ function renderDashTable() {
         ? `<span class="badge badge-${statusClass(rec.status)}">${rec.status}</span>`
         : '<span style="color:var(--txt2);font-size:.78rem">ยังไม่ลงเวลา</span>';
       var timeHtml = rec ? (rec.clockIn || '-') : '-';
-      return `<tr><td><strong>${s.name}</strong><br><span style="font-size:.72rem;color:var(--txt2)">${s.position}</span></td><td style="font-size:.78rem;color:var(--txt2)">${s.dept}</td><td>${statusHtml}</td><td style="font-variant-numeric:tabular-nums">${timeHtml}</td><td>${rec?.clockOut || '-'}</td></tr>`;
+      var timeOut = (rec && rec.clockOut && rec.clockOut !== 'undefined' && rec.clockOut !== '') ? rec.clockOut : '-';
+      return `<tr><td><strong>${s.name}</strong><br><span style="font-size:.72rem;color:var(--txt2)">${s.position}</span></td><td style="font-size:.78rem;color:var(--txt2)">${s.dept}</td><td>${statusHtml}</td><td style="font-variant-numeric:tabular-nums">${timeHtml}</td><td>${timeOut}</td></tr>`;
     }).join('');
 
   document.getElementById('tb-today').innerHTML =
@@ -1379,6 +1428,10 @@ async function doAdminLogin() {
       document.getElementById('nav-approve-all').style.display = 'flex';
       document.getElementById('trip-approve-card').style.display = 'block';
       document.getElementById('wfh-approve-card').style.display = 'block';
+      if (isSuperAdmin()) {
+        document.getElementById('role-manager-card').style.display = 'block';
+        loadRoleManager();
+      }
       document.getElementById('manual-att-card').style.display = 'block';
       // ใส่ค่าตั้งค่าที่มีอยู่
       var s = DATA.settings;
@@ -1493,8 +1546,18 @@ function renderProfile() {
       <div class="quota-card"><div class="num" id="pq-personal" style="color:var(--purple)">-</div><div class="lbl">ลากิจ</div></div>
       <div class="quota-card"><div class="num" id="pq-vacation" style="color:var(--warn)">-</div><div class="lbl">พักร้อน</div></div>
     </div>
-    <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="CURRENT_USER=null;localStorage.removeItem('currentUser');document.getElementById('sb-user-slot').innerHTML='';go('clock',null)">
-      <span class="material-icons">logout</span> เปลี่ยนผู้ใช้
+    <div style="margin-top:16px">
+      <div style="font-size:.85rem;font-weight:700;color:var(--txt2);margin-bottom:10px">🔐 เปลี่ยนรหัสผ่าน</div>
+      <div class="form-group"><label>รหัสผ่านเดิม</label><input type="password" id="cp-old" placeholder="รหัสปัจจุบัน"></div>
+      <div class="form-row">
+        <div class="form-group"><label>รหัสผ่านใหม่</label><input type="password" id="cp-new" placeholder="อย่างน้อย 6 ตัว"></div>
+        <div class="form-group"><label>ยืนยัน</label><input type="password" id="cp-confirm" placeholder="พิมพ์ซ้ำ"></div>
+      </div>
+      <button class="btn btn-warn btn-sm" onclick="doChangePassword()"><span class="material-icons">lock_reset</span> เปลี่ยนรหัสผ่าน</button>
+    </div>
+    <hr class="divider" style="margin-top:16px">
+    <button class="btn btn-danger btn-sm" style="width:100%;justify-content:center;margin-top:4px" onclick="doLogout()">
+      <span class="material-icons">logout</span> ออกจากระบบ
     </button>`;
   // Load balance for profile
   if (API_URL) api('getLeaveBalance', { staffId: CURRENT_USER.id }).then(b => {
@@ -1526,8 +1589,24 @@ function go(p, navEl) {
   if (p === 'facecheck') startFaceCam();
   if (p === 'myleave') { loadMyLeaveBalance(); loadMyLeaveHistory(); }
   if (p === 'approve') { loadPendingLeaves(); loadApprovedHistory(); }
-  if (p === 'admin' && !ADMIN_SESSION) {
-    setTimeout(() => { document.getElementById('admin-gate').style.display='block'; document.getElementById('admin-content').style.display='none'; }, 50);
+  if (p === 'admin') {
+    setTimeout(() => {
+      // ทุกคนเห็น api-setup-card
+      var gateUrl = document.getElementById('gate-api-url');
+      if (gateUrl) gateUrl.value = API_URL || '';
+      // Admin ขึ้นไปเห็น admin-gate (ถ้ายังไม่ได้ verify)
+      var gateEl = document.getElementById('admin-gate');
+      var contentEl = document.getElementById('admin-content');
+      if (canApprove() || isHR()) {
+        if (!ADMIN_SESSION) {
+          if (gateEl) gateEl.style.display = 'block';
+          if (contentEl) contentEl.style.display = 'none';
+        }
+      } else {
+        if (gateEl) gateEl.style.display = 'none';
+        if (contentEl) contentEl.style.display = 'none';
+      }
+    }, 50);
   }
   if (p === 'profile') renderProfile();
   if (p === 'pin') initPinPage();
@@ -1566,6 +1645,25 @@ function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-overlay').forEach(el => { el.addEventListener('click', function(e){ if(e.target===this) closeModal(this.id); }); });
 
+function saveApiUrlQuick() {
+  var el = document.getElementById('gate-api-url');
+  if (!el || !el.value.trim()) { toast('กรุณาใส่ URL ก่อน', 'error'); return; }
+  API_URL = el.value.trim();
+  localStorage.setItem('officeApiUrl', API_URL);
+  var apiBanner = document.getElementById('api-banner');
+  if (apiBanner) apiBanner.style.display = 'none';
+  var setApi = document.getElementById('set-api');
+  if (setApi) setApi.value = API_URL;
+  toast('บันทึก API URL เรียบร้อย', 'success');
+  if (!CURRENT_USER) {
+    showLoader('กำลังโหลด...');
+    refreshData().then(() => {
+      hideLoader();
+      showLoginScreen();
+    });
+  }
+}
+
 function updateStatus(s, t) {
   var c = { online:'#22c55e', warning:'#f59e0b', offline:'#ef4444' };
   document.getElementById('status-dot').style.background = c[s]||'#94a3b8';
@@ -1580,6 +1678,51 @@ function checkResponsive() {
 function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebar-overlay').classList.toggle('show'); }
 function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('show'); }
 </script>
+<div id="login-screen" style="display:flex;position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#0f172a 0%,#1e40af 60%,#0f172a 100%);display:flex;align-items:center;justify-content:center;padding:20px;font-family:'Sarabun','Noto Sans Thai',sans-serif">
+  <div style="background:#fff;border-radius:24px;padding:40px 36px 32px;width:100%;max-width:400px;box-shadow:0 32px 80px rgba(0,0,0,.4);position:relative;animation:fadeUp .4s cubic-bezier(.34,1.56,.64,1)">
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="width:64px;height:64px;background:linear-gradient(135deg,#1e40af,#3b82f6);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:0 8px 24px rgba(30,64,175,.4)">
+        <span class="material-icons" style="color:#fff;font-size:30px">business</span>
+      </div>
+      <h2 style="font-size:1.4rem;font-weight:900;color:#0f172a;letter-spacing:-.02em">Smart Office</h2>
+      <p style="color:#64748b;font-size:.82rem;margin-top:4px">สพป.นครราชสีมา เขต 4</p>
+    </div>
+    <!-- Step 1: เลือกชื่อ -->
+    <div id="login-step1">
+      <div style="margin-bottom:12px">
+        <label style="display:block;font-size:.75rem;font-weight:700;color:#475569;margin-bottom:6px">ค้นหาชื่อของคุณ</label>
+        <input type="text" id="login-search" placeholder="พิมพ์ชื่อ..." oninput="filterLoginList()" style="padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;width:100%;font-size:.88rem;font-family:inherit;outline:none">
+      </div>
+      <select id="login-staff-sel" size="7" style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.85rem;font-family:inherit;padding:4px;margin-bottom:14px;outline:none"></select>
+      <button onclick="goLoginStep2()" style="width:100%;padding:13px;background:linear-gradient(135deg,#1e40af,#3b82f6);color:#fff;border:none;border-radius:12px;font-size:.95rem;font-weight:700;font-family:inherit;cursor:pointer;box-shadow:0 4px 14px rgba(30,64,175,.35)">
+        ถัดไป →
+      </button>
+    </div>
+    <!-- Step 2: กรอกรหัสผ่าน -->
+    <div id="login-step2" style="display:none">
+      <div style="background:#f0f9ff;border-radius:12px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1e40af,#3b82f6);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;font-weight:700;flex-shrink:0" id="login-avatar">?</div>
+        <div><div style="font-weight:800;font-size:.95rem" id="login-name-display">-</div><div style="font-size:.75rem;color:#64748b" id="login-dept-display">-</div></div>
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:.75rem;font-weight:700;color:#475569;margin-bottom:6px">รหัสผ่าน</label>
+        <input type="password" id="login-pass" placeholder="กรอกรหัสผ่าน" onkeydown="if(event.key==='Enter')doLogin()" style="padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;width:100%;font-size:.88rem;font-family:inherit;outline:none;letter-spacing:.1em">
+      </div>
+      <p id="login-err" style="color:#dc2626;font-size:.8rem;margin-bottom:10px;display:none">❌ รหัสผ่านไม่ถูกต้อง</p>
+      <button onclick="doLogin()" style="width:100%;padding:13px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:12px;font-size:.95rem;font-weight:700;font-family:inherit;cursor:pointer;box-shadow:0 4px 14px rgba(22,163,74,.35);margin-bottom:10px">
+        🔓 เข้าสู่ระบบ
+      </button>
+      <button onclick="backLoginStep1()" style="width:100%;padding:10px;background:transparent;color:#64748b;border:1.5px solid #e2e8f0;border-radius:12px;font-size:.85rem;font-weight:600;font-family:inherit;cursor:pointer">
+        ← เปลี่ยนชื่อ
+      </button>
+    </div>
+    <!-- loading -->
+    <div id="login-loading" style="display:none;position:absolute;inset:0;background:rgba(255,255,255,.95);border-radius:24px;align-items:center;justify-content:center;flex-direction:column;gap:12px">
+      <div style="width:40px;height:40px;border:4px solid #e2e8f0;border-top-color:#1e40af;border-radius:50%;animation:spin .7s linear infinite"></div>
+      <p style="color:#475569;font-size:.85rem;font-weight:600">กำลังตรวจสอบ...</p>
+    </div>
+  </div>
+</div>
 </body>
 </html>
 <script>
@@ -2029,4 +2172,181 @@ document.addEventListener('DOMContentLoaded', () => {
     clockCard.appendChild(pinBtn);
   }
 });
+</script>
+<script>
+// ============================================================
+//  LOGIN SYSTEM
+// ============================================================
+var LOGIN_SELECTED_STAFF = null;
+
+function showLoginScreen() {
+  var screen = document.getElementById('login-screen');
+  if (screen) {
+    screen.style.display = 'flex';
+    fillLoginList('');
+    setTimeout(() => document.getElementById('login-search')?.focus(), 200);
+  }
+}
+
+function hideLoginScreen() {
+  var screen = document.getElementById('login-screen');
+  if (screen) screen.style.display = 'none';
+}
+
+function fillLoginList(q) {
+  var sel = document.getElementById('login-staff-sel');
+  if (!sel) return;
+  sel.innerHTML = '';
+  var list = DATA.staff.filter(s => !q || s.name.toLowerCase().includes(q.toLowerCase()) || s.id.includes(q));
+  list.forEach(s => {
+    var o = document.createElement('option');
+    o.value = JSON.stringify({ id: s.id, name: s.name, dept: s.dept, position: s.position });
+    o.text = s.name + ' — ' + s.dept;
+    sel.add(o);
+  });
+}
+
+function filterLoginList() {
+  var q = document.getElementById('login-search')?.value || '';
+  fillLoginList(q);
+}
+
+function goLoginStep2() {
+  var sel = document.getElementById('login-staff-sel');
+  if (!sel?.value) { alert('กรุณาเลือกชื่อก่อน'); return; }
+  LOGIN_SELECTED_STAFF = JSON.parse(sel.value);
+  document.getElementById('login-name-display').innerText = LOGIN_SELECTED_STAFF.name;
+  document.getElementById('login-dept-display').innerText = LOGIN_SELECTED_STAFF.position + ' | ' + LOGIN_SELECTED_STAFF.dept;
+  document.getElementById('login-avatar').innerText = LOGIN_SELECTED_STAFF.name.charAt(3) || '?';
+  document.getElementById('login-step1').style.display = 'none';
+  document.getElementById('login-step2').style.display = 'block';
+  document.getElementById('login-err').style.display = 'none';
+  document.getElementById('login-pass').value = '';
+  setTimeout(() => document.getElementById('login-pass')?.focus(), 100);
+}
+
+function backLoginStep1() {
+  document.getElementById('login-step1').style.display = 'block';
+  document.getElementById('login-step2').style.display = 'none';
+}
+
+async function doLogin() {
+  if (!LOGIN_SELECTED_STAFF) return;
+  var pass = document.getElementById('login-pass')?.value;
+  if (!pass) { document.getElementById('login-err').innerText = '❌ กรุณากรอกรหัสผ่าน'; document.getElementById('login-err').style.display = 'block'; return; }
+
+  var loading = document.getElementById('login-loading');
+  if (loading) loading.style.display = 'flex';
+
+  try {
+    var r = await api('loginStaff', { staffId: LOGIN_SELECTED_STAFF.id, password: pass });
+    if (loading) loading.style.display = 'none';
+
+    if (!r.success) {
+      document.getElementById('login-err').innerText = '❌ ' + r.msg;
+      document.getElementById('login-err').style.display = 'block';
+      document.getElementById('login-pass').value = '';
+      return;
+    }
+
+    // Login สำเร็จ
+    CURRENT_USER = r.staff;
+    SYSTEM_ROLE = r.staff.systemRole || 'staff';
+    localStorage.setItem('currentUser', JSON.stringify(CURRENT_USER));
+
+    hideLoginScreen();
+    applyRoleUI();
+    renderUserBadge();
+    loadMyLeaveBalance();
+
+    // แจ้งถ้ายังใช้รหัสเริ่มต้น
+    if (r.isDefaultPassword) {
+      setTimeout(() => {
+        toast('⚠️ คุณยังใช้รหัสผ่านเริ่มต้น (12345678) กรุณาเปลี่ยนรหัสผ่านในหน้าโปรไฟล์', 'warn', 6000);
+      }, 1000);
+    }
+
+    // ไปหน้า Dashboard
+    go('dashboard', document.querySelector('.nav-item'));
+
+  } catch(e) {
+    if (loading) loading.style.display = 'none';
+    document.getElementById('login-err').innerText = '❌ เชื่อมต่อไม่ได้ ตรวจสอบ API URL';
+    document.getElementById('login-err').style.display = 'block';
+  }
+}
+
+function doLogout() {
+  CURRENT_USER = null;
+  SYSTEM_ROLE = 'staff';
+  localStorage.removeItem('currentUser');
+  document.getElementById('sb-user-slot').innerHTML = '';
+  applyRoleUI();
+  showLoginScreen();
+  // clear sensitive data
+  DATA.todayAttendance = [];
+}
+
+// ============================================================
+//  CHANGE PASSWORD (ในหน้าโปรไฟล์)
+// ============================================================
+async function doChangePassword() {
+  if (!CURRENT_USER) return;
+  var oldPass = document.getElementById('cp-old')?.value;
+  var newPass = document.getElementById('cp-new')?.value;
+  var confirmPass = document.getElementById('cp-confirm')?.value;
+  if (!oldPass || !newPass) { toast('กรุณากรอกข้อมูลให้ครบ', 'error'); return; }
+  if (newPass.length < 6) { toast('รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัว', 'error'); return; }
+  if (newPass !== confirmPass) { toast('รหัสผ่านใหม่ไม่ตรงกัน', 'error'); return; }
+  showLoader('กำลังเปลี่ยนรหัสผ่าน...');
+  try {
+    var r = await api('changePassword', { staffId: CURRENT_USER.id, oldPass, newPass });
+    hideLoader(); toast(r.msg, r.success ? 'success' : 'error');
+    if (r.success) { ['cp-old','cp-new','cp-confirm'].forEach(id => { var el = document.getElementById(id); if(el) el.value = ''; }); }
+  } catch(e) { hideLoader(); toast('เกิดข้อผิดพลาด', 'error'); }
+}
+
+// ============================================================
+//  SUPERADMIN: จัดการ Role
+// ============================================================
+async function loadRoleManager() {
+  if (!isSuperAdmin()) return;
+  try {
+    var r = await api('getStaffRoles');
+    var el = document.getElementById('role-manager-list');
+    if (!el) return;
+    var roleLabels = { superadmin:'👑 SuperAdmin', admin:'🔑 ผู้บริหาร', hr:'📋 บุคคล/HR', staff:'👤 เจ้าหน้าที่' };
+    var roleColors = { superadmin:'#7c3aed', admin:'#dc2626', hr:'#d97706', staff:'#475569' };
+    el.innerHTML = (r.list || []).map(u => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);flex-wrap:wrap">
+        <div style="flex:1;min-width:160px">
+          <div style="font-weight:700;font-size:.85rem">${u.name}</div>
+          <div style="font-size:.72rem;color:var(--txt2)">${u.dept}</div>
+        </div>
+        <select onchange="doSetRole('${u.id}',this.value)" style="padding:5px 10px;border:1px solid var(--border);border-radius:8px;font-size:.8rem;font-family:inherit;color:${roleColors[u.systemRole]||'#475569'}">
+          ${Object.entries(roleLabels).map(([v,l]) => `<option value="${v}" ${u.systemRole===v?'selected':''}>${l}</option>`).join('')}
+        </select>
+        <button onclick="doResetPass('${u.id}','${u.name}')" class="btn btn-ghost btn-sm" title="Reset รหัสผ่าน">
+          <span class="material-icons" style="font-size:14px">lock_reset</span>
+        </button>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+async function doSetRole(staffId, role) {
+  showLoader('...');
+  try {
+    var r = await api('setStaffRole', { staffId, role });
+    hideLoader(); toast(r.msg, r.success ? 'success' : 'error');
+  } catch(e) { hideLoader(); }
+}
+
+async function doResetPass(staffId, name) {
+  if (!confirm('Reset รหัสผ่านของ ' + name + ' กลับเป็น 12345678?')) return;
+  showLoader('...');
+  try {
+    var r = await api('resetPassword', { staffId });
+    hideLoader(); toast(r.msg, r.success ? 'success' : 'error');
+  } catch(e) { hideLoader(); }
+}
 </script>
