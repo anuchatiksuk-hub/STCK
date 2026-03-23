@@ -473,14 +473,19 @@ tr:hover td{background:#fafbfc}
 
     <!-- ADMIN -->
     <div id="admin" class="page">
-      <div id="admin-gate" class="card" style="max-width:400px;margin:40px auto;text-align:center;padding:32px">
+      <div id="admin-gate" class="card" style="max-width:420px;margin:40px auto;text-align:center;padding:32px">
         <span class="material-icons" style="font-size:48px;color:var(--p);display:block;margin-bottom:12px">admin_panel_settings</span>
         <h3 style="margin-bottom:6px">Admin Login</h3>
-        <p style="color:var(--txt2);font-size:.85rem;margin-bottom:18px">กรุณาใส่รหัสผ่านเพื่อเข้าจัดการระบบ</p>
-        <div class="form-group" style="text-align:left"><label>รหัสผ่าน</label><input type="password" id="admin-pass" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
+        <p style="color:var(--txt2);font-size:.85rem;margin-bottom:18px">กรุณาตั้งค่า API URL และใส่รหัสผ่าน</p>
+        <div class="form-group" style="text-align:left">
+          <label>🔗 Google Apps Script URL <span style="color:var(--danger)">*</span></label>
+          <input type="text" id="gate-api-url" placeholder="https://script.google.com/macros/s/.../exec" style="font-size:.75rem;font-family:monospace" onkeydown="if(event.key==='Enter')doAdminLogin()">
+          <small style="color:var(--txt2);font-size:.72rem;margin-top:4px;display:block">วาง URL จาก GAS Deploy → Manage deployments</small>
+        </div>
+        <div class="form-group" style="text-align:left"><label>รหัสผ่าน Admin</label><input type="password" id="admin-pass" placeholder="ครั้งแรก: ว่างไว้แล้วกดเข้า" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
         <p id="admin-err" style="color:var(--danger);font-size:.82rem;margin-bottom:10px;display:none">❌ รหัสผ่านไม่ถูกต้อง</p>
         <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="doAdminLogin()"><span class="material-icons">lock_open</span> เข้าสู่ระบบ</button>
-        <p style="margin-top:12px;font-size:.75rem;color:var(--txt2)">💡 ครั้งแรก: ไม่ต้องใส่รหัส กดเข้าได้เลย</p>
+        <p style="margin-top:12px;font-size:.75rem;color:var(--txt2)">💡 ครั้งแรก: ไม่ต้องใส่รหัสผ่าน กดเข้าได้เลย</p>
       </div>
       <div id="admin-content" style="display:none">
         <div class="card">
@@ -581,6 +586,9 @@ window.onload = async () => {
 
   var apiInput = document.getElementById('set-api');
   if (apiInput) apiInput.value = API_URL || '';
+  // pre-fill gate URL
+  var gateUrl = document.getElementById('gate-api-url');
+  if (gateUrl && API_URL) gateUrl.value = API_URL;
 
   // Pre-fill dept selects
   ['dash-dept-filter','clock-dept','rep-dept','lr-dept'].forEach(id => {
@@ -1149,6 +1157,21 @@ var ADMIN_SESSION = false;
 async function doAdminLogin() {
   var pass = document.getElementById('admin-pass').value;
   var err = document.getElementById('admin-err');
+  // บันทึก API URL จาก gate ก่อน (ถ้ากรอก)
+  var gateUrl = document.getElementById('gate-api-url');
+  if (gateUrl && gateUrl.value.trim()) {
+    API_URL = gateUrl.value.trim();
+    localStorage.setItem('officeApiUrl', API_URL);
+    var apiBanner = document.getElementById('api-banner');
+    if (apiBanner) apiBanner.style.display = 'none';
+    // อัปเดตช่อง set-api ด้วย
+    var setApi = document.getElementById('set-api');
+    if (setApi) setApi.value = API_URL;
+  }
+  if (!API_URL) {
+    if (err) { err.innerHTML = '⚠️ กรุณาใส่ Google Apps Script URL ก่อน'; err.style.display = 'block'; }
+    return;
+  }
   showLoader('...');
   try {
     var r = await api('verifyAdminPassword', { password: pass });
