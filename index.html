@@ -851,19 +851,30 @@ window.onload = async () => {
   // Print date
   document.getElementById('print-date-txt').innerText = thaiDate(new Date(), true);
 
+  hideLoader();
+
   if (!API_URL) {
-    document.getElementById('api-banner').style.display = 'block';
-    hideLoader();
+    // ไม่มี API URL — แสดง login screen step 0 (ให้กรอก URL)
+    showLoginScreen();
     return;
   }
-  await refreshData();
+
+  // มี API URL — โหลดข้อมูลก่อน
+  try {
+    await refreshData();
+  } catch(e) {
+    // โหลดไม่ได้ก็ยังแสดง login screen
+  }
+
   if (CURRENT_USER) {
+    // มี session เดิม — เข้าระบบเลย
     SYSTEM_ROLE = CURRENT_USER.systemRole || 'staff';
     applyRoleUI();
     renderUserBadge();
     loadMyLeaveBalance();
     go('dashboard', document.querySelector('.nav-item'));
   } else {
+    // ไม่มี session — แสดง login screen
     showLoginScreen();
   }
 };
