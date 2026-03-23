@@ -1687,16 +1687,44 @@ function closeSidebar() { document.getElementById('sidebar').classList.remove('o
       <h2 style="font-size:1.4rem;font-weight:900;color:#0f172a;letter-spacing:-.02em">Smart Office</h2>
       <p style="color:#64748b;font-size:.82rem;margin-top:4px">สพป.นครราชสีมา เขต 4</p>
     </div>
+    <!-- Step 0: ตั้งค่า API (ครั้งแรก) -->
+    <div id="login-step0" style="display:none">
+      <div style="background:#fef9c3;border:1.5px solid #fcd34d;border-radius:12px;padding:14px;margin-bottom:16px;font-size:.82rem;color:#78350f">
+        ⚙️ <strong>ยังไม่ได้ตั้งค่า API URL</strong><br>
+        วาง URL จาก Google Apps Script แล้วกด Setup
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="display:block;font-size:.75rem;font-weight:700;color:#475569;margin-bottom:6px">🔗 Google Apps Script URL</label>
+        <input type="text" id="login-api-url" placeholder="https://script.google.com/macros/s/.../exec"
+          style="padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:10px;width:100%;font-size:.72rem;font-family:monospace;outline:none">
+      </div>
+      <button onclick="doFirstSetup()" style="width:100%;padding:13px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:12px;font-size:.95rem;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:10px">
+        🚀 บันทึก URL และโหลดระบบ
+      </button>
+      <p style="text-align:center;font-size:.72rem;color:#94a3b8;margin-top:8px">
+        หลังจากนั้นกด <strong>Setup Sheets</strong> และ <strong>นำเข้าบุคลากร</strong> ในหน้าตั้งค่า
+      </p>
+    </div>
+
     <!-- Step 1: เลือกชื่อ -->
     <div id="login-step1">
-      <div style="margin-bottom:12px">
-        <label style="display:block;font-size:.75rem;font-weight:700;color:#475569;margin-bottom:6px">ค้นหาชื่อของคุณ</label>
-        <input type="text" id="login-search" placeholder="พิมพ์ชื่อ..." oninput="filterLoginList()" style="padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;width:100%;font-size:.88rem;font-family:inherit;outline:none">
+      <div id="login-no-staff" style="display:none;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:12px;padding:14px;margin-bottom:14px;font-size:.82rem;color:#991b1b;text-align:center">
+        ❌ ยังไม่มีข้อมูลบุคลากร<br>
+        <button onclick="goLoginSetup()" style="margin-top:8px;padding:7px 16px;background:#1e40af;color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:700;font-family:inherit;cursor:pointer">
+          ⚙️ ไปตั้งค่าระบบ
+        </button>
       </div>
-      <select id="login-staff-sel" size="7" style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.85rem;font-family:inherit;padding:4px;margin-bottom:14px;outline:none"></select>
-      <button onclick="goLoginStep2()" style="width:100%;padding:13px;background:linear-gradient(135deg,#1e40af,#3b82f6);color:#fff;border:none;border-radius:12px;font-size:.95rem;font-weight:700;font-family:inherit;cursor:pointer;box-shadow:0 4px 14px rgba(30,64,175,.35)">
-        ถัดไป →
-      </button>
+      <div id="login-staff-wrap">
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:.75rem;font-weight:700;color:#475569;margin-bottom:6px">ค้นหาชื่อของคุณ</label>
+          <input type="text" id="login-search" placeholder="พิมพ์ชื่อ..." oninput="filterLoginList()"
+            style="padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;width:100%;font-size:.88rem;font-family:inherit;outline:none">
+        </div>
+        <select id="login-staff-sel" size="7" style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.85rem;font-family:inherit;padding:4px;margin-bottom:14px;outline:none"></select>
+        <button onclick="goLoginStep2()" style="width:100%;padding:13px;background:linear-gradient(135deg,#1e40af,#3b82f6);color:#fff;border:none;border-radius:12px;font-size:.95rem;font-weight:700;font-family:inherit;cursor:pointer;box-shadow:0 4px 14px rgba(30,64,175,.35)">
+          ถัดไป →
+        </button>
+      </div>
     </div>
     <!-- Step 2: กรอกรหัสผ่าน -->
     <div id="login-step2" style="display:none">
@@ -2181,11 +2209,66 @@ var LOGIN_SELECTED_STAFF = null;
 
 function showLoginScreen() {
   var screen = document.getElementById('login-screen');
-  if (screen) {
-    screen.style.display = 'flex';
+  if (!screen) return;
+  screen.style.display = 'flex';
+
+  var step0 = document.getElementById('login-step0');
+  var step1 = document.getElementById('login-step1');
+  var step2 = document.getElementById('login-step2');
+  var noStaff = document.getElementById('login-no-staff');
+  var staffWrap = document.getElementById('login-staff-wrap');
+
+  if (step2) step2.style.display = 'none';
+
+  if (!API_URL) {
+    // ยังไม่มี API URL — แสดง Step 0
+    var loginApiUrl = document.getElementById('login-api-url');
+    if (loginApiUrl && API_URL) loginApiUrl.value = API_URL;
+    if (step0) step0.style.display = 'block';
+    if (step1) step1.style.display = 'none';
+  } else if (!DATA.staff || DATA.staff.length === 0) {
+    // มี API URL แต่ยังไม่มีบุคลากร
+    if (step0) step0.style.display = 'none';
+    if (step1) step1.style.display = 'block';
+    if (noStaff) noStaff.style.display = 'block';
+    if (staffWrap) staffWrap.style.display = 'none';
+  } else {
+    // มีข้อมูลพร้อม
+    if (step0) step0.style.display = 'none';
+    if (step1) step1.style.display = 'block';
+    if (noStaff) noStaff.style.display = 'none';
+    if (staffWrap) staffWrap.style.display = 'block';
     fillLoginList('');
     setTimeout(() => document.getElementById('login-search')?.focus(), 200);
   }
+}
+
+async function doFirstSetup() {
+  var urlEl = document.getElementById('login-api-url');
+  if (!urlEl?.value.trim()) { alert('กรุณาใส่ URL ก่อน'); return; }
+  API_URL = urlEl.value.trim();
+  localStorage.setItem('officeApiUrl', API_URL);
+  var setApi = document.getElementById('set-api');
+  if (setApi) setApi.value = API_URL;
+  var gateApi = document.getElementById('gate-api-url');
+  if (gateApi) gateApi.value = API_URL;
+
+  var btn = document.querySelector('#login-step0 button');
+  if (btn) { btn.disabled = true; btn.innerText = '⏳ กำลังโหลด...'; }
+
+  try {
+    await refreshData();
+    showLoginScreen();
+  } catch(e) {
+    alert('เชื่อมต่อไม่ได้ ตรวจสอบ URL และ GAS Deploy');
+    if (btn) { btn.disabled = false; btn.innerText = '🚀 บันทึก URL และโหลดระบบ'; }
+  }
+}
+
+function goLoginSetup() {
+  // ไปหน้า admin โดยไม่ต้อง login ก่อน เพื่อ setup
+  hideLoginScreen();
+  go('admin', document.getElementById('nav-admin'));
 }
 
 function hideLoginScreen() {
