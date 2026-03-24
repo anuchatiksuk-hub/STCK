@@ -272,8 +272,48 @@ tr:hover td{background:#fafbfc}
     <div id="dailyreport" class="page"><div class="card"><div class="card-title">รายงานผลประจำวัน</div></div></div>
     <div id="wfh" class="page"><div class="card"><div class="card-title">Work From Home</div></div></div>
     <div id="approve" class="page"><div class="card"><div class="card-title">อนุมัติใบลา</div></div></div>
-    <div id="admin" class="page"><div class="card"><div class="card-title">ตั้งค่าระบบ (Admin เท่านั้น)</div><div style="margin-top:14px"><button class="btn btn-primary" onclick="doSetup()">Setup Sheets</button> <button class="btn btn-success" onclick="doImportStaff()">นำเข้าบุคลากร (สร้างรหัสผ่าน)</button></div></div></div>
+    <!-- ADMIN PAGE -->
+    <div id="admin" class="page">
+      <!-- หน้ากรอกรหัสผ่าน Admin -->
+      <div id="admin-gate" class="card" style="max-width:420px;margin:0 auto;text-align:center;padding:32px">
+        <span class="material-icons" style="font-size:48px;color:var(--p);display:block;margin-bottom:12px">admin_panel_settings</span>
+        <h3 style="margin-bottom:6px">ยืนยันตัวตน Admin</h3>
+        <p style="color:var(--txt2);font-size:.85rem;margin-bottom:18px">กรุณาใส่รหัสผ่านเพื่อเข้าสู่การตั้งค่าระบบ</p>
+        <div class="form-group" style="text-align:left"><label>รหัสผ่าน</label>
+          <input type="password" id="admin-pass" placeholder="รหัสผ่าน (1111)" onkeydown="if(event.key==='Enter')doAdminLogin()">
+        </div>
+        <p id="admin-err" style="color:var(--danger);font-size:.82rem;margin-bottom:10px;display:none">❌ รหัสผ่านไม่ถูกต้อง</p>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="doAdminLogin()"><span class="material-icons">lock_open</span> เข้าระบบ Admin</button>
+      </div>
 
+      <!-- เนื้อหาตั้งค่า (จะแสดงเมื่อรหัสถูก) -->
+      <div id="admin-content" style="display:none">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:14px"><span class="material-icons" style="color:var(--p2)">settings</span> ตั้งค่าระบบพื้นฐาน</div>
+          <div class="form-row">
+            <div class="form-group"><label>เวลาเข้างาน</label><input type="time" id="set-start" value="08:30"></div>
+            <div class="form-group"><label>เวลาเลิกงาน</label><input type="time" id="set-end" value="16:30"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>นาทีผ่อนผัน (ก่อนนับสาย)</label><input type="number" id="set-late" value="15"></div>
+            <div class="form-group"><label>API URL (GAS)</label><input id="set-api" placeholder="https://script.google.com/..."></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>LINE Token (แจ้งผู้บริหาร)</label><input id="set-line-token" type="password" placeholder="LINE Notify Token"></div>
+            <div class="form-group"><label>LINE Token (ไลน์กลุ่ม)</label><input id="set-line-group" type="password" placeholder="LINE Group Token"></div>
+          </div>
+          <button class="btn btn-success" onclick="saveAdminSettings()"><span class="material-icons">save</span> บันทึกการตั้งค่าทั้งหมด</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="margin-bottom:14px"><span class="material-icons" style="color:var(--warn)">build</span> เครื่องมือระบบ</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="doSetup()"><span class="material-icons">construction</span> 1. Setup Sheets</button>
+            <button class="btn btn-warn" onclick="doImportStaff()"><span class="material-icons">upload</span> 2. นำเข้าบุคลากร (สร้างรหัสผ่าน)</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -553,7 +593,9 @@ async function doClockIn() {
     toast(r.msg, r.success ? 'success' : 'error');
     if (r.success) {
       document.getElementById('clock-result').innerHTML = `<div style="text-align:center;padding:20px;background:#dcfce7;color:#166534;border-radius:12px;margin-top:20px"><h2>✅ บันทึกเวลาสำเร็จ</h2><h1 style="font-size:3rem">${r.time}</h1></div>`;
-      refreshData();
+      
+      // หน่วงเวลา 1.5 วินาทีแล้วโหลดตารางใหม่
+      setTimeout(() => { refreshData(); }, 1500); 
     }
   } catch(e) { hideLoader(); toast('เกิดข้อผิดพลาด', 'error'); }
 }
@@ -566,11 +608,12 @@ async function doClockOut() {
     toast(r.msg, r.success ? 'success' : 'error');
     if (r.success) {
       document.getElementById('clock-result').innerHTML = `<div style="text-align:center;padding:20px;background:#e0f2fe;color:#075985;border-radius:12px;margin-top:20px"><h2>🏠 ลงเวลาเลิกงานสำเร็จ</h2><h1 style="font-size:3rem">${r.time}</h1></div>`;
-      refreshData();
+      
+      // หน่วงเวลา 1.5 วินาทีแล้วโหลดตารางใหม่
+      setTimeout(() => { refreshData(); }, 1500);
     }
   } catch(e) { hideLoader(); toast('เกิดข้อผิดพลาด', 'error'); }
 }
-
 // ============================================================
 // PROFILE & PASSWORD
 // ============================================================
@@ -650,6 +693,48 @@ function saveInitialApi() {
 
 async function doSetup() { showLoader('Setup...'); try{ await api('setupSheets'); hideLoader(); toast('สร้างชีตสำเร็จ','success'); }catch(e){ hideLoader(); } }
 async function doImportStaff() { if(confirm('นำเข้าบุคลากรและสร้างรหัสผ่าน 12345678?')){ showLoader('กำลังนำเข้า...'); try{ await api('importStaff'); hideLoader(); toast('สำเร็จ','success'); refreshData(); }catch(e){ hideLoader(); } } }
+// ============================================================
+// ADMIN SETTINGS
+// ============================================================
+var ADMIN_SESSION = false;
+
+async function doAdminLogin() {
+  var pass = document.getElementById('admin-pass').value;
+  showLoader('กำลังตรวจสอบ...');
+  try {
+    var r = await api('verifyAdminPassword', { password: pass });
+    hideLoader();
+    if (r.success) {
+      ADMIN_SESSION = true;
+      document.getElementById('admin-gate').style.display = 'none';
+      document.getElementById('admin-content').style.display = 'block';
+      document.getElementById('set-api').value = API_URL || '';
+    } else {
+      document.getElementById('admin-err').style.display = 'block';
+    }
+  } catch(e) { hideLoader(); toast('เชื่อมต่อไม่ได้','error'); }
+}
+
+async function saveAdminSettings() {
+  var newUrl = document.getElementById('set-api').value.trim();
+  if (newUrl) { API_URL = newUrl; localStorage.setItem('officeApiUrl', newUrl); }
+  
+  var settings = {
+    workStartTime: document.getElementById('set-start').value,
+    workEndTime: document.getElementById('set-end').value,
+    lateThreshold: document.getElementById('set-late').value,
+    lineToken: document.getElementById('set-line-token').value,
+    lineGroupToken: document.getElementById('set-line-group').value
+  };
+  
+  showLoader('กำลังบันทึก...');
+  try {
+    var r = await api('saveSettings', { settings });
+    hideLoader(); 
+    toast(r.msg, r.success ? 'success' : 'error');
+    if (r.success) refreshData();
+  } catch(e) { hideLoader(); toast('เกิดข้อผิดพลาด','error'); }
+}
 </script>
 </body>
 </html>
