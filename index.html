@@ -319,9 +319,9 @@ tr:hover td{background:#fafbfc}
     <div class="nav-sec">ใบลา</div>
     <div class="nav-item" onclick="go('myleave',this)"><span class="material-icons">event_note</span><span>ยื่นใบลา / ประวัติ</span></div>
     <div class="nav-item" id="nav-approve" style="display:none" onclick="go('approve',this)"><span class="material-icons">approval</span><span>อนุมัติใบลา</span><span class="nav-badge" id="pending-badge">0</span></div>
-    <div class="nav-sec">รายงาน</div>
-    <div class="nav-item" onclick="go('report',this)"><span class="material-icons">bar_chart</span><span>รายงานการมาทำงาน</span></div>
-    <div class="nav-item" onclick="go('leavereport',this)"><span class="material-icons">summarize</span><span>รายงานวันลา</span></div>
+    <div class="nav-sec" id="nav-sec-report" style="display:none">รายงาน</div>
+    <div class="nav-item" id="nav-report" style="display:none" onclick="go('report',this)"><span class="material-icons">bar_chart</span><span>รายงานการมาทำงาน</span></div>
+    <div class="nav-item" id="nav-leavereport" style="display:none" onclick="go('leavereport',this)"><span class="material-icons">summarize</span><span>รายงานวันลา</span></div>
     <div class="nav-sec">ระบบ</div>
     <div class="nav-item" id="nav-admin" style="display:none" onclick="go('admin',this)"><span class="material-icons">admin_panel_settings</span><span>ตั้งค่าระบบ</span></div>
     <div class="nav-item" onclick="go('profile',this)"><span class="material-icons">person</span><span>โปรไฟล์ของฉัน</span></div>
@@ -647,16 +647,33 @@ function confirmLogout() {
 function afterLogin() {
   renderUserBadge();
   loadMainData();
-  // แสดง/ซ่อน menu ตาม role
+
   var role = CURRENT_USER.systemRole || CURRENT_USER.role || 'staff';
-  if (role === 'admin' || role === 'superadmin' || role === 'head') {
-    document.getElementById('nav-approve').style.display = 'flex';
-    document.getElementById('manual-att-card').style.display = 'block';
+  var isAdmin = (role === 'admin' || role === 'superadmin');
+  var isHeadOrAbove = (isAdmin || role === 'head');
+
+  // รายงาน — admin/head เท่านั้น
+  ['nav-sec-report','nav-report','nav-leavereport'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = isHeadOrAbove ? (id==='nav-sec-report'?'block':'flex') : 'none';
+  });
+
+  // อนุมัติใบลา — admin/head
+  var appEl = document.getElementById('nav-approve');
+  if (appEl) appEl.style.display = isHeadOrAbove ? 'flex' : 'none';
+
+  // บันทึกสถานะพิเศษ — admin/head
+  var manEl = document.getElementById('manual-att-card');
+  if (manEl) manEl.style.display = isHeadOrAbove ? 'block' : 'none';
+
+  // ตั้งค่าระบบ — admin เท่านั้น
+  var admEl = document.getElementById('nav-admin');
+  if (admEl) admEl.style.display = isAdmin ? 'flex' : 'none';
+  if (isAdmin) {
+    var apiEl = document.getElementById('set-api');
+    if (apiEl) apiEl.value = API_URL || '';
   }
-  if (role === 'admin' || role === 'superadmin') {
-    document.getElementById('nav-admin').style.display = 'flex';
-    document.getElementById('set-api').value = API_URL || '';
-  }
+
   fillManualStaffSel();
 }
 
@@ -729,6 +746,8 @@ async function loadMainData() {
   showLoader('⏳ กำลังโหลด...');
   updateStatus('warning','กำลังโหลด...');
   try {
+    // clear cache ก่อนเสมอ เพื่อให้ได้ข้อมูลใหม่
+    try { await api('clearCache', {}); } catch(e) {}
     var d = await api('getAllData');
     DATA.staff = d.staff || [];
     DATA.todayAttendance = d.todayAttendance || [];
@@ -765,18 +784,36 @@ function renderDashboard() {
   document.getElementById('d-leave').innerText = leave;
   document.getElementById('d-notyet').innerText = Math.max(0, DATA.staff.length - att.length);
 
-  var deptRows = DEPTS.map(function(dept) {
+  // สรุปรายกลุ่มงาน — ดึง dept จาก staff จริง
+  var deptSet = [];
+  DATA.staff.forEach(function(s){ if(s.dept && deptSet.indexOf(s.dept)===-1) deptSet.push(s.dept); });
+
+  var deptRows = deptSet.map(function(dept) {
     var ds = DATA.staff.filter(s=>s.dept===dept); if(!ds.length) return '';
     var da = att.filter(r=>r.dept===dept);
     var p = da.filter(r=>r.status==='มาทำงาน'||r.status==='สาย').length;
     var l = da.filter(r=>r.status==='สาย').length;
     var lv = da.filter(r=>['ลาป่วย','ลากิจ','ลาพักร้อน'].includes(r.status)).length;
     var off = da.filter(r=>r.status==='ราชการ').length;
+    var absent = ds.length - da.length;
     var pct = ds.length>0?Math.round(p/ds.length*100):0;
     var col = pct>=80?'var(--success)':pct>=60?'var(--warn)':'var(--danger)';
-    return `<tr><td><strong>${dept}</strong></td><td style="text-align:center">${ds.length}</td><td style="text-align:center;color:var(--success);font-weight:700">${p}</td><td style="text-align:center;color:var(--warn)">${l}</td><td style="text-align:center;color:var(--purple)">${lv}</td><td style="text-align:center;color:var(--info)">${off}</td><td style="text-align:center;font-weight:800;color:${col}">${pct}%</td></tr>`;
+    return `<tr>
+      <td><strong>${dept}</strong></td>
+      <td style="text-align:center">${ds.length}</td>
+      <td style="text-align:center;color:var(--success);font-weight:700">${p}</td>
+      <td style="text-align:center;color:var(--warn)">${l}</td>
+      <td style="text-align:center;color:var(--purple)">${lv}</td>
+      <td style="text-align:center;color:var(--info)">${off}</td>
+      <td style="text-align:center;color:var(--danger)">${Math.max(0,absent)}</td>
+      <td style="text-align:center;font-weight:800;color:${col}">${pct}%</td>
+    </tr>`;
   }).join('');
-  document.getElementById('tb-dept-summary').innerHTML = '<tr><th>กลุ่มงาน</th><th>ทั้งหมด</th><th>มา</th><th>สาย</th><th>ลา</th><th>ราชการ</th><th>%มา</th></tr>'+deptRows;
+
+  document.getElementById('tb-dept-summary').innerHTML =
+    '<tr><th>กลุ่มงาน</th><th>ทั้งหมด</th><th>มา</th><th>สาย</th><th>ลา</th><th>ราชการ</th><th>ยังไม่ลง</th><th>%มา</th></tr>' +
+    (deptRows || '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--txt2)">กำลังโหลด...</td></tr>');
+
   renderDashTable();
 }
 
@@ -849,7 +886,9 @@ async function doClockIn() {
         <div style="font-size:1.6rem;font-weight:800;margin-top:6px">${r.time} น.</div>
         <div style="font-weight:700;margin-top:4px">${r.status}</div>`;
       toast(r.msg, r.status==='สาย'?'warn':'success');
-      setTimeout(loadMainData, 600);
+      // refresh ทันที ไม่รอ cache
+      await loadMainData();
+      updateClockUserBox();
     } else {
       res.className = 'clock-result error';
       res.innerHTML = '<div style="font-size:1.8rem;margin-bottom:6px">❌</div><div>'+r.msg+'</div>';
@@ -873,7 +912,8 @@ async function doClockOut() {
         <div style="font-size:1.6rem;font-weight:800;margin-top:6px">${r.time} น.</div>
         <div style="font-weight:700;margin-top:4px;color:var(--p)">ลงเวลาออกงานแล้ว</div>`;
       toast(r.msg,'success');
-      setTimeout(loadMainData, 600);
+      await loadMainData();
+      updateClockUserBox();
     } else {
       res.className = 'clock-result error';
       res.innerHTML = '<div style="font-size:1.8rem;margin-bottom:6px">❌</div><div>'+r.msg+'</div>';
