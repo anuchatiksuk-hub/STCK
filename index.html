@@ -63,7 +63,6 @@ td{padding:10px;border-bottom:1px solid var(--border)}
 .badge{padding:4px 10px;border-radius:20px;font-size:.75rem;font-weight:700}
 .badge-present{background:#dcfce7;color:#15803d}
 .badge-late{background:#fef3c7;color:#b45309}
-.badge-absent{background:#fee2e2;color:#b91c1c}
 
 .stat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
 .stat-card{background:#fff;border-radius:var(--radius);padding:16px;border:1px solid var(--border);border-top:4px solid var(--accent)}
@@ -115,6 +114,7 @@ td{padding:10px;border-bottom:1px solid var(--border)}
     <div class="nav-item" onclick="go('clock',this)"><span class="material-icons">fingerprint</span><span>ลงเวลาเข้า-ออกงาน</span></div>
     <div class="nav-item" onclick="go('profile',this)"><span class="material-icons">person</span><span>โปรไฟล์ / เปลี่ยนรหัส</span></div>
 
+    <!-- โชว์ให้เฉพาะ Super Admin เท่านั้น -->
     <div class="nav-sec" id="nav-sec-admin" style="display:none">ผู้ดูแลระบบ</div>
     <div class="nav-item" id="nav-admin" style="display:none" onclick="go('admin',this)"><span class="material-icons">admin_panel_settings</span><span>ตั้งค่าระบบ</span></div>
   </nav>
@@ -148,13 +148,15 @@ td{padding:10px;border-bottom:1px solid var(--border)}
       <div class="card" style="text-align:center;padding:40px 20px;max-width:600px;margin:0 auto">
         <div style="width:80px;height:80px;background:var(--p);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 16px" id="clock-avatar">👤</div>
         <h2 style="font-size:1.6rem;font-weight:800" id="clock-name">-</h2>
-        <p style="color:var(--txt2);margin-bottom:30px" id="clock-dept">-</p>
+        <p style="color:var(--txt2);margin-bottom:10px" id="clock-dept">-</p>
         
-        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <!-- ส่วนแสดงเวลาเข้าออกแบบเรียลไทม์ -->
+        <div id="clock-result"></div>
+        
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px">
           <button class="btn btn-success btn-lg" style="width:100%;max-width:250px;justify-content:center" onclick="doClockIn()"><span class="material-icons">login</span> ลงเวลาเข้างาน</button>
           <button class="btn btn-ghost btn-lg" style="width:100%;max-width:250px;justify-content:center" onclick="doClockOut()"><span class="material-icons">logout</span> ลงเวลาออกงาน</button>
         </div>
-        <div id="clock-result" style="margin-top:20px"></div>
       </div>
     </div>
 
@@ -168,7 +170,7 @@ td{padding:10px;border-bottom:1px solid var(--border)}
       <div id="admin-gate" class="card" style="max-width:400px;margin:0 auto;text-align:center">
         <span class="material-icons" style="font-size:48px;color:var(--p);margin-bottom:10px">admin_panel_settings</span>
         <h3 style="margin-bottom:16px">ยืนยันตัวตน Admin</h3>
-        <div class="form-group"><input type="password" id="admin-pass" placeholder="รหัสผ่าน Admin (ค่าเริ่มต้น 1111)" style="text-align:center"></div>
+        <div class="form-group"><input type="password" id="admin-pass" placeholder="รหัสผ่าน Admin (ใช้ 1111)" style="text-align:center"></div>
         <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="doAdminLogin()">เข้าสู่ระบบจัดการ</button>
       </div>
 
@@ -192,20 +194,9 @@ td{padding:10px;border-bottom:1px solid var(--border)}
   <div class="modal">
     <div class="modal-header"><h3>🔐 เข้าสู่ระบบ</h3><button class="modal-close" onclick="closeModal('modal-login')">✕</button></div>
     <div class="modal-body">
-      <div class="form-group"><label>เลขประจำตัวประชาชน 13 หลัก</label><input type="text" id="login-id" maxlength="13" inputmode="numeric" placeholder="13 หลัก"></div>
+      <div class="form-group"><label>เลขประจำตัว (ตัวอย่าง ผอ: 3301200495499 หรือ แอดมิน: A300400000)</label><input type="text" id="login-id" placeholder="เลข 13 หลัก"></div>
       <div class="form-group"><label>รหัสผ่าน</label><input type="password" id="login-pass" placeholder="ค่าเริ่มต้น: 12345678"></div>
       <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:10px" onclick="doLogin()">เข้าสู่ระบบ</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: API SETUP -->
-<div class="modal-overlay" id="modal-setup">
-  <div class="modal">
-    <div class="modal-header"><h3>⚙️ เชื่อมต่อฐานข้อมูล</h3></div>
-    <div class="modal-body">
-      <div class="form-group"><label>วาง URL จาก Google Apps Script</label><input type="text" id="setup-api-url" placeholder="https://script.google.com/..."></div>
-      <button class="btn btn-success" style="width:100%;justify-content:center" onclick="saveInitialApi()">บันทึกและเริ่มใช้งาน</button>
     </div>
   </div>
 </div>
@@ -214,20 +205,17 @@ td{padding:10px;border-bottom:1px solid var(--border)}
 // ==========================================
 // CONFIG & INITIALIZE
 // ==========================================
-var API_URL = 'https://script.google.com/macros/s/AKfycbw_woBO9dgsH7xF1gvgHzwCfDp6_8NJoRWjB8gurkheiGAUubs6F38QG80RLQsTBCInVg/exec'
+
+// ⚠️ เอา Web App URL ของคุณมาใส่ตรงนี้ได้เลย (ในเครื่องหมายคำพูด)
+var API_URL = 'https://script.google.com/macros/s/AKfycbw_woBO9dgsH7xF1gvgHzwCfDp6_8NJoRWjB8gurkheiGAUubs6F38QG80RLQsTBCInVg/exec';
+
 var DATA = { staff:[], todayAttendance:[] };
 var CURRENT_USER = JSON.parse(localStorage.getItem('currentUser') || 'null');
 var SYSTEM_ROLE = CURRENT_USER?.systemRole || 'staff';
-var PRIVATE_PAGES = ['clock', 'profile'];
+var PRIVATE_PAGES = ['clock', 'profile', 'admin'];
 
 window.onload = async () => {
   if (window.innerWidth <= 1024) document.getElementById('menu-toggle').style.display = 'flex';
-  
-  if (!API_URL) {
-    hideLoader();
-    openModal('modal-setup');
-    return;
-  }
 
   await refreshData();
   applyRoleUI();
@@ -250,6 +238,12 @@ async function refreshData() {
     DATA.staff = d.staff || [];
     DATA.todayAttendance = d.todayAttendance || [];
     renderDashboard();
+    
+    // อัปเดตข้อมูลบนหน้าลงเวลา (ถ้าเปิดค้างไว้)
+    if (document.getElementById('clock').classList.contains('active')) {
+      renderClockPage();
+    }
+    
     hideLoader();
   } catch(e) {
     hideLoader(); toast('เชื่อมต่อฐานข้อมูลล้มเหลว', 'error');
@@ -317,9 +311,10 @@ function renderUserBadge() {
 }
 
 function applyRoleUI() {
-  var isAdmin = ['superadmin','admin'].includes(SYSTEM_ROLE);
-  document.getElementById('nav-sec-admin').style.display = isAdmin ? 'block' : 'none';
-  document.getElementById('nav-admin').style.display = isAdmin ? 'flex' : 'none';
+  // เปิดเมนู Admin ให้เฉพาะคนที่เป็น Super Admin เท่านั้น
+  var isSuperAdmin = (SYSTEM_ROLE === 'superadmin');
+  document.getElementById('nav-sec-admin').style.display = isSuperAdmin ? 'block' : 'none';
+  document.getElementById('nav-admin').style.display = isSuperAdmin ? 'flex' : 'none';
 }
 
 function go(p, navEl) {
@@ -329,15 +324,12 @@ function go(p, navEl) {
   document.getElementById(p).classList.add('active');
   if (navEl) navEl.classList.add('active');
   
-  var titles = { dashboard:'📊 ภาพรวมวันนี้', clock:'⏰ ลงเวลา', profile:'👤 โปรไฟล์', admin:'🛡️ แอดมิน' };
+  var titles = { dashboard:'📊 ภาพรวมวันนี้', clock:'⏰ ลงเวลา', profile:'👤 โปรไฟล์', admin:'🛡️ ตั้งค่าระบบ' };
   document.getElementById('page-title').innerText = titles[p] || p;
   if (window.innerWidth <= 1024) closeSidebar();
 
   if (p === 'clock' && CURRENT_USER) {
-    document.getElementById('clock-name').innerText = CURRENT_USER.name;
-    document.getElementById('clock-dept').innerText = CURRENT_USER.dept;
-    document.getElementById('clock-avatar').innerText = CURRENT_USER.name.charAt(3) || '👤';
-    document.getElementById('clock-result').innerHTML = '';
+    renderClockPage();
   }
   if (p === 'profile') renderProfile();
 }
@@ -358,31 +350,67 @@ function renderDashboard() {
   var rows = DATA.staff.map(s => {
     var rec = att.find(a => a.id === s.id);
     var st = rec ? `<span class="badge ${rec.status==='สาย'?'badge-late':'badge-present'}">${rec.status}</span>` : '<span style="color:var(--txt2);font-size:.8rem">ยังไม่ลงเวลา</span>';
-    return `<tr><td><strong>${s.name}</strong><br><span style="font-size:.7rem;color:var(--txt2)">${s.dept}</span></td><td>${st}</td><td>${rec?rec.clockIn:'-'}</td></tr>`;
+    var tIn = rec ? rec.clockIn : '-';
+    var tOut = (rec && rec.clockOut) ? rec.clockOut : '-';
+    return `<tr><td><strong>${s.name}</strong><br><span style="font-size:.7rem;color:var(--txt2)">${s.dept}</span></td><td>${st}</td><td>${tIn}</td><td>${tOut}</td></tr>`;
   }).join('');
-  document.getElementById('tb-today').innerHTML = '<tr><th>ชื่อ-สกุล</th><th>สถานะ</th><th>เวลาเข้า</th></tr>' + (rows||'<tr><td colspan="3" align="center">ไม่มีข้อมูล</td></tr>');
+  document.getElementById('tb-today').innerHTML = '<tr><th>ชื่อ-สกุล</th><th>สถานะ</th><th>เข้างาน</th><th>ออกงาน</th></tr>' + (rows||'<tr><td colspan="4" align="center">ไม่มีข้อมูล</td></tr>');
+}
+
+function renderClockPage() {
+  document.getElementById('clock-name').innerText = CURRENT_USER.name;
+  document.getElementById('clock-dept').innerText = CURRENT_USER.dept;
+  document.getElementById('clock-avatar').innerText = CURRENT_USER.name.charAt(3) || '👤';
+
+  // หาข้อมูลเวลาเข้า-ออก ของคนๆ นี้ ในวันนี้
+  var myAtt = DATA.todayAttendance.find(a => a.id === CURRENT_USER.id);
+  var timeIn = (myAtt && myAtt.clockIn) ? myAtt.clockIn + ' น.' : '-';
+  var timeOut = (myAtt && myAtt.clockOut) ? myAtt.clockOut + ' น.' : '-';
+
+  document.getElementById('clock-result').innerHTML = `
+    <div style="background:var(--bg);padding:16px;border-radius:12px;display:flex;justify-content:space-around;">
+      <div>
+        <div style="font-size:0.8rem;color:var(--txt2)">เวลาเข้างาน</div>
+        <strong style="color:var(--success);font-size:1.4rem">${timeIn}</strong>
+      </div>
+      <div>
+        <div style="font-size:0.8rem;color:var(--txt2)">เวลาออกงาน</div>
+        <strong style="color:var(--p);font-size:1.4rem">${timeOut}</strong>
+      </div>
+    </div>
+    <div style="font-size:0.8rem;color:var(--danger);margin-top:12px;">
+      * หมายเหตุ: จะสามารถกดปุ่ม "ลงเวลาออกงาน" ได้ตั้งแต่เวลา 16:30 น. เป็นต้นไป
+    </div>
+  `;
 }
 
 async function doClockIn() {
   showLoader('กำลังบันทึก...');
   try {
     var r = await api('clockIn', { id: CURRENT_USER.id, name: CURRENT_USER.name, dept: CURRENT_USER.dept, method: 'manual' });
-    hideLoader(); toast(r.msg, r.success ? 'success' : 'error');
+    hideLoader(); 
+    
     if (r.success) {
-      document.getElementById('clock-result').innerHTML = `<div style="background:#dcfce7;color:#166534;padding:20px;border-radius:12px"><h2>✅ เข้างานสำเร็จ</h2><h1 style="font-size:2.5rem">${r.time}</h1></div>`;
-      setTimeout(refreshData, 1500); // ดีเลย์ 1.5 วิ ให้แผ่นงานเซฟเสร็จ ค่อยรีเฟรชแดชบอร์ด
+      toast('✅ บันทึกเวลาเข้างานสำเร็จ', 'success');
+      setTimeout(refreshData, 1500); // รีเฟรชข้อมูลอัตโนมัติ
+    } else {
+      toast(r.msg, 'error');
     }
   } catch(e) { hideLoader(); toast('Error', 'error'); }
 }
 
 async function doClockOut() {
-  showLoader('กำลังบันทึก...');
+  showLoader('กำลังตรวจสอบ...');
   try {
     var r = await api('clockOut', { id: CURRENT_USER.id, name: CURRENT_USER.name });
-    hideLoader(); toast(r.msg, r.success ? 'success' : 'error');
+    hideLoader(); 
+    
     if (r.success) {
-      document.getElementById('clock-result').innerHTML = `<div style="background:#e0f2fe;color:#075985;padding:20px;border-radius:12px"><h2>🏠 ออกงานสำเร็จ</h2><h1 style="font-size:2.5rem">${r.time}</h1></div>`;
-      setTimeout(refreshData, 1500);
+      toast('🏠 บันทึกเวลาออกงานสำเร็จ', 'success');
+      setTimeout(refreshData, 1500); // รีเฟรชข้อมูลอัตโนมัติ
+    } else {
+      // แจ้งเตือนถ้ายังไม่ถึงเวลา หรือยังไม่ได้เข้างาน
+      toast(r.msg, 'error');
     }
   } catch(e) { hideLoader(); toast('Error', 'error'); }
 }
@@ -432,8 +460,21 @@ async function doAdminLogin() {
   } catch(e) { hideLoader(); toast('Error','error'); }
 }
 
-async function doSetup() { showLoader('Setup...'); try{ var r = await api('setupSheets'); hideLoader(); toast(r.msg,'success'); }catch(e){ hideLoader(); } }
-async function doImportStaff() { if(!confirm('เริ่มสร้างรายชื่อและรหัสผ่านเริ่มต้น (12345678)?')) return; showLoader('นำเข้าข้อมูล...'); try{ var r = await api('importStaff'); hideLoader(); toast(r.msg,'success'); refreshData(); }catch(e){ hideLoader(); } }
+async function doSetup() { 
+  showLoader('Setup...'); 
+  try{ var r = await api('setupSheets'); hideLoader(); toast(r.msg,'success'); } catch(e){ hideLoader(); } 
+}
+
+async function doImportStaff() { 
+  if(!confirm('คำเตือน! เริ่มสร้างรายชื่อและรหัสผ่านเริ่มต้น (12345678)?')) return; 
+  showLoader('กำลังสร้างฐานข้อมูล...'); 
+  try{ 
+    var r = await api('importStaff'); 
+    hideLoader(); 
+    toast(r.msg,'success'); 
+    refreshData(); 
+  } catch(e){ hideLoader(); } 
+}
 
 // ==========================================
 // UTILS
@@ -450,7 +491,6 @@ function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 function toggleSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebar-overlay').style.display='block'; }
 function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').style.display='none'; }
-function saveInitialApi() { var u = document.getElementById('setup-api-url').value.trim(); if(!u) return toast('ใส่ URL ก่อน','error'); localStorage.setItem('officeApiUrl', u); window.location.reload(); }
 </script>
 </body>
 </html>
