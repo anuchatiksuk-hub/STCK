@@ -44,7 +44,8 @@ html,body{height:100%;font-family:'Sarabun',sans-serif;background:var(--bg);colo
 /* ── UI COMPONENTS ── */
 .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:20px;margin-bottom:16px}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border:none;border-radius:8px;font-family:inherit;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .15s}
-.btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.btn:disabled{opacity:0.6;cursor:not-allowed;}
 .btn-primary{background:var(--p);color:#fff}
 .btn-success{background:var(--success);color:#fff}
 .btn-warn{background:var(--warn);color:#fff}
@@ -52,8 +53,8 @@ html,body{height:100%;font-family:'Sarabun',sans-serif;background:var(--bg);colo
 .btn-ghost{background:transparent;color:var(--txt2);border:1px solid var(--border)}
 .btn-lg{padding:14px 24px;font-size:1.05rem}
 
-input{font-family:inherit;font-size:.95rem;padding:10px 14px;border:1px solid var(--border);border-radius:8px;outline:none;width:100%;transition:.15s}
-input:focus{border-color:var(--p2);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+input, textarea{font-family:inherit;font-size:.95rem;padding:10px 14px;border:1px solid var(--border);border-radius:8px;outline:none;width:100%;transition:.15s;resize:vertical;}
+input:focus, textarea:focus{border-color:var(--p2);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
 label{display:block;font-size:.8rem;font-weight:700;color:var(--txt2);margin-bottom:6px}
 .form-group{margin-bottom:16px}
 
@@ -69,8 +70,8 @@ td{padding:10px;border-bottom:1px solid var(--border)}
 .stat-card h3{font-size:.75rem;color:var(--txt2);font-weight:700;margin-bottom:6px}
 .stat-card .value{font-size:2rem;font-weight:800;line-height:1}
 
-/* ── OVERLAYS & MODALS ── */
-#loader{position:fixed;inset:0;background:rgba(255,255,255,.95);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+/* ── MODALS ── */
+#loader{position:fixed;inset:0;background:rgba(255,255,255,.95);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .spinner{width:40px;height:40px;border:4px solid var(--border);border-top-color:var(--p2);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 #toast-container{position:fixed;top:20px;right:20px;z-index:99998;display:flex;flex-direction:column;gap:10px}
@@ -112,6 +113,8 @@ td{padding:10px;border-bottom:1px solid var(--border)}
     
     <div class="nav-sec">เมนูส่วนบุคคล (ต้องล็อกอิน)</div>
     <div class="nav-item" onclick="go('clock',this)"><span class="material-icons">fingerprint</span><span>ลงเวลาเข้า-ออกงาน</span></div>
+    <div class="nav-item" onclick="go('dailyreport',this)"><span class="material-icons">assignment</span><span>รายงานผลปฏิบัติงาน</span></div>
+    <div class="nav-item" onclick="go('wfh_task',this)"><span class="material-icons">home_work</span><span>เสนองาน WFH</span></div>
     <div class="nav-item" onclick="go('profile',this)"><span class="material-icons">person</span><span>โปรไฟล์ / เปลี่ยนรหัส</span></div>
 
     <!-- โชว์ให้เฉพาะ Super Admin เท่านั้น -->
@@ -150,13 +153,29 @@ td{padding:10px;border-bottom:1px solid var(--border)}
         <h2 style="font-size:1.6rem;font-weight:800" id="clock-name">-</h2>
         <p style="color:var(--txt2);margin-bottom:10px" id="clock-dept">-</p>
         
-        <!-- ส่วนแสดงเวลาเข้าออกแบบเรียลไทม์ -->
+        <!-- ส่วนแสดงปุ่มและเวลา (อัปเดตอัตโนมัติจาก JS) -->
         <div id="clock-result"></div>
-        
-        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px">
-          <button class="btn btn-success btn-lg" style="width:100%;max-width:250px;justify-content:center" onclick="doClockIn()"><span class="material-icons">login</span> ลงเวลาเข้างาน</button>
-          <button class="btn btn-ghost btn-lg" style="width:100%;max-width:250px;justify-content:center" onclick="doClockOut()"><span class="material-icons">logout</span> ลงเวลาออกงาน</button>
-        </div>
+      </div>
+    </div>
+
+    <!-- DAILY REPORT (รายงานผลประจำวัน) -->
+    <div id="dailyreport" class="page">
+      <div class="card" style="max-width:700px;margin:0 auto">
+        <h3 style="margin-bottom:20px;color:var(--p2);display:flex;align-items:center;gap:8px"><span class="material-icons">assignment</span> แบบฟอร์มรายงานผลการปฏิบัติงาน</h3>
+        <div class="form-group"><label>1. ผลการปฏิบัติงานในวันนี้</label><textarea id="dr-work" rows="4" placeholder="อธิบายงานที่ทำสำเร็จ..."></textarea></div>
+        <div class="form-group"><label>2. ปัญหาและอุปสรรค (ถ้ามี)</label><textarea id="dr-prob" rows="3" placeholder="ระบุปัญหาที่พบ..."></textarea></div>
+        <div class="form-group"><label>3. แผนการปฏิบัติงานในวันพรุ่งนี้</label><textarea id="dr-next" rows="3" placeholder="ระบุงานที่จะทำต่อไป..."></textarea></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="doSubmitDailyReport()"><span class="material-icons">send</span> ส่งรายงานประจำวัน</button>
+      </div>
+    </div>
+
+    <!-- WFH TASK (เสนองาน WFH) -->
+    <div id="wfh_task" class="page">
+      <div class="card" style="max-width:700px;margin:0 auto">
+        <h3 style="margin-bottom:20px;color:var(--p2);display:flex;align-items:center;gap:8px"><span class="material-icons">home_work</span> แบบฟอร์มการเสนองานออนไลน์ (WFH)</h3>
+        <p style="font-size:0.85rem;color:var(--txt2);margin-bottom:16px">สำหรับบุคลากรที่ปฏิบัติงานที่บ้าน (Work From Home) โปรดระบุรายละเอียดงานที่ต้องการเสนอ</p>
+        <div class="form-group"><label>รายละเอียดงาน / ไฟล์งานที่เสนอ</label><textarea id="wfh-desc" rows="6" placeholder="พิมพ์รายละเอียดงาน หรือวางลิงก์ไฟล์งาน (Google Drive, เอกสารต่างๆ) ที่นี่..."></textarea></div>
+        <button class="btn btn-success" style="width:100%;justify-content:center" onclick="doSubmitWFHTask()"><span class="material-icons">cloud_upload</span> เสนองาน WFH</button>
       </div>
     </div>
 
@@ -178,7 +197,7 @@ td{padding:10px;border-bottom:1px solid var(--border)}
         <div class="card">
           <h3 style="margin-bottom:16px"><span class="material-icons" style="color:var(--warn);vertical-align:middle">build</span> เครื่องมือติดตั้งระบบ</h3>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <button class="btn btn-primary" onclick="doSetup()"><span class="material-icons">post_add</span> 1. สร้าง Sheets ฐานข้อมูล</button>
+            <button class="btn btn-primary" onclick="doSetup()"><span class="material-icons">post_add</span> 1. สร้าง Sheets (เพิ่มตารางใหม่)</button>
             <button class="btn btn-success" onclick="doImportStaff()"><span class="material-icons">group_add</span> 2. นำเข้าบุคลากรตัวอย่าง</button>
           </div>
           <p style="font-size:.8rem;color:var(--danger);margin-top:10px">** หมายเหตุ: นำเข้าบุคลากรจะสร้างรหัสผ่าน "12345678" ให้อัตโนมัติ</p>
@@ -194,9 +213,20 @@ td{padding:10px;border-bottom:1px solid var(--border)}
   <div class="modal">
     <div class="modal-header"><h3>🔐 เข้าสู่ระบบ</h3><button class="modal-close" onclick="closeModal('modal-login')">✕</button></div>
     <div class="modal-body">
-      <div class="form-group"><label>เลขประจำตัว (ตัวอย่าง ผอ: 3301200495499 หรือ แอดมิน: A300400000)</label><input type="text" id="login-id" placeholder="เลข 13 หลัก"></div>
+      <div class="form-group"><label>เลขประจำตัว (ตัวอย่าง ผอ: 3301200495499 หรือ แอดมิน: A300400000)</label><input type="text" id="login-id" placeholder="เลข 13 หลัก หรือ ID"></div>
       <div class="form-group"><label>รหัสผ่าน</label><input type="password" id="login-pass" placeholder="ค่าเริ่มต้น: 12345678"></div>
       <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:10px" onclick="doLogin()">เข้าสู่ระบบ</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: API SETUP -->
+<div class="modal-overlay" id="modal-setup">
+  <div class="modal">
+    <div class="modal-header"><h3>⚙️ เชื่อมต่อฐานข้อมูล</h3></div>
+    <div class="modal-body">
+      <div class="form-group"><label>วาง URL จาก Google Apps Script</label><input type="text" id="setup-api-url" placeholder="https://script.google.com/..."></div>
+      <button class="btn btn-success" style="width:100%;justify-content:center" onclick="saveInitialApi()">บันทึกและเริ่มใช้งาน</button>
     </div>
   </div>
 </div>
@@ -206,13 +236,13 @@ td{padding:10px;border-bottom:1px solid var(--border)}
 // CONFIG & INITIALIZE
 // ==========================================
 
-// ⚠️ เอา Web App URL ของคุณมาใส่ตรงนี้ได้เลย (ในเครื่องหมายคำพูด)
+// ⚠️ เอา Web App URL ของคุณมาใส่ตรงนี้ได้เลย
 var API_URL = 'https://script.google.com/macros/s/AKfycbw_woBO9dgsH7xF1gvgHzwCfDp6_8NJoRWjB8gurkheiGAUubs6F38QG80RLQsTBCInVg/exec';
 
 var DATA = { staff:[], todayAttendance:[] };
 var CURRENT_USER = JSON.parse(localStorage.getItem('currentUser') || 'null');
 var SYSTEM_ROLE = CURRENT_USER?.systemRole || 'staff';
-var PRIVATE_PAGES = ['clock', 'profile', 'admin'];
+var PRIVATE_PAGES = ['clock', 'profile', 'admin', 'dailyreport', 'wfh_task'];
 
 window.onload = async () => {
   if (window.innerWidth <= 1024) document.getElementById('menu-toggle').style.display = 'flex';
@@ -239,11 +269,9 @@ async function refreshData() {
     DATA.todayAttendance = d.todayAttendance || [];
     renderDashboard();
     
-    // อัปเดตข้อมูลบนหน้าลงเวลา (ถ้าเปิดค้างไว้)
     if (document.getElementById('clock').classList.contains('active')) {
       renderClockPage();
     }
-    
     hideLoader();
   } catch(e) {
     hideLoader(); toast('เชื่อมต่อฐานข้อมูลล้มเหลว', 'error');
@@ -311,7 +339,6 @@ function renderUserBadge() {
 }
 
 function applyRoleUI() {
-  // เปิดเมนู Admin ให้เฉพาะคนที่เป็น Super Admin เท่านั้น
   var isSuperAdmin = (SYSTEM_ROLE === 'superadmin');
   document.getElementById('nav-sec-admin').style.display = isSuperAdmin ? 'block' : 'none';
   document.getElementById('nav-admin').style.display = isSuperAdmin ? 'flex' : 'none';
@@ -324,13 +351,11 @@ function go(p, navEl) {
   document.getElementById(p).classList.add('active');
   if (navEl) navEl.classList.add('active');
   
-  var titles = { dashboard:'📊 ภาพรวมวันนี้', clock:'⏰ ลงเวลา', profile:'👤 โปรไฟล์', admin:'🛡️ ตั้งค่าระบบ' };
+  var titles = { dashboard:'📊 ภาพรวมวันนี้', clock:'⏰ ลงเวลา', dailyreport:'📝 รายงานผลประจำวัน', wfh_task:'🏠 เสนองาน WFH', profile:'👤 โปรไฟล์', admin:'🛡️ ตั้งค่าระบบ' };
   document.getElementById('page-title').innerText = titles[p] || p;
   if (window.innerWidth <= 1024) closeSidebar();
 
-  if (p === 'clock' && CURRENT_USER) {
-    renderClockPage();
-  }
+  if (p === 'clock' && CURRENT_USER) renderClockPage();
   if (p === 'profile') renderProfile();
 }
 
@@ -362,10 +387,18 @@ function renderClockPage() {
   document.getElementById('clock-dept').innerText = CURRENT_USER.dept;
   document.getElementById('clock-avatar').innerText = CURRENT_USER.name.charAt(3) || '👤';
 
-  // หาข้อมูลเวลาเข้า-ออก ของคนๆ นี้ ในวันนี้
   var myAtt = DATA.todayAttendance.find(a => a.id === CURRENT_USER.id);
   var timeIn = (myAtt && myAtt.clockIn) ? myAtt.clockIn + ' น.' : '-';
   var timeOut = (myAtt && myAtt.clockOut) ? myAtt.clockOut + ' น.' : '-';
+
+  // เช็คและล็อกปุ่ม เพื่อไม่ให้เกิดการลงเวลาซ้ำ
+  var btnInHtml = (!myAtt || !myAtt.clockIn) 
+    ? `<button class="btn btn-success btn-lg" style="width:100%;max-width:250px;justify-content:center" onclick="doClockIn()"><span class="material-icons">login</span> ลงเวลาเข้างาน</button>`
+    : `<button class="btn btn-ghost btn-lg" style="width:100%;max-width:250px;justify-content:center" disabled><span class="material-icons">check_circle</span> เข้างานแล้ว</button>`;
+
+  var btnOutHtml = (myAtt && myAtt.clockOut)
+    ? `<button class="btn btn-ghost btn-lg" style="width:100%;max-width:250px;justify-content:center" disabled><span class="material-icons">check_circle</span> ออกงานแล้ว</button>`
+    : `<button class="btn btn-warn btn-lg" style="width:100%;max-width:250px;justify-content:center;background:var(--warn);color:#fff" onclick="doClockOut()"><span class="material-icons">logout</span> ลงเวลาออกงาน</button>`;
 
   document.getElementById('clock-result').innerHTML = `
     <div style="background:var(--bg);padding:16px;border-radius:12px;display:flex;justify-content:space-around;">
@@ -378,8 +411,14 @@ function renderClockPage() {
         <strong style="color:var(--p);font-size:1.4rem">${timeOut}</strong>
       </div>
     </div>
+    
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px">
+      ${btnInHtml}
+      ${btnOutHtml}
+    </div>
+    
     <div style="font-size:0.8rem;color:var(--danger);margin-top:12px;">
-      * หมายเหตุ: จะสามารถกดปุ่ม "ลงเวลาออกงาน" ได้ตั้งแต่เวลา 16:30 น. เป็นต้นไป
+      * หมายเหตุ: ลงเวลาได้เพียง 1 ครั้งต่อวัน และกด "ลงเวลาออกงาน" ได้ตั้งแต่เวลา 16:30 น. เป็นต้นไป
     </div>
   `;
 }
@@ -389,13 +428,10 @@ async function doClockIn() {
   try {
     var r = await api('clockIn', { id: CURRENT_USER.id, name: CURRENT_USER.name, dept: CURRENT_USER.dept, method: 'manual' });
     hideLoader(); 
-    
     if (r.success) {
       toast('✅ บันทึกเวลาเข้างานสำเร็จ', 'success');
-      setTimeout(refreshData, 1500); // รีเฟรชข้อมูลอัตโนมัติ
-    } else {
-      toast(r.msg, 'error');
-    }
+      setTimeout(refreshData, 1500); 
+    } else { toast(r.msg, 'error'); }
   } catch(e) { hideLoader(); toast('Error', 'error'); }
 }
 
@@ -404,15 +440,40 @@ async function doClockOut() {
   try {
     var r = await api('clockOut', { id: CURRENT_USER.id, name: CURRENT_USER.name });
     hideLoader(); 
-    
     if (r.success) {
       toast('🏠 บันทึกเวลาออกงานสำเร็จ', 'success');
-      setTimeout(refreshData, 1500); // รีเฟรชข้อมูลอัตโนมัติ
-    } else {
-      // แจ้งเตือนถ้ายังไม่ถึงเวลา หรือยังไม่ได้เข้างาน
-      toast(r.msg, 'error');
-    }
+      setTimeout(refreshData, 1500);
+    } else { toast(r.msg, 'error'); }
   } catch(e) { hideLoader(); toast('Error', 'error'); }
+}
+
+// ==========================================
+// REPORTS & WFH (ใหม่)
+// ==========================================
+async function doSubmitDailyReport() {
+  var w = document.getElementById('dr-work').value;
+  var p = document.getElementById('dr-prob').value;
+  var n = document.getElementById('dr-next').value;
+  if(!w) return toast('กรุณาระบุผลการปฏิบัติงาน', 'error');
+
+  showLoader('กำลังส่งรายงาน...');
+  try {
+    var r = await api('submitDailyReport', { data: { staffId: CURRENT_USER.id, name: CURRENT_USER.name, dept: CURRENT_USER.dept, workDone: w, problems: p, nextPlan: n } });
+    hideLoader(); toast(r.msg, r.success?'success':'error');
+    if(r.success) { document.getElementById('dr-work').value=''; document.getElementById('dr-prob').value=''; document.getElementById('dr-next').value=''; }
+  } catch(e) { hideLoader(); toast('เกิดข้อผิดพลาด', 'error'); }
+}
+
+async function doSubmitWFHTask() {
+  var desc = document.getElementById('wfh-desc').value;
+  if(!desc) return toast('กรุณาระบุรายละเอียดงาน หรือวางลิงก์ไฟล์', 'error');
+
+  showLoader('กำลังส่งงาน...');
+  try {
+    var r = await api('submitWFHTask', { data: { staffId: CURRENT_USER.id, name: CURRENT_USER.name, dept: CURRENT_USER.dept, taskDesc: desc } });
+    hideLoader(); toast(r.msg, r.success?'success':'error');
+    if(r.success) { document.getElementById('wfh-desc').value=''; }
+  } catch(e) { hideLoader(); toast('เกิดข้อผิดพลาด', 'error'); }
 }
 
 // ==========================================
