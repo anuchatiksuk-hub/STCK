@@ -727,8 +727,7 @@ async function doSubmitWFH() {
 // =============================================
 // SUMMARY & APPROVAL
 // =============================================
-// =============================================
-// SUMMARY & APPROVAL (ปรับให้ Super Admin ใช้งานได้)
+// SUMMARY & APPROVAL (เวอร์ชันแก้ไขล่าสุด)
 // =============================================
 function renderSummary() {
   var att = DATA.todayAtt;
@@ -740,7 +739,7 @@ function renderSummary() {
   var s2Done = ap?.approvedBy2ID;
   var isSuperAdmin = ROLE === 'superadmin';
 
-  // แสดงขั้นตอน
+  // แสดงขั้นตอนรับรอง
   document.getElementById('approval-steps').innerHTML = `
     <div class="step-box ${s1Done?'done':!s1Done?'active-step':''}">
       <div class="step-num">${s1Done?'✓':'1'}</div>
@@ -759,28 +758,28 @@ function renderSummary() {
   var sb = document.getElementById('sum-status-bar');
   var stxt = document.getElementById('sum-status-txt');
   if (s2Done) { 
-    sb.className='summary-status-bar ssb-approved2'; 
-    stxt.innerText='✅ อนุมัติแล้ว'; 
+    sb.className = 'summary-status-bar ssb-approved2'; 
+    stxt.innerText = '✅ อนุมัติแล้ว'; 
   } else if (s1Done) { 
-    sb.className='summary-status-bar ssb-approved1'; 
-    stxt.innerText='🔵 รับรองแล้ว — รอ ผอ.กลุ่มอนุมัติ'; 
+    sb.className = 'summary-status-bar ssb-approved1'; 
+    stxt.innerText = '🔵 รับรองแล้ว — รอ ผอ.กลุ่มอนุมัติ'; 
   } else { 
-    sb.className='summary-status-bar ssb-pending'; 
-    stxt.innerText='⏳ รอการรับรอง'; 
+    sb.className = 'summary-status-bar ssb-pending'; 
+    stxt.innerText = '⏳ รอการรับรอง'; 
   }
 
-  // ปุ่มรับรอง — Super Admin เห็นทุกปุ่ม
+  // ปุ่มรับรอง - Super Admin เห็นทุกปุ่ม
   var btnArea = document.getElementById('approve-btn-area');
   btnArea.innerHTML = '';
 
   if ((CU?.id === APPROVERS.a1 || isSuperAdmin) && !s1Done) {
-    btnArea.innerHTML += `<button class="btn btn-success" onclick="doApprove(1)"><span class="material-icons">verified</span> รับรองเอกสาร (เจ้าหน้าที่บุคคล)</button>`;
+    btnArea.innerHTML += `<button class="btn btn-success" onclick="doApprove(1)"><span class="material-icons">verified</span> รับรองเอกสาร (ขั้นที่ 1)</button>`;
   }
   if ((CU?.id === APPROVERS.a2 || isSuperAdmin) && s1Done && !s2Done) {
-    btnArea.innerHTML += `<button class="btn btn-primary" onclick="doApprove(2)"><span class="material-icons">task_alt</span> อนุมัติเอกสาร (ผอ.กลุ่มบุคคล)</button>`;
+    btnArea.innerHTML += `<button class="btn btn-primary" onclick="doApprove(2)"><span class="material-icons">task_alt</span> อนุมัติเอกสาร (ขั้นที่ 2)</button>`;
   }
 
-  // แสดงกลุ่มบุคลากร (เหมือนเดิม)
+  // แสดงกลุ่มบุคลากร
   var office = att.filter(r => !r.workType || r.workType === 'office');
   var wfh = att.filter(r => r.workType === 'wfh');
   var leave = att.filter(r => r.workType === 'leave');
