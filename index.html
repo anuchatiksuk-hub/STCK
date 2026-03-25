@@ -727,41 +727,60 @@ async function doSubmitWFH() {
 // =============================================
 // SUMMARY & APPROVAL
 // =============================================
+// =============================================
+// SUMMARY & APPROVAL (ปรับให้ Super Admin ใช้งานได้)
+// =============================================
 function renderSummary() {
   var att = DATA.todayAtt;
   var ap = DATA.summaryApproval;
   var now = new Date();
   document.getElementById('sum-date-lbl').innerText = now.toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
   var s1Done = ap?.approvedBy1ID;
   var s2Done = ap?.approvedBy2ID;
+  var isSuperAdmin = ROLE === 'superadmin';
+
+  // แสดงขั้นตอน
   document.getElementById('approval-steps').innerHTML = `
     <div class="step-box ${s1Done?'done':!s1Done?'active-step':''}">
       <div class="step-num">${s1Done?'✓':'1'}</div>
       <div class="step-title">รับรองโดยเจ้าหน้าที่บุคคล</div>
-      <div class="step-sub">${APPROVERS.a1||'ยังไม่ได้ตั้งค่า'}</div>
+      <div class="step-sub">${APPROVERS.a1 || 'ยังไม่ได้ตั้งค่า'}</div>
       ${s1Done ? `<div class="step-by">✅ รับรองแล้ว — ${ap.approvedBy1Name||''} ${ap.approvedAt1||''}</div>` : ''}
     </div>
     <div class="step-box ${s2Done?'done':s1Done?'active-step':''}">
       <div class="step-num">${s2Done?'✓':'2'}</div>
       <div class="step-title">อนุมัติโดย ผอ.กลุ่มบุคคล</div>
-      <div class="step-sub">${APPROVERS.a2||'ยังไม่ได้ตั้งค่า'}</div>
+      <div class="step-sub">${APPROVERS.a2 || 'ยังไม่ได้ตั้งค่า'}</div>
       ${s2Done ? `<div class="step-by">✅ อนุมัติแล้ว — ${ap.approvedBy2Name||''} ${ap.approvedAt2||''}</div>` : ''}
     </div>`;
+
+  // สถานะแถบ
   var sb = document.getElementById('sum-status-bar');
   var stxt = document.getElementById('sum-status-txt');
-  if (s2Done) { sb.className='summary-status-bar ssb-approved2'; stxt.innerText='✅ อนุมัติแล้ว'; }
-  else if (s1Done) { sb.className='summary-status-bar ssb-approved1'; stxt.innerText='🔵 รับรองแล้ว — รอ ผอ.กลุ่มอนุมัติ'; }
-  else { sb.className='summary-status-bar ssb-pending'; stxt.innerText='⏳ รอการรับรอง'; }
+  if (s2Done) { 
+    sb.className='summary-status-bar ssb-approved2'; 
+    stxt.innerText='✅ อนุมัติแล้ว'; 
+  } else if (s1Done) { 
+    sb.className='summary-status-bar ssb-approved1'; 
+    stxt.innerText='🔵 รับรองแล้ว — รอ ผอ.กลุ่มอนุมัติ'; 
+  } else { 
+    sb.className='summary-status-bar ssb-pending'; 
+    stxt.innerText='⏳ รอการรับรอง'; 
+  }
 
+  // ปุ่มรับรอง — Super Admin เห็นทุกปุ่ม
   var btnArea = document.getElementById('approve-btn-area');
   btnArea.innerHTML = '';
-  if (CU?.id === APPROVERS.a1 && !s1Done) {
+
+  if ((CU?.id === APPROVERS.a1 || isSuperAdmin) && !s1Done) {
     btnArea.innerHTML += `<button class="btn btn-success" onclick="doApprove(1)"><span class="material-icons">verified</span> รับรองเอกสาร (เจ้าหน้าที่บุคคล)</button>`;
   }
-  if (CU?.id === APPROVERS.a2 && s1Done && !s2Done) {
+  if ((CU?.id === APPROVERS.a2 || isSuperAdmin) && s1Done && !s2Done) {
     btnArea.innerHTML += `<button class="btn btn-primary" onclick="doApprove(2)"><span class="material-icons">task_alt</span> อนุมัติเอกสาร (ผอ.กลุ่มบุคคล)</button>`;
   }
 
+  // แสดงกลุ่มบุคลากร (เหมือนเดิม)
   var office = att.filter(r => !r.workType || r.workType === 'office');
   var wfh = att.filter(r => r.workType === 'wfh');
   var leave = att.filter(r => r.workType === 'leave');
@@ -776,12 +795,14 @@ function renderSummary() {
       return `<tr><td><strong>${r.name}</strong></td><td style="color:var(--txt2);font-size:.8rem">${r.dept}</td><td>${r.clockIn||'-'}</td><td>${r.clockOut||'-'}</td><td>${lbl}</td></tr>`;
     }).join('');
   }
+
   var thead = '<thead><tr><th>ชื่อ-สกุล</th><th>กลุ่มงาน</th><th>เข้างาน</th><th>ออกงาน</th><th>สถานะ</th></tr></thead>';
   var html = '';
   if (office.length) html += `<div class="sum-group"><div class="sum-group-hd sg-office"><span class="material-icons" style="font-size:17px">business</span> มาออฟฟิศ (${office.length} คน)</div><div class="tbl-wrap"><table>${thead}<tbody>${makeRows(office,true)}</tbody></table></div></div>`;
   if (wfh.length) html += `<div class="sum-group"><div class="sum-group-hd sg-wfh"><span class="material-icons" style="font-size:17px">home</span> WFH (${wfh.length} คน)</div><div class="tbl-wrap"><table>${thead}<tbody>${makeRows(wfh,true)}</tbody></table></div></div>`;
   if (leave.length) html += `<div class="sum-group"><div class="sum-group-hd sg-leave"><span class="material-icons" style="font-size:17px">event_busy</span> ลา (${leave.length} คน)</div><div class="tbl-wrap"><table>${thead}<tbody>${makeRows(leave,true)}</tbody></table></div></div>`;
   if (absent.length) html += `<div class="sum-group"><div class="sum-group-hd sg-absent"><span class="material-icons" style="font-size:17px">person_off</span> ยังไม่ลงเวลา / ขาด (${absent.length} คน)</div><div class="tbl-wrap"><table>${thead}<tbody>${makeRows(absent,false)}</tbody></table></div></div>`;
+
   document.getElementById('sum-groups').innerHTML = html || '<p style="color:var(--txt2);text-align:center;padding:20px">ไม่มีข้อมูลวันนี้</p>';
 }
 
