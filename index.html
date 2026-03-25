@@ -309,31 +309,32 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
     </div>
 
     <!-- STAFF MANAGEMENT -->
-    <div id="staffmgmt" class="page">
-      <div class="card" style="max-width:720px;margin:0 auto">
-        <div class="card-hd"><span class="material-icons">person_add</span><h3>เพิ่มบุคลากรใหม่</h3></div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px">
-          <div class="fg"><label>เลขประจำตัว</label><input id="new-id" placeholder="เช่น 3301200495499"></div>
-          <div class="fg"><label>ชื่อ-สกุล</label><input id="new-name"></div>
-          <div class="fg"><label>ตำแหน่ง</label><input id="new-position"></div>
-          <div class="fg"><label>กลุ่มงาน</label><input id="new-dept"></div>
-          <div class="fg"><label>สิทธิ์ (Role)</label>
-            <select id="new-role">
-              <option value="staff">staff</option>
-              <option value="head">head</option>
-              <option value="admin">admin</option>
-            </select>
-          </div>
-        </div>
-        <button class="btn btn-success btn-full" onclick="addNewStaff()">เพิ่มบุคลากร</button>
-      </div>
-      <div class="card" style="max-width:720px;margin:0 auto">
-        <div class="card-hd"><span class="material-icons">download</span><h3>ดาวน์โหลด / อัปโหลดข้อมูล</h3></div>
-        <button class="btn btn-primary" onclick="exportStaffExcel()">ดาวน์โหลด CSV</button>
-        <input type="file" id="upload-excel" accept=".csv" style="display:none" onchange="importStaffCSV(this)">
-        <button class="btn btn-ghost" onclick="document.getElementById('upload-excel').click()">อัปโหลด CSV</button>
+  <div id="staffmgmt" class="page">
+  <div class="card" style="max-width:720px;margin:0 auto">
+    <div class="card-hd"><span class="material-icons">person_add</span><h3>เพิ่มบุคลากรใหม่</h3></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px">
+      <div class="fg"><label>เลขประจำตัว</label><input id="new-id" placeholder="เช่น 3301200495499"></div>
+      <div class="fg"><label>ชื่อ-สกุล</label><input id="new-name"></div>
+      <div class="fg"><label>ตำแหน่ง</label><input id="new-position"></div>
+      <div class="fg"><label>กลุ่มงาน</label><input id="new-dept"></div>
+      <div class="fg"><label>สิทธิ์ (Role)</label>
+        <select id="new-role">
+          <option value="staff">staff</option>
+          <option value="head">head</option>
+          <option value="admin">admin</option>
+        </select>
       </div>
     </div>
+    <button class="btn btn-success btn-full" onclick="addNewStaff()">เพิ่มบุคลากร</button>
+  </div>
+
+  <div class="card" style="max-width:720px;margin:0 auto">
+    <div class="card-hd"><span class="material-icons">download</span><h3>ดาวน์โหลด / อัปโหลดข้อมูลบุคลากร</h3></div>
+    <button class="btn btn-primary" onclick="exportStaffExcel()">ดาวน์โหลด Template CSV</button>
+    <input type="file" id="upload-excel" accept=".csv" style="display:none" onchange="importStaffCSV(this)">
+    <button class="btn btn-ghost" onclick="document.getElementById('upload-excel').click()">อัปโหลด CSV</button>
+  </div>
+</div>
 
     <!-- ADMIN -->
     <div id="admin" class="page">
@@ -621,7 +622,21 @@ function renderDashboard() {
 
 function viewStaffDetail(staffId) {
   var staff = DATA.staff.find(s => s.id === staffId);
-  if (staff) toast(`ดูรายละเอียด: ${staff.name}`, 'info');
+  if (!staff) return;
+
+  var att = DATA.todayAtt.find(a => a.id === staffId);
+  var html = `
+    <p><strong>ชื่อ-สกุล:</strong> ${staff.name}</p>
+    <p><strong>เลขประจำตัว:</strong> ${staff.id}</p>
+    <p><strong>กลุ่มงาน:</strong> ${staff.dept || '-'}</p>
+    <p><strong>ตำแหน่ง:</strong> ${staff.position || '-'}</p>
+    <hr>
+    <p><strong>สถานะวันนี้:</strong> ${att ? (att.workType === 'wfh' ? 'WFH' : att.workType === 'leave' ? 'ลา' : 'มาออฟฟิศ') : 'ยังไม่ลงเวลา'}</p>
+    <p><strong>เข้างาน:</strong> ${att?.clockIn || '-'}</p>
+    <p><strong>ออกงาน:</strong> ${att?.clockOut || '-'}</p>
+  `;
+  document.getElementById('staff-detail-body').innerHTML = html;
+  openMo('mo-staff-detail');
 }
 
 // =============================================
@@ -901,17 +916,52 @@ async function doImport() {
 
 // =============================================
 // REPORT
-// =============================================
 async function loadDetailedReport() {
   var start = document.getElementById('report-start').value;
   var end = document.getElementById('report-end').value;
   if (!start || !end) return toast('กรุณาเลือกช่วงวันที่', 'error');
+
   showLd('กำลังดึงข้อมูลทุกคน...');
   var r = await api('getDetailedReport', {startDate: start, endDate: end});
   hideLd();
-  if (!r.success) return toast(r.msg || 'เกิดข้อผิดพลาด', 'error');
-  // แสดงผล (คุณสามารถขยายโค้ดนี้ได้)
-  document.getElementById('report-result').innerHTML = `<p>พบ ${r.data ? r.data.length : 0} แถวข้อมูล</p>`;
+
+  if (!r.success || !r.data || r.data.length === 0) {
+    document.getElementById('report-result').innerHTML = '<p style="color:var(--danger);text-align:center;padding:40px">ไม่พบข้อมูลในช่วงวันที่ที่เลือก</p>';
+    return;
+  }
+
+  var html = `<p style="margin-bottom:12px;font-weight:700;color:var(--txt)">พบ ${r.data.length} แถวข้อมูล</p>`;
+  html += `<div class="tbl-wrap"><table style="width:100%">
+    <thead><tr>
+      <th>วันที่</th>
+      <th>ชื่อ-สกุล</th>
+      <th>กลุ่มงาน</th>
+      <th>เข้างาน</th>
+      <th>ออกงาน</th>
+      <th>สถานะ</th>
+    </tr></thead><tbody>`;
+
+  r.data.forEach(row => {
+    var statusClass = '';
+    var statusText = row.status || 'ปกติ';
+    if (row.workType === 'wfh') { statusClass = 'b-wfh'; statusText = 'WFH'; }
+    else if (row.workType === 'leave') { statusClass = 'b-leave'; statusText = row.leaveType || 'ลา'; }
+    else if (row.status === 'สาย') { statusClass = 'b-late'; }
+    else if (!row.clockIn) { statusClass = 'b-absent'; statusText = 'ยังไม่ลงเวลา'; }
+    else { statusClass = 'b-office'; }
+
+    html += `<tr>
+      <td>${row.date || '-'}</td>
+      <td><strong>${row.name}</strong></td>
+      <td>${row.dept || '-'}</td>
+      <td>${row.clockIn || '-'}</td>
+      <td>${row.clockOut || '-'}</td>
+      <td><span class="badge ${statusClass}">${statusText}</span></td>
+    </tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  document.getElementById('report-result').innerHTML = html;
 }
 
 // =============================================
@@ -958,6 +1008,61 @@ function closeSB() {
 function addNewStaff() { toast('ฟังก์ชันเพิ่มบุคลากรยังไม่ได้เชื่อมต่อกับ Backend', 'warn'); }
 function exportStaffExcel() { toast('กำลังพัฒนา...', 'info'); }
 function importStaffCSV() { toast('กำลังพัฒนา...', 'info'); }
+function addNewStaff() {
+  var id = document.getElementById('new-id').value.trim();
+  var name = document.getElementById('new-name').value.trim();
+  if (!id || !name) return toast('กรุณากรอกอย่างน้อย ID และชื่อ-สกุล', 'error');
+  showLd('กำลังเพิ่มบุคลากร...');
+  api('addNewStaff', {id, name, position: document.getElementById('new-position').value, dept: document.getElementById('new-dept').value, role: document.getElementById('new-role').value})
+    .then(r => {
+      hideLd();
+      toast(r.msg || 'เพิ่มสำเร็จ', r.success ? 'success' : 'error');
+      if (r.success) refreshData();
+    });
+}
+
+async function exportStaffExcel() {
+  showLd('กำลังสร้างไฟล์...');
+  try {
+    var r = await api('exportStaffCSV');
+    hideLd();
+    if (r.success && r.csv) {
+      var blob = new Blob([r.csv], {type: 'text/csv;charset=utf-8;'});
+      var link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'staff_template.csv';
+      link.click();
+      toast('ดาวน์โหลดไฟล์ Template แล้ว', 'success');
+    } else toast('เกิดข้อผิดพลาด', 'error');
+  } catch(e) { hideLd(); toast('เชื่อมต่อล้มเหลว', 'error'); }
+}
+
+function importStaffCSV(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = async function(e) {
+    var csv = e.target.result;
+    showLd('กำลังนำเข้าข้อมูล...');
+    var r = await api('importStaffCSV', {csv});
+    hideLd();
+    toast(r.msg, r.success ? 'success' : 'error');
+    if (r.success) refreshData();
+  };
+  reader.readAsText(file);
+}
+<!-- Staff Detail Modal -->
+<div class="mo" id="mo-staff-detail">
+  <div class="mo-box">
+    <div class="mo-hd">
+      <h3>รายละเอียดบุคลากร</h3>
+      <button class="mo-close" onclick="closeMo('mo-staff-detail')">✕</button>
+    </div>
+    <div class="mo-body" id="staff-detail-body">
+      <!-- ข้อมูลจะถูกใส่โดย JavaScript -->
+    </div>
+  </div>
+</div>
 </script>
 </body>
 </html>
