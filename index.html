@@ -8,254 +8,565 @@
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --p:#1e40af;--p2:#3b82f6;--bg:#f0f4f8;--card:#fff;--txt:#0f172a;--txt2:#475569;--border:#e2e8f0;
-  --success:#16a34a;--warn:#d97706;--danger:#dc2626;--purple:#7c3aed;--info:#0891b2;
-  --sidebar-w:268px;--radius:12px;
-  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
-  --shadow-md:0 4px 12px rgba(0,0,0,.1);
+  --p:#1e3a8a;--p2:#2563eb;--p3:#3b82f6;--bg:#f1f5f9;--card:#fff;--txt:#0f172a;--txt2:#64748b;--border:#e2e8f0;
+  --success:#059669;--success-bg:#ecfdf5;
+  --warn:#d97706;--warn-bg:#fffbeb;
+  --danger:#dc2626;--danger-bg:#fef2f2;
+  --purple:#7c3aed;--info:#0891b2;--info-bg:#ecfeff;
+  --sidebar-w:260px;--radius:14px;--topbar:60px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,.10);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.12);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--txt);overflow:hidden;display:flex}
+html,body{height:100%;font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--txt)}
+body{display:flex;overflow:hidden}
 
 /* ── SIDEBAR ── */
-.sidebar{width:var(--sidebar-w);background:#0f172a;display:flex;flex-direction:column;flex-shrink:0;z-index:100;transition:transform .3s}
-.sb-brand{padding:18px 16px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}
-.sb-brand .logo{width:40px;height:40px;background:linear-gradient(135deg,#1e40af,#3b82f6);border-radius:12px;display:flex;align-items:center;justify-content:center}
-.sb-brand .logo .material-icons{color:#fff;font-size:22px}
-.sb-brand h1{color:#fff;font-size:.9rem;font-weight:800}
-.sb-brand p{color:rgba(255,255,255,.45);font-size:.68rem}
-.sb-user{padding:12px;border-bottom:1px solid rgba(255,255,255,.06)}
-.sb-nav{flex:1;overflow-y:auto;padding:8px 0}
-.nav-sec{padding:10px 16px 4px;color:rgba(255,255,255,.3);font-size:.65rem;font-weight:700;text-transform:uppercase}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;color:rgba(255,255,255,.6);cursor:pointer;font-size:.85rem;font-weight:500;border-left:3px solid transparent}
-.nav-item:hover{background:rgba(255,255,255,.05);color:#fff}
-.nav-item.active{background:rgba(59,130,246,.2);color:#fff;border-left-color:#3b82f6}
-.nav-item .material-icons{font-size:20px}
+.sidebar{
+  width:var(--sidebar-w);background:linear-gradient(180deg,#0f172a 0%,#1e293b 100%);
+  display:flex;flex-direction:column;flex-shrink:0;z-index:200;
+  transition:transform .3s cubic-bezier(.4,0,.2,1);overflow:hidden;
+}
+.sb-brand{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.sb-brand-inner{display:flex;align-items:center;gap:12px}
+.sb-logo{width:44px;height:44px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(59,130,246,.4)}
+.sb-logo .material-icons{color:#fff;font-size:24px}
+.sb-brand h1{color:#fff;font-size:.92rem;font-weight:800;line-height:1.3}
+.sb-brand p{color:rgba(255,255,255,.4);font-size:.68rem;margin-top:2px}
+.sb-user{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.06)}
+.sb-nav{flex:1;overflow-y:auto;padding:6px 8px 16px;scrollbar-width:none}
+.sb-nav::-webkit-scrollbar{display:none}
+.nav-sec{padding:12px 10px 4px;color:rgba(255,255,255,.28);font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  color:rgba(255,255,255,.55);cursor:pointer;font-size:.86rem;font-weight:500;
+  border-radius:10px;margin-bottom:2px;transition:all .15s;
+}
+.nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9)}
+.nav-item.active{background:rgba(59,130,246,.22);color:#fff;box-shadow:inset 2px 0 0 #3b82f6}
+.nav-item .material-icons{font-size:20px;opacity:.8}
+.nav-item.active .material-icons{opacity:1}
 
-/* ── MAIN CONTENT ── */
+/* ── MAIN ── */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-.topbar{height:58px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;box-shadow:var(--shadow)}
-.topbar h2{font-size:1.1rem;font-weight:800;flex:1}
-.content{flex:1;overflow-y:auto;padding:20px}
-.page{display:none;animation:fadeUp .2s ease}
+.topbar{
+  height:var(--topbar);background:#fff;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 20px;gap:12px;
+  box-shadow:0 1px 3px rgba(0,0,0,.05);flex-shrink:0;
+}
+.topbar-title{flex:1;font-size:1.05rem;font-weight:800;color:var(--txt)}
+.content{flex:1;overflow-y:auto;padding:20px;overflow-x:hidden}
+.page{display:none;animation:fadeUp .2s ease forwards}
 .page.active{display:block}
-@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-/* ── UI COMPONENTS ── */
+/* ── CARDS ── */
 .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:20px;margin-bottom:16px}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border:none;border-radius:8px;font-family:inherit;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .15s}
+.card-header{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.card-header h3{font-size:1rem;font-weight:800;color:var(--txt)}
+.card-header .material-icons{font-size:20px;color:var(--p2)}
+
+/* ── STAT GRID ── */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.stat-card{
+  background:#fff;border-radius:var(--radius);padding:18px 16px;
+  border:1px solid var(--border);position:relative;overflow:hidden;
+  transition:transform .2s,box-shadow .2s;cursor:default;
+}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent-color)}
+.stat-card .sc-icon{
+  width:44px;height:44px;border-radius:12px;background:var(--icon-bg);
+  display:flex;align-items:center;justify-content:center;margin-bottom:12px;
+}
+.stat-card .sc-icon .material-icons{font-size:22px;color:var(--icon-color)}
+.stat-card .sc-label{font-size:.75rem;font-weight:700;color:var(--txt2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.stat-card .sc-value{font-size:2.2rem;font-weight:800;line-height:1;color:var(--val-color)}
+.stat-card .sc-sub{font-size:.75rem;color:var(--txt2);margin-top:4px}
+
+/* ── TABLE ── */
+.table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.87rem;min-width:500px}
+thead tr{background:#f8fafc}
+th{color:var(--txt2);font-weight:700;font-size:.73rem;padding:11px 14px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em}
+td{padding:12px 14px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafbfc}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:.73rem;font-weight:700}
+.badge-present{background:#dcfce7;color:#15803d}
+.badge-late{background:#fef3c7;color:#92400e}
+.badge-absent{background:#fee2e2;color:#991b1b}
+.badge-info{background:#dbeafe;color:#1d4ed8}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border:none;border-radius:9px;font-family:inherit;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .15s;line-height:1}
 .btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:var(--shadow-md)}
-.btn:disabled{opacity:0.6;cursor:not-allowed;}
-.btn-primary{background:var(--p);color:#fff}
+.btn:active:not(:disabled){transform:translateY(0)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:var(--p2);color:#fff}
+.btn-primary:hover:not(:disabled){background:#1d4ed8}
 .btn-success{background:var(--success);color:#fff}
 .btn-warn{background:var(--warn);color:#fff}
 .btn-danger{background:var(--danger);color:#fff}
-.btn-ghost{background:transparent;color:var(--txt2);border:1px solid var(--border)}
-.btn-lg{padding:14px 24px;font-size:1.05rem}
+.btn-ghost{background:#f1f5f9;color:var(--txt2);border:1px solid var(--border)}
+.btn-ghost:hover:not(:disabled){background:#e2e8f0;color:var(--txt)}
+.btn-lg{padding:14px 24px;font-size:1rem;border-radius:12px}
+.btn-full{width:100%;justify-content:center}
 
-input, textarea{font-family:inherit;font-size:.95rem;padding:10px 14px;border:1px solid var(--border);border-radius:8px;outline:none;width:100%;transition:.15s;resize:vertical;}
-input:focus, textarea:focus{border-color:var(--p2);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
-label{display:block;font-size:.8rem;font-weight:700;color:var(--txt2);margin-bottom:6px}
+/* ── FORMS ── */
 .form-group{margin-bottom:16px}
-
-table{width:100%;border-collapse:collapse;font-size:.88rem}
-th{background:#f8fafc;color:var(--txt2);font-weight:700;font-size:.75rem;padding:10px;text-align:left;border-bottom:2px solid var(--border)}
-td{padding:10px;border-bottom:1px solid var(--border)}
-.badge{padding:4px 10px;border-radius:20px;font-size:.75rem;font-weight:700}
-.badge-present{background:#dcfce7;color:#15803d}
-.badge-late{background:#fef3c7;color:#b45309}
-
-.stat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
-.stat-card{background:#fff;border-radius:var(--radius);padding:16px;border:1px solid var(--border);border-top:4px solid var(--accent)}
-.stat-card h3{font-size:.75rem;color:var(--txt2);font-weight:700;margin-bottom:6px}
-.stat-card .value{font-size:2rem;font-weight:800;line-height:1}
+label{display:block;font-size:.8rem;font-weight:700;color:var(--txt2);margin-bottom:6px}
+input,textarea,select{
+  font-family:inherit;font-size:.93rem;padding:11px 14px;
+  border:1.5px solid var(--border);border-radius:9px;outline:none;
+  width:100%;transition:.15s;resize:vertical;background:#fff;color:var(--txt);
+}
+input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+input::placeholder,textarea::placeholder{color:#cbd5e1}
 
 /* ── MODALS ── */
-#loader{position:fixed;inset:0;background:rgba(255,255,255,.95);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.spinner{width:40px;height:40px;border:4px solid var(--border);border-top-color:var(--p2);border-radius:50%;animation:spin .7s linear infinite}
+#loader{position:fixed;inset:0;background:rgba(255,255,255,.92);backdrop-filter:blur(4px);z-index:99999;display:none;flex-direction:column;align-items:center;justify-content:center}
+#loader.active{display:flex}
+.loader-spinner{width:44px;height:44px;border:4px solid #e2e8f0;border-top-color:var(--p2);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-#toast-container{position:fixed;top:20px;right:20px;z-index:99998;display:flex;flex-direction:column;gap:10px}
-.toast{background:#fff;border-left:4px solid var(--p2);padding:12px 16px;border-radius:8px;box-shadow:var(--shadow-md);display:flex;align-items:center;gap:10px;animation:toastIn .3s ease}
-@keyframes toastIn{from{transform:translateX(100%) opacity:0}to{transform:none opacity:1}}
 
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9000;align-items:center;justify-content:center;padding:16px}
+#toast-container{position:fixed;top:16px;right:16px;z-index:99998;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{
+  background:#fff;border-left:4px solid var(--p2);padding:12px 16px;border-radius:10px;
+  box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:10px;
+  font-size:.88rem;font-weight:600;pointer-events:all;min-width:240px;max-width:340px;
+  animation:toastIn .3s ease;
+}
+@keyframes toastIn{from{transform:translateX(110%);opacity:0}to{transform:none;opacity:1}}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(3px);z-index:9000;align-items:center;justify-content:center;padding:16px}
 .modal-overlay.open{display:flex}
-.modal{background:#fff;border-radius:16px;width:100%;max-width:400px;box-shadow:0 20px 40px rgba(0,0,0,.2);animation:modalIn .2s ease}
-@keyframes modalIn{from{transform:scale(.95);opacity:0}to{transform:none;opacity:1}}
-.modal-header{padding:20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal{background:#fff;border-radius:18px;width:100%;max-width:420px;box-shadow:0 25px 50px rgba(0,0,0,.25);animation:modalIn .2s ease}
+@keyframes modalIn{from{transform:scale(.95) translateY(-10px);opacity:0}to{transform:none;opacity:1}}
+.modal-header{padding:20px 20px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
 .modal-header h3{font-size:1.1rem;font-weight:800}
-.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--txt2)}
+.modal-close{background:none;border:none;width:32px;height:32px;border-radius:8px;cursor:pointer;color:var(--txt2);display:flex;align-items:center;justify-content:center;transition:.15s}
+.modal-close:hover{background:#f1f5f9}
 .modal-body{padding:20px}
 
+/* ── SIDEBAR OVERLAY ── */
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:190;backdrop-filter:blur(2px)}
+
+/* ── CLOCK PAGE ── */
+.clock-wrap{max-width:560px;margin:0 auto}
+.clock-hero{
+  background:linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 50%,#2563eb 100%);
+  border-radius:20px;padding:36px 24px 30px;text-align:center;color:#fff;
+  position:relative;overflow:hidden;margin-bottom:16px;
+}
+.clock-hero::before{
+  content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;
+  background:rgba(255,255,255,.06);border-radius:50%;
+}
+.clock-hero::after{
+  content:'';position:absolute;bottom:-60px;left:-30px;width:200px;height:200px;
+  background:rgba(255,255,255,.04);border-radius:50%;
+}
+.clock-avatar-big{
+  width:76px;height:76px;background:rgba(255,255,255,.15);
+  backdrop-filter:blur(10px);border:2px solid rgba(255,255,255,.25);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:32px;margin:0 auto 14px;position:relative;z-index:1;
+}
+.clock-name{font-size:1.5rem;font-weight:800;margin-bottom:4px;position:relative;z-index:1}
+.clock-dept{opacity:.7;font-size:.9rem;position:relative;z-index:1}
+.clock-time-display{
+  display:flex;justify-content:center;gap:40px;margin:20px 0 0;
+  position:relative;z-index:1;
+}
+.clock-time-item{text-align:center}
+.clock-time-item .t-label{font-size:.72rem;opacity:.6;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.clock-time-item .t-value{font-size:1.5rem;font-weight:800;margin-top:2px}
+.clock-time-item .t-value.no-time{font-size:1rem;opacity:.4}
+.time-divider{width:1px;background:rgba(255,255,255,.2);align-self:stretch}
+
+.clock-actions{display:flex;gap:12px}
+.clock-actions .btn{flex:1;justify-content:center;padding:14px}
+
+/* ── GPS STATUS ── */
+.gps-status-bar{
+  display:flex;align-items:center;gap:10px;padding:12px 16px;
+  border-radius:12px;margin-bottom:14px;font-size:.85rem;font-weight:600;
+  border:1.5px solid;
+}
+.gps-ok{background:#ecfdf5;border-color:#a7f3d0;color:#065f46}
+.gps-error{background:#fef2f2;border-color:#fca5a5;color:#991b1b}
+.gps-loading{background:#eff6ff;border-color:#bfdbfe;color:#1e40af}
+.gps-disabled{background:#f8fafc;border-color:#e2e8f0;color:#64748b}
+.gps-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.gps-ok .gps-dot{background:#10b981;animation:gpsPulse 2s infinite}
+.gps-error .gps-dot{background:#ef4444}
+.gps-loading .gps-dot{background:#3b82f6;animation:gpsPulse 1s infinite}
+.gps-disabled .gps-dot{background:#94a3b8}
+@keyframes gpsPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.8)}}
+
+/* ── ADMIN GPS SETTINGS ── */
+.map-container{
+  background:#1e293b;border-radius:12px;height:260px;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;margin-bottom:14px;
+}
+.map-placeholder{text-align:center;color:rgba(255,255,255,.5)}
+.map-placeholder .material-icons{font-size:48px;margin-bottom:8px;display:block}
+.radius-badge{
+  position:absolute;bottom:12px;right:12px;background:rgba(37,99,235,.9);
+  color:#fff;padding:6px 12px;border-radius:20px;font-size:.8rem;font-weight:700;
+  backdrop-filter:blur(4px);
+}
+.range-input{-webkit-appearance:none;height:6px;background:var(--border);border-radius:3px;padding:0;cursor:pointer;border:none;box-shadow:none}
+.range-input::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;background:var(--p2);border-radius:50%;cursor:pointer}
+.range-input:focus{box-shadow:none;border-color:transparent}
+
+/* ── GPS RECORDS TABLE (Admin) ── */
+.gps-record-row td:first-child{font-weight:700}
+.accuracy-chip{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.72rem;font-weight:700}
+.acc-good{background:#dcfce7;color:#15803d}
+.acc-ok{background:#fef3c7;color:#92400e}
+.acc-bad{background:#fee2e2;color:#991b1b}
+
+/* ── PROFILE ── */
+.profile-hero{
+  background:linear-gradient(135deg,#1e3a8a,#2563eb);
+  border-radius:16px;padding:28px;text-align:center;color:#fff;margin-bottom:16px;
+}
+.profile-avatar{width:72px;height:72px;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.25);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px}
+
+/* ── DAILY REPORT / WFH ── */
+.form-card{max-width:700px;margin:0 auto}
+
+/* ── DASHBOARD MINI CHART ── */
+.progress-ring-wrap{display:flex;align-items:center;gap:14px;padding:8px 0}
+.progress-ring{transform:rotate(-90deg)}
+.progress-ring-bg{fill:none;stroke:#f1f5f9;stroke-width:8}
+.progress-ring-fill{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset .8s ease}
+
+/* ── ATTENDANCE ROW ── */
+.att-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#dbeafe,#bfdbfe);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:800;color:#1e40af;flex-shrink:0}
+
+/* ── RESPONSIVE ── */
 @media(max-width:1024px){
-  .sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-100%)}
+  body{display:block;overflow:auto;height:auto}
+  .main{height:100vh;overflow:hidden}
+  .sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-100%);height:100vh}
   .sidebar.open{transform:translateX(0)}
   .stat-grid{grid-template-columns:repeat(2,1fr)}
+  #menu-toggle{display:flex !important}
+  body{overflow:hidden}
+}
+@media(max-width:480px){
+  .stat-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .content{padding:14px}
+  .card{padding:16px}
 }
 </style>
 </head>
 <body>
-<div id="loader"><div class="spinner"></div><p id="load-txt" style="margin-top:10px;font-weight:600">กำลังโหลด...</p></div>
+
+<div id="loader"><div class="loader-spinner"></div><p id="load-txt" style="margin-top:14px;font-weight:700;color:var(--txt2)">กำลังโหลด...</p></div>
 <div id="toast-container"></div>
-<div id="sidebar-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99" onclick="closeSidebar()"></div>
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>
 
 <aside class="sidebar" id="sidebar">
   <div class="sb-brand">
-    <div class="logo"><span class="material-icons">business</span></div>
-    <div><h1>Smart Office</h1><p>สพป.นครราชสีมา เขต 4</p></div>
+    <div class="sb-brand-inner">
+      <div class="sb-logo"><span class="material-icons">business</span></div>
+      <div><h1>Smart Office</h1><p>สพป.นครราชสีมา เขต 4</p></div>
+    </div>
   </div>
-  
   <div id="sb-user-slot" class="sb-user"></div>
-  
   <nav class="sb-nav">
     <div class="nav-sec">เมนูสาธารณะ</div>
-    <div class="nav-item active" onclick="go('dashboard',this)"><span class="material-icons">dashboard</span><span>ภาพรวมวันนี้</span></div>
-    
-    <div class="nav-sec">เมนูส่วนบุคคล (ต้องล็อกอิน)</div>
-    <div class="nav-item" onclick="go('clock',this)"><span class="material-icons">fingerprint</span><span>ลงเวลาเข้า-ออกงาน</span></div>
-    <div class="nav-item" onclick="go('dailyreport',this)"><span class="material-icons">assignment</span><span>รายงานผลปฏิบัติงาน</span></div>
-    <div class="nav-item" onclick="go('wfh_task',this)"><span class="material-icons">home_work</span><span>เสนองาน WFH</span></div>
-    <div class="nav-item" onclick="go('profile',this)"><span class="material-icons">person</span><span>โปรไฟล์ / เปลี่ยนรหัส</span></div>
-
-    <!-- โชว์ให้เฉพาะ Super Admin เท่านั้น -->
+    <div class="nav-item active" data-page="dashboard" onclick="go('dashboard',this)"><span class="material-icons">dashboard</span><span>ภาพรวมวันนี้</span></div>
+    <div class="nav-sec">เมนูส่วนบุคคล</div>
+    <div class="nav-item" data-page="clock" onclick="go('clock',this)"><span class="material-icons">fingerprint</span><span>ลงเวลาเข้า-ออกงาน</span></div>
+    <div class="nav-item" data-page="dailyreport" onclick="go('dailyreport',this)"><span class="material-icons">assignment</span><span>รายงานผลปฏิบัติงาน</span></div>
+    <div class="nav-item" data-page="wfh_task" onclick="go('wfh_task',this)"><span class="material-icons">home_work</span><span>เสนองาน WFH</span></div>
+    <div class="nav-item" data-page="profile" onclick="go('profile',this)"><span class="material-icons">person</span><span>โปรไฟล์ / เปลี่ยนรหัส</span></div>
     <div class="nav-sec" id="nav-sec-admin" style="display:none">ผู้ดูแลระบบ</div>
-    <div class="nav-item" id="nav-admin" style="display:none" onclick="go('admin',this)"><span class="material-icons">admin_panel_settings</span><span>ตั้งค่าระบบ</span></div>
+    <div class="nav-item" id="nav-admin" data-page="admin" style="display:none" onclick="go('admin',this)"><span class="material-icons">admin_panel_settings</span><span>ตั้งค่าระบบ</span></div>
+    <div class="nav-item" id="nav-gps-log" data-page="gps_log" style="display:none" onclick="go('gps_log',this)"><span class="material-icons">gps_fixed</span><span>บันทึก GPS</span></div>
   </nav>
 </aside>
 
 <div class="main">
   <div class="topbar">
-    <button class="btn btn-ghost" id="menu-toggle" onclick="toggleSidebar()" style="display:none;padding:8px"><span class="material-icons">menu</span></button>
-    <h2 id="page-title">📊 ภาพรวมวันนี้</h2>
-    <button class="btn btn-ghost" onclick="refreshData()" style="padding:8px"><span class="material-icons">refresh</span></button>
+    <button class="btn btn-ghost" id="menu-toggle" onclick="toggleSidebar()" style="display:none;padding:9px;border-radius:9px"><span class="material-icons">menu</span></button>
+    <div class="topbar-title" id="page-title">📊 ภาพรวมวันนี้</div>
+    <button class="btn btn-ghost" onclick="refreshData()" style="padding:9px;border-radius:9px"><span class="material-icons" style="font-size:20px">refresh</span></button>
+    <div id="topbar-clock" style="font-size:.82rem;font-weight:700;color:var(--txt2);white-space:nowrap"></div>
   </div>
 
   <div class="content">
-    
-    <!-- DASHBOARD (สาธารณะ) -->
+
+    <!-- DASHBOARD -->
     <div id="dashboard" class="page active">
-      <div class="stat-grid">
-        <div class="stat-card" style="--accent:#3b82f6"><h3>บุคลากรทั้งหมด</h3><div class="value" id="d-total">0</div></div>
-        <div class="stat-card" style="--accent:#16a34a"><h3>มาทำงาน</h3><div class="value" id="d-present" style="color:var(--success)">0</div></div>
-        <div class="stat-card" style="--accent:#d97706"><h3>มาสาย</h3><div class="value" id="d-late" style="color:var(--warn)">0</div></div>
-        <div class="stat-card" style="--accent:#dc2626"><h3>ยังไม่ลงเวลา</h3><div class="value" id="d-notyet" style="color:var(--danger)">0</div></div>
-      </div>
+      <div class="stat-grid" id="stat-grid"></div>
       <div class="card">
-        <h3 style="margin-bottom:14px;display:flex;align-items:center;gap:8px"><span class="material-icons" style="color:var(--p2)">today</span> ลงเวลาวันนี้</h3>
-        <div style="overflow-x:auto"><table id="tb-today"></table></div>
+        <div class="card-header">
+          <span class="material-icons" style="color:var(--p2)">today</span>
+          <h3>สถานะการลงเวลาวันนี้</h3>
+          <span id="today-date-label" style="margin-left:auto;font-size:.8rem;color:var(--txt2);font-weight:600"></span>
+        </div>
+        <div class="table-wrap"><table id="tb-today"><tr><td colspan="5" align="center" style="padding:30px;color:var(--txt2)">กำลังโหลด...</td></tr></table></div>
       </div>
     </div>
 
-    <!-- CLOCK IN/OUT (ส่วนบุคคล) -->
+    <!-- CLOCK IN/OUT -->
     <div id="clock" class="page">
-      <div class="card" style="text-align:center;padding:40px 20px;max-width:600px;margin:0 auto">
-        <div style="width:80px;height:80px;background:var(--p);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 16px" id="clock-avatar">👤</div>
-        <h2 style="font-size:1.6rem;font-weight:800" id="clock-name">-</h2>
-        <p style="color:var(--txt2);margin-bottom:10px" id="clock-dept">-</p>
-        
-        <!-- ส่วนแสดงปุ่มและเวลา (อัปเดตอัตโนมัติจาก JS) -->
-        <div id="clock-result"></div>
+      <div class="clock-wrap">
+        <div class="clock-hero">
+          <div class="clock-avatar-big" id="clock-avatar">👤</div>
+          <div class="clock-name" id="clock-name">-</div>
+          <div class="clock-dept" id="clock-dept">-</div>
+          <div class="clock-time-display" id="clock-time-display">
+            <div class="clock-time-item"><div class="t-label">เข้างาน</div><div class="t-value no-time" id="ct-in">-</div></div>
+            <div class="time-divider"></div>
+            <div class="clock-time-item"><div class="t-label">ออกงาน</div><div class="t-value no-time" id="ct-out">-</div></div>
+          </div>
+        </div>
+
+        <div id="gps-status-bar" class="gps-status-bar gps-loading">
+          <div class="gps-dot"></div>
+          <span id="gps-status-text">กำลังตรวจสอบ GPS...</span>
+          <button id="gps-retry-btn" onclick="initGPS()" style="margin-left:auto;background:none;border:1px solid currentColor;padding:4px 10px;border-radius:6px;font-size:.75rem;font-weight:700;cursor:pointer;color:inherit;display:none">ลองใหม่</button>
+        </div>
+
+        <div class="card" style="margin-bottom:14px" id="gps-detail-card" style="display:none">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span class="material-icons" style="color:var(--p2)">location_on</span>
+            <div>
+              <div style="font-size:.82rem;font-weight:700;color:var(--txt2)">พิกัดปัจจุบัน</div>
+              <div id="gps-coords" style="font-size:.9rem;font-weight:700">-</div>
+            </div>
+            <div style="margin-left:auto;text-align:right">
+              <div style="font-size:.75rem;color:var(--txt2)">ความแม่นยำ</div>
+              <div id="gps-accuracy" style="font-size:.9rem;font-weight:700">-</div>
+            </div>
+          </div>
+          <div id="gps-distance-bar" style="margin-top:12px;display:none">
+            <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--txt2);margin-bottom:6px">
+              <span>ระยะจากสำนักงาน</span>
+              <span id="gps-dist-text" style="font-weight:700">-</span>
+            </div>
+            <div style="background:#f1f5f9;border-radius:4px;height:8px;overflow:hidden">
+              <div id="gps-dist-bar" style="height:100%;background:var(--success);border-radius:4px;width:0%;transition:width .5s"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="clock-actions" class="clock-actions">
+          <button class="btn btn-success btn-lg" id="btn-in" onclick="doClockIn()"><span class="material-icons">login</span> ลงเวลาเข้างาน</button>
+          <button class="btn btn-warn btn-lg" id="btn-out" onclick="doClockOut()"><span class="material-icons">logout</span> ลงเวลาออกงาน</button>
+        </div>
+        <p style="font-size:.78rem;color:var(--txt2);text-align:center;margin-top:12px;line-height:1.6">
+          ลงเวลาเข้าได้ตั้งแต่ 07:00 น. • ลงเวลาออกได้ตั้งแต่ 16:30 น.<br>
+          ลงเวลาได้เพียง 1 ครั้งต่อวัน
+        </p>
       </div>
     </div>
 
-    <!-- DAILY REPORT (รายงานผลประจำวัน) -->
+    <!-- DAILY REPORT -->
     <div id="dailyreport" class="page">
-      <div class="card" style="max-width:700px;margin:0 auto">
-        <h3 style="margin-bottom:20px;color:var(--p2);display:flex;align-items:center;gap:8px"><span class="material-icons">assignment</span> แบบฟอร์มรายงานผลการปฏิบัติงาน</h3>
-        <div class="form-group"><label>1. ผลการปฏิบัติงานในวันนี้</label><textarea id="dr-work" rows="4" placeholder="อธิบายงานที่ทำสำเร็จ..."></textarea></div>
-        <div class="form-group"><label>2. ปัญหาและอุปสรรค (ถ้ามี)</label><textarea id="dr-prob" rows="3" placeholder="ระบุปัญหาที่พบ..."></textarea></div>
-        <div class="form-group"><label>3. แผนการปฏิบัติงานในวันพรุ่งนี้</label><textarea id="dr-next" rows="3" placeholder="ระบุงานที่จะทำต่อไป..."></textarea></div>
-        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="doSubmitDailyReport()"><span class="material-icons">send</span> ส่งรายงานประจำวัน</button>
+      <div class="card form-card">
+        <div class="card-header"><span class="material-icons">assignment</span><h3>แบบฟอร์มรายงานผลการปฏิบัติงาน</h3></div>
+        <div class="form-group"><label>1. ผลการปฏิบัติงานในวันนี้ <span style="color:var(--danger)">*</span></label><textarea id="dr-work" rows="4" placeholder="อธิบายงานที่ทำสำเร็จในวันนี้..."></textarea></div>
+        <div class="form-group"><label>2. ปัญหาและอุปสรรค (ถ้ามี)</label><textarea id="dr-prob" rows="3" placeholder="ระบุปัญหาที่พบ (ถ้าไม่มีเว้นว่างได้)..."></textarea></div>
+        <div class="form-group"><label>3. แผนการปฏิบัติงานพรุ่งนี้</label><textarea id="dr-next" rows="3" placeholder="ระบุงานที่จะดำเนินการต่อ..."></textarea></div>
+        <button class="btn btn-primary btn-full" onclick="doSubmitDailyReport()"><span class="material-icons">send</span> ส่งรายงานประจำวัน</button>
       </div>
     </div>
 
-    <!-- WFH TASK (เสนองาน WFH) -->
+    <!-- WFH TASK -->
     <div id="wfh_task" class="page">
-      <div class="card" style="max-width:700px;margin:0 auto">
-        <h3 style="margin-bottom:20px;color:var(--p2);display:flex;align-items:center;gap:8px"><span class="material-icons">home_work</span> แบบฟอร์มการเสนองานออนไลน์ (WFH)</h3>
-        <p style="font-size:0.85rem;color:var(--txt2);margin-bottom:16px">สำหรับบุคลากรที่ปฏิบัติงานที่บ้าน (Work From Home) โปรดระบุรายละเอียดงานที่ต้องการเสนอ</p>
-        <div class="form-group"><label>รายละเอียดงาน / ไฟล์งานที่เสนอ</label><textarea id="wfh-desc" rows="6" placeholder="พิมพ์รายละเอียดงาน หรือวางลิงก์ไฟล์งาน (Google Drive, เอกสารต่างๆ) ที่นี่..."></textarea></div>
-        <button class="btn btn-success" style="width:100%;justify-content:center" onclick="doSubmitWFHTask()"><span class="material-icons">cloud_upload</span> เสนองาน WFH</button>
+      <div class="card form-card">
+        <div class="card-header"><span class="material-icons">home_work</span><h3>แบบฟอร์มการเสนองาน WFH</h3></div>
+        <p style="font-size:.85rem;color:var(--txt2);margin-bottom:16px">สำหรับบุคลากรที่ปฏิบัติงานที่บ้าน โปรดระบุรายละเอียดงานที่เสนอ</p>
+        <div class="form-group"><label>รายละเอียดงาน / ลิงก์ไฟล์งาน <span style="color:var(--danger)">*</span></label><textarea id="wfh-desc" rows="6" placeholder="พิมพ์รายละเอียดงาน หรือวางลิงก์ไฟล์ (Google Drive ฯลฯ)..."></textarea></div>
+        <button class="btn btn-success btn-full" onclick="doSubmitWFHTask()"><span class="material-icons">cloud_upload</span> เสนองาน WFH</button>
       </div>
     </div>
 
-    <!-- PROFILE (ส่วนบุคคล) -->
+    <!-- PROFILE -->
     <div id="profile" class="page">
-      <div class="card" style="max-width:500px;margin:0 auto" id="profile-content"></div>
+      <div style="max-width:500px;margin:0 auto">
+        <div id="profile-content"></div>
+      </div>
+    </div>
+
+    <!-- GPS LOG (Admin/Superadmin) -->
+    <div id="gps_log" class="page">
+      <div class="card">
+        <div class="card-header">
+          <span class="material-icons">gps_fixed</span>
+          <h3>บันทึกตำแหน่ง GPS การลงเวลา</h3>
+          <span id="gps-log-count" style="margin-left:auto;font-size:.8rem;color:var(--txt2);font-weight:600"></span>
+        </div>
+        <div class="table-wrap"><table id="tb-gps-log">
+          <tr><td colspan="6" align="center" style="padding:30px;color:var(--txt2)">กำลังโหลด...</td></tr>
+        </table></div>
+      </div>
     </div>
 
     <!-- ADMIN SETUP -->
     <div id="admin" class="page">
-      <div id="admin-gate" class="card" style="max-width:400px;margin:0 auto;text-align:center">
-        <span class="material-icons" style="font-size:48px;color:var(--p);margin-bottom:10px">admin_panel_settings</span>
-        <h3 style="margin-bottom:16px">ยืนยันตัวตน Admin</h3>
+      <div id="admin-gate" class="card" style="max-width:380px;margin:0 auto;text-align:center;padding:36px 24px">
+        <div style="width:64px;height:64px;background:linear-gradient(135deg,#1e3a8a,#2563eb);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+          <span class="material-icons" style="color:#fff;font-size:30px">admin_panel_settings</span>
+        </div>
+        <h3 style="margin-bottom:6px;font-size:1.1rem">ยืนยันตัวตน Admin</h3>
+        <p style="color:var(--txt2);font-size:.85rem;margin-bottom:20px">กรุณากรอกรหัสผ่านเพื่อเข้าจัดการระบบ</p>
         <div class="form-group"><input type="password" id="admin-pass" placeholder="รหัสผ่าน Admin (ใช้ 1111)" style="text-align:center"></div>
-        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="doAdminLogin()">เข้าสู่ระบบจัดการ</button>
+        <button class="btn btn-primary btn-full" onclick="doAdminLogin()">เข้าสู่ระบบจัดการ</button>
       </div>
 
       <div id="admin-content" style="display:none">
+        <!-- SYSTEM TOOLS -->
         <div class="card">
-          <h3 style="margin-bottom:16px"><span class="material-icons" style="color:var(--warn);vertical-align:middle">build</span> เครื่องมือติดตั้งระบบ</h3>
+          <div class="card-header"><span class="material-icons" style="color:var(--warn)">build</span><h3>เครื่องมือติดตั้งระบบ</h3></div>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <button class="btn btn-primary" onclick="doSetup()"><span class="material-icons">post_add</span> 1. สร้าง Sheets (เพิ่มตารางใหม่)</button>
-            <button class="btn btn-success" onclick="doImportStaff()"><span class="material-icons">group_add</span> 2. นำเข้าบุคลากรตัวอย่าง</button>
+            <button class="btn btn-primary" onclick="doSetup()"><span class="material-icons">post_add</span> สร้าง Sheets</button>
+            <button class="btn btn-success" onclick="doImportStaff()"><span class="material-icons">group_add</span> นำเข้าบุคลากร</button>
           </div>
-          <p style="font-size:.8rem;color:var(--danger);margin-top:10px">** หมายเหตุ: นำเข้าบุคลากรจะสร้างรหัสผ่าน "12345678" ให้อัตโนมัติ</p>
+          <p style="font-size:.8rem;color:var(--danger);margin-top:10px">** รหัสผ่านเริ่มต้น: 12345678</p>
+        </div>
+
+        <!-- GPS SETTINGS (Superadmin only) -->
+        <div id="gps-settings-panel" class="card" style="display:none">
+          <div class="card-header"><span class="material-icons" style="color:var(--success)">location_on</span><h3>ตั้งค่าพื้นที่อนุญาต GPS Check-in</h3></div>
+          
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+            <span class="material-icons" style="color:var(--txt2)">toggle_on</span>
+            <span style="font-weight:700;font-size:.9rem">บังคับเช็ค GPS ก่อนลงเวลา</span>
+            <label style="margin-left:auto;margin-bottom:0" class="toggle-switch">
+              <input type="checkbox" id="gps-enforce-toggle" onchange="toggleGpsEnforce(this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="map-container" id="gps-map-preview">
+            <div class="map-placeholder">
+              <span class="material-icons">map</span>
+              <p style="font-size:.85rem">แผนที่จะแสดงที่นี่<br>เมื่อตั้งค่าพิกัดแล้ว</p>
+            </div>
+            <div class="radius-badge" id="radius-badge-display" style="display:none">📍 รัศมี <span id="radius-preview-val">500</span> ม.</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+            <div class="form-group" style="margin-bottom:0">
+              <label>ละติจูด (Latitude)</label>
+              <input type="number" id="gps-lat" step="0.000001" placeholder="14.123456">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label>ลองจิจูด (Longitude)</label>
+              <input type="number" id="gps-lng" step="0.000001" placeholder="101.123456">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>รัศมีอนุญาต: <strong><span id="radius-val">500</span> เมตร</strong></label>
+            <input type="range" class="range-input" id="gps-radius" min="50" max="2000" step="50" value="500" oninput="updateRadiusDisplay(this.value)">
+            <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--txt2);margin-top:4px">
+              <span>50 ม.</span><span>500 ม.</span><span>2,000 ม.</span>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
+            <button class="btn btn-primary" onclick="getMyLocationForAdmin()"><span class="material-icons">my_location</span> ใช้ตำแหน่งปัจจุบัน</button>
+            <button class="btn btn-success" onclick="saveGpsSettings()"><span class="material-icons">save</span> บันทึกการตั้งค่า GPS</button>
+          </div>
+
+          <div id="gps-current-setting" style="margin-top:14px;padding:12px 14px;background:#f8fafc;border-radius:10px;font-size:.83rem;color:var(--txt2);display:none">
+            <strong style="color:var(--txt)">ตั้งค่าปัจจุบัน:</strong> <span id="gps-current-text">-</span>
+          </div>
         </div>
       </div>
     </div>
 
-  </div>
-</div>
+  </div><!-- /content -->
+</div><!-- /main -->
 
 <!-- MODAL: LOGIN -->
 <div class="modal-overlay" id="modal-login">
   <div class="modal">
-    <div class="modal-header"><h3>🔐 เข้าสู่ระบบ</h3><button class="modal-close" onclick="closeModal('modal-login')">✕</button></div>
+    <div class="modal-header">
+      <h3>🔐 เข้าสู่ระบบ</h3>
+      <button class="modal-close" onclick="closeModal('modal-login')"><span class="material-icons">close</span></button>
+    </div>
     <div class="modal-body">
-      <div class="form-group"><label>เลขประจำตัว (ตัวอย่าง ผอ: 3301200495499 หรือ แอดมิน: A300400000)</label><input type="text" id="login-id" placeholder="เลข 13 หลัก หรือ ID"></div>
-      <div class="form-group"><label>รหัสผ่าน</label><input type="password" id="login-pass" placeholder="ค่าเริ่มต้น: 12345678"></div>
-      <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:10px" onclick="doLogin()">เข้าสู่ระบบ</button>
+      <div class="form-group">
+        <label>เลขประจำตัว</label>
+        <input type="text" id="login-id" placeholder="เลข 13 หลัก หรือ ID (เช่น A300400000)">
+      </div>
+      <div class="form-group">
+        <label>รหัสผ่าน</label>
+        <input type="password" id="login-pass" placeholder="ค่าเริ่มต้น: 12345678" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" style="margin-top:6px" onclick="doLogin()">เข้าสู่ระบบ</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL: API SETUP -->
-<div class="modal-overlay" id="modal-setup">
-  <div class="modal">
-    <div class="modal-header"><h3>⚙️ เชื่อมต่อฐานข้อมูล</h3></div>
-    <div class="modal-body">
-      <div class="form-group"><label>วาง URL จาก Google Apps Script</label><input type="text" id="setup-api-url" placeholder="https://script.google.com/..."></div>
-      <button class="btn btn-success" style="width:100%;justify-content:center" onclick="saveInitialApi()">บันทึกและเริ่มใช้งาน</button>
-    </div>
-  </div>
-</div>
+<style>
+/* Toggle Switch */
+.toggle-switch{position:relative;display:inline-block;width:48px;height:26px;cursor:pointer}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:#e2e8f0;border-radius:26px;transition:.2s}
+.toggle-slider:before{content:'';position:absolute;width:20px;height:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+input:checked + .toggle-slider{background:var(--success)}
+input:checked + .toggle-slider:before{transform:translateX(22px)}
+</style>
 
 <script>
-// ==========================================
-// CONFIG & INITIALIZE
-// ==========================================
-
-// ⚠️ เอา Web App URL ของคุณมาใส่ตรงนี้ได้เลย
+// ============================================
+// CONFIG
+// ============================================
 var API_URL = 'https://script.google.com/macros/s/AKfycbw_woBO9dgsH7xF1gvgHzwCfDp6_8NJoRWjB8gurkheiGAUubs6F38QG80RLQsTBCInVg/exec';
-
-var DATA = { staff:[], todayAttendance:[] };
+var DATA = { staff:[], todayAttendance:[], gpsLog:[] };
 var CURRENT_USER = JSON.parse(localStorage.getItem('currentUser') || 'null');
 var SYSTEM_ROLE = CURRENT_USER?.systemRole || 'staff';
-var PRIVATE_PAGES = ['clock', 'profile', 'admin', 'dailyreport', 'wfh_task'];
+var PRIVATE_PAGES = ['clock','profile','admin','dailyreport','wfh_task','gps_log'];
 
+// GPS State
+var GPS_STATE = {
+  lat: null, lng: null, accuracy: null,
+  watchId: null, enforced: false,
+  officeLat: null, officeLng: null, officeRadius: 500,
+  withinRange: false, loaded: false
+};
+
+// ============================================
+// INIT
+// ============================================
 window.onload = async () => {
   if (window.innerWidth <= 1024) document.getElementById('menu-toggle').style.display = 'flex';
-
+  startClock();
+  loadGpsSettings();
   await refreshData();
   applyRoleUI();
   renderUserBadge();
   go('dashboard', document.querySelector('.nav-item.active'));
 };
 
-// ==========================================
-// API CALLS
-// ==========================================
+function startClock() {
+  var el = document.getElementById('topbar-clock');
+  function tick() {
+    var d = new Date();
+    var days = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+    var t = d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+    el.innerText = days[d.getDay()] + ' ' + t;
+  }
+  tick(); setInterval(tick, 1000);
+}
+
+// ============================================
+// API
+// ============================================
 async function api(action, data) {
   var res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action, ...data }), headers: { 'Content-Type': 'text/plain' } });
   return res.json();
@@ -267,22 +578,165 @@ async function refreshData() {
     var d = await api('getAllData');
     DATA.staff = d.staff || [];
     DATA.todayAttendance = d.todayAttendance || [];
+    DATA.gpsLog = d.gpsLog || [];
     renderDashboard();
-    
-    if (document.getElementById('clock').classList.contains('active')) {
-      renderClockPage();
-    }
+    if (document.getElementById('clock').classList.contains('active') && CURRENT_USER) renderClockPage();
+    if (document.getElementById('gps_log').classList.contains('active')) renderGpsLog();
     hideLoader();
   } catch(e) {
     hideLoader(); toast('เชื่อมต่อฐานข้อมูลล้มเหลว', 'error');
   }
 }
 
-// ==========================================
-// LOGIN SYSTEM
-// ==========================================
+// ============================================
+// GPS SYSTEM
+// ============================================
+function loadGpsSettings() {
+  var s = JSON.parse(localStorage.getItem('gpsSettings') || '{}');
+  GPS_STATE.enforced = s.enforced || false;
+  GPS_STATE.officeLat = s.lat || null;
+  GPS_STATE.officeLng = s.lng || null;
+  GPS_STATE.officeRadius = s.radius || 500;
+}
+
+function saveGpsSettings() {
+  var lat = parseFloat(document.getElementById('gps-lat').value);
+  var lng = parseFloat(document.getElementById('gps-lng').value);
+  var radius = parseInt(document.getElementById('gps-radius').value);
+  if (isNaN(lat) || isNaN(lng)) return toast('กรุณากรอกพิกัดให้ถูกต้อง', 'error');
+  var enforced = document.getElementById('gps-enforce-toggle').checked;
+  var settings = { lat, lng, radius, enforced };
+  localStorage.setItem('gpsSettings', JSON.stringify(settings));
+  GPS_STATE.officeLat = lat; GPS_STATE.officeLng = lng;
+  GPS_STATE.officeRadius = radius; GPS_STATE.enforced = enforced;
+  toast('บันทึกการตั้งค่า GPS เรียบร้อยแล้ว', 'success');
+  showCurrentGpsSetting();
+  document.getElementById('radius-badge-display').style.display = 'block';
+  document.getElementById('gps-map-preview').style.background = '#1e3a8a';
+  document.getElementById('gps-map-preview').querySelector('.map-placeholder').innerHTML = `
+    <span class="material-icons" style="color:#3b82f6">location_on</span>
+    <p style="color:rgba(255,255,255,.7);font-size:.85rem">📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}</p>`;
+}
+
+function showCurrentGpsSetting() {
+  var s = JSON.parse(localStorage.getItem('gpsSettings') || '{}');
+  var el = document.getElementById('gps-current-setting');
+  var txt = document.getElementById('gps-current-text');
+  if (s.lat) {
+    el.style.display = 'block';
+    txt.innerText = `${s.lat.toFixed(6)}, ${s.lng.toFixed(6)} | รัศมี ${s.radius} ม. | ${s.enforced ? '🔴 บังคับ GPS' : '🟡 ไม่บังคับ'}`;
+  }
+}
+
+function toggleGpsEnforce(val) {
+  GPS_STATE.enforced = val;
+  var s = JSON.parse(localStorage.getItem('gpsSettings') || '{}');
+  s.enforced = val;
+  localStorage.setItem('gpsSettings', JSON.stringify(s));
+  toast(val ? '🔴 เปิดบังคับตรวจสอบ GPS แล้ว' : '🟡 ปิดการบังคับ GPS แล้ว', val ? 'warn' : 'info');
+}
+
+function updateRadiusDisplay(v) {
+  document.getElementById('radius-val').innerText = v;
+  document.getElementById('radius-preview-val').innerText = v;
+}
+
+function getMyLocationForAdmin() {
+  if (!navigator.geolocation) return toast('เบราว์เซอร์ไม่รองรับ GPS', 'error');
+  showLoader('กำลังดึงตำแหน่ง...');
+  navigator.geolocation.getCurrentPosition(p => {
+    hideLoader();
+    document.getElementById('gps-lat').value = p.coords.latitude.toFixed(6);
+    document.getElementById('gps-lng').value = p.coords.longitude.toFixed(6);
+    toast('ดึงตำแหน่งปัจจุบันสำเร็จ', 'success');
+  }, () => { hideLoader(); toast('ไม่สามารถดึงตำแหน่งได้', 'error'); });
+}
+
+function calcDistance(lat1, lng1, lat2, lng2) {
+  var R = 6371000; var dLat = (lat2-lat1)*Math.PI/180; var dLng = (lng2-lng1)*Math.PI/180;
+  var a = Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function initGPS() {
+  if (!navigator.geolocation) {
+    setGpsStatus('error', 'เบราว์เซอร์ไม่รองรับ GPS', true); return;
+  }
+  setGpsStatus('loading', 'กำลังระบุตำแหน่ง...');
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      GPS_STATE.lat = pos.coords.latitude;
+      GPS_STATE.lng = pos.coords.longitude;
+      GPS_STATE.accuracy = Math.round(pos.coords.accuracy);
+      GPS_STATE.loaded = true;
+      document.getElementById('gps-detail-card').style.display = 'block';
+      document.getElementById('gps-coords').innerText = `${GPS_STATE.lat.toFixed(5)}, ${GPS_STATE.lng.toFixed(5)}`;
+      document.getElementById('gps-accuracy').innerText = GPS_STATE.accuracy + ' ม.';
+
+      if (GPS_STATE.officeLat && GPS_STATE.officeLng) {
+        var dist = calcDistance(GPS_STATE.lat, GPS_STATE.lng, GPS_STATE.officeLat, GPS_STATE.officeLng);
+        GPS_STATE.withinRange = dist <= GPS_STATE.officeRadius;
+        var distBar = document.getElementById('gps-distance-bar');
+        distBar.style.display = 'block';
+        document.getElementById('gps-dist-text').innerText = Math.round(dist) + ' ม. ' + (GPS_STATE.withinRange ? '✅' : '❌');
+        var pct = Math.min(100, (dist / GPS_STATE.officeRadius) * 100);
+        document.getElementById('gps-dist-bar').style.width = pct + '%';
+        document.getElementById('gps-dist-bar').style.background = GPS_STATE.withinRange ? 'var(--success)' : 'var(--danger)';
+        if (GPS_STATE.enforced && !GPS_STATE.withinRange) {
+          setGpsStatus('error', `⚠️ อยู่นอกรัศมี ${Math.round(dist)} ม. จากสำนักงาน (อนุญาต ${GPS_STATE.officeRadius} ม.)`, true);
+        } else if (GPS_STATE.withinRange) {
+          setGpsStatus('ok', `✅ อยู่ในพื้นที่อนุญาต (${Math.round(dist)} ม. จากสำนักงาน)`);
+        } else {
+          setGpsStatus('ok', `📍 GPS พร้อม | ห่างสำนักงาน ${Math.round(dist)} ม.`);
+        }
+      } else {
+        setGpsStatus('ok', `📍 GPS พร้อม | ความแม่นยำ ${GPS_STATE.accuracy} ม.`);
+      }
+      updateClockButtons();
+    },
+    err => {
+      var msgs = {1:'ไม่ได้รับอนุญาตให้เข้าถึง GPS',2:'ไม่พบสัญญาณ GPS',3:'หมดเวลารอ GPS'};
+      setGpsStatus('error', msgs[err.code] || 'GPS ล้มเหลว', true);
+      if (GPS_STATE.enforced) updateClockButtons();
+    },
+    { timeout: 15000, maximumAge: 30000 }
+  );
+}
+
+function setGpsStatus(type, msg, showRetry) {
+  var bar = document.getElementById('gps-status-bar');
+  bar.className = 'gps-status-bar gps-' + type;
+  document.getElementById('gps-status-text').innerText = msg;
+  document.getElementById('gps-retry-btn').style.display = showRetry ? 'block' : 'none';
+}
+
+function updateClockButtons() {
+  var myAtt = DATA.todayAttendance.find(a => a.id === CURRENT_USER?.id);
+  var btnIn = document.getElementById('btn-in');
+  var btnOut = document.getElementById('btn-out');
+  if (!btnIn) return;
+  var gpsBlocked = GPS_STATE.enforced && (!GPS_STATE.loaded || !GPS_STATE.withinRange);
+  if (!myAtt || !myAtt.clockIn) {
+    btnIn.disabled = gpsBlocked;
+    btnIn.innerHTML = gpsBlocked ? '<span class="material-icons">gps_off</span> GPS นอกพื้นที่' : '<span class="material-icons">login</span> ลงเวลาเข้างาน';
+  } else {
+    btnIn.disabled = true;
+    btnIn.className = 'btn btn-ghost btn-lg';
+    btnIn.innerHTML = '<span class="material-icons">check_circle</span> เข้างานแล้ว';
+  }
+  if (myAtt && myAtt.clockOut) {
+    btnOut.disabled = true;
+    btnOut.className = 'btn btn-ghost btn-lg';
+    btnOut.innerHTML = '<span class="material-icons">check_circle</span> ออกงานแล้ว';
+  }
+}
+
+// ============================================
+// LOGIN
+// ============================================
 function openLoginModal() {
-  document.getElementById('login-id').value = ''; document.getElementById('login-pass').value = '';
+  document.getElementById('login-id').value = '';
+  document.getElementById('login-pass').value = '';
   openModal('modal-login');
 }
 
@@ -290,26 +744,18 @@ async function doLogin() {
   var id = document.getElementById('login-id').value.trim();
   var pass = document.getElementById('login-pass').value;
   if (!id || !pass) return toast('กรุณากรอกข้อมูลให้ครบ', 'error');
-  
   showLoader('กำลังเข้าสู่ระบบ...');
   try {
     var r = await api('loginStaff', { staffId: id, password: pass });
     hideLoader();
     if (!r.success) return toast(r.msg, 'error');
-    
-    // สำเร็จ
-    CURRENT_USER = r.staff;
-    SYSTEM_ROLE = r.staff.systemRole || 'staff';
+    CURRENT_USER = r.staff; SYSTEM_ROLE = r.staff.systemRole || 'staff';
     localStorage.setItem('currentUser', JSON.stringify(CURRENT_USER));
-    
     closeModal('modal-login');
-    applyRoleUI();
-    renderUserBadge();
+    applyRoleUI(); renderUserBadge();
     toast('ยินดีต้อนรับ ' + CURRENT_USER.name, 'success');
-    
-    if(r.isDefaultPassword) setTimeout(() => toast('⚠️ อย่าลืมเปลี่ยนรหัสผ่านในหน้าโปรไฟล์', 'warn', 5000), 1000);
-    
-    var activePage = document.querySelector('.page.active').id;
+    if (r.isDefaultPassword) setTimeout(() => toast('⚠️ กรุณาเปลี่ยนรหัสผ่านในหน้าโปรไฟล์', 'warn', 5000), 1200);
+    var activePage = document.querySelector('.page.active')?.id;
     if (PRIVATE_PAGES.includes(activePage)) go(activePage, null);
   } catch(e) { hideLoader(); toast('ระบบขัดข้อง', 'error'); }
 }
@@ -319,235 +765,311 @@ function doLogout() {
   localStorage.removeItem('currentUser');
   applyRoleUI(); renderUserBadge();
   toast('ออกจากระบบแล้ว', 'info');
-  go('dashboard', document.querySelector('.nav-item.active'));
+  go('dashboard', document.querySelector('[data-page="dashboard"]'));
 }
 
-// ==========================================
-// UI & NAVIGATION
-// ==========================================
+// ============================================
+// NAVIGATION & ROLE UI
+// ============================================
+function applyRoleUI() {
+  var isSA = SYSTEM_ROLE === 'superadmin';
+  var isAdmin = SYSTEM_ROLE === 'admin' || isSA;
+  document.getElementById('nav-sec-admin').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('nav-admin').style.display = isSA ? 'flex' : 'none';
+  document.getElementById('nav-gps-log').style.display = isAdmin ? 'flex' : 'none';
+}
+
 function renderUserBadge() {
   var slot = document.getElementById('sb-user-slot');
   if (!CURRENT_USER) {
-    slot.innerHTML = `<button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openLoginModal()"><span class="material-icons">login</span> เข้าสู่ระบบ</button>`;
+    slot.innerHTML = `<button class="btn btn-primary btn-full" style="font-size:.85rem" onclick="openLoginModal()"><span class="material-icons" style="font-size:18px">login</span> เข้าสู่ระบบ</button>`;
   } else {
+    var roleColors = {superadmin:'#f59e0b',admin:'#3b82f6',head:'#8b5cf6',staff:'#10b981'};
+    var roleLabels = {superadmin:'Super Admin',admin:'Admin',head:'หัวหน้ากลุ่ม',staff:'เจ้าหน้าที่'};
+    var c = roleColors[SYSTEM_ROLE]||'#64748b'; var lb = roleLabels[SYSTEM_ROLE]||'';
     slot.innerHTML = `
-      <div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,.1);border-radius:10px;color:#fff">
-        <div style="flex:1;min-width:0"><div style="font-size:.85rem;font-weight:700;white-space:nowrap;overflow:hidden">${CURRENT_USER.name}</div><div style="font-size:.65rem;opacity:.6">${CURRENT_USER.dept}</div></div>
-        <span class="material-icons" style="color:#ef4444;cursor:pointer" onclick="doLogout()">logout</span>
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,.07);border-radius:10px">
+        <div style="width:34px;height:34px;background:${c}22;border:1.5px solid ${c}44;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0">${CURRENT_USER.name.charAt(3)||'👤'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.82rem;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${CURRENT_USER.name}</div>
+          <div style="font-size:.65rem;color:${c};font-weight:700">${lb}</div>
+        </div>
+        <span class="material-icons" style="color:rgba(255,255,255,.4);font-size:18px;cursor:pointer;flex-shrink:0" onclick="doLogout()" title="ออกจากระบบ">logout</span>
       </div>`;
   }
 }
 
-function applyRoleUI() {
-  var isSuperAdmin = (SYSTEM_ROLE === 'superadmin');
-  document.getElementById('nav-sec-admin').style.display = isSuperAdmin ? 'block' : 'none';
-  document.getElementById('nav-admin').style.display = isSuperAdmin ? 'flex' : 'none';
-}
-
 function go(p, navEl) {
-  if (PRIVATE_PAGES.includes(p) && !CURRENT_USER) { toast('กรุณาเข้าสู่ระบบก่อน', 'warn'); openLoginModal(); return; }
-  
-  document.querySelectorAll('.page, .nav-item').forEach(e => e.classList.remove('active'));
+  if (PRIVATE_PAGES.includes(p) && !CURRENT_USER) {
+    toast('กรุณาเข้าสู่ระบบก่อน', 'warn'); openLoginModal(); return;
+  }
+  if (p === 'gps_log') {
+    var isAdmin = SYSTEM_ROLE === 'admin' || SYSTEM_ROLE === 'superadmin';
+    if (!isAdmin) { toast('ไม่มีสิทธิ์เข้าถึง', 'error'); return; }
+  }
+  document.querySelectorAll('.page').forEach(e => e.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
   document.getElementById(p).classList.add('active');
   if (navEl) navEl.classList.add('active');
-  
-  var titles = { dashboard:'📊 ภาพรวมวันนี้', clock:'⏰ ลงเวลา', dailyreport:'📝 รายงานผลประจำวัน', wfh_task:'🏠 เสนองาน WFH', profile:'👤 โปรไฟล์', admin:'🛡️ ตั้งค่าระบบ' };
+  var titles = { dashboard:'📊 ภาพรวมวันนี้', clock:'⏰ ลงเวลา', dailyreport:'📝 รายงานผลประจำวัน', wfh_task:'🏠 เสนองาน WFH', profile:'👤 โปรไฟล์', admin:'🛡️ ตั้งค่าระบบ', gps_log:'📍 บันทึก GPS' };
   document.getElementById('page-title').innerText = titles[p] || p;
   if (window.innerWidth <= 1024) closeSidebar();
-
-  if (p === 'clock' && CURRENT_USER) renderClockPage();
+  if (p === 'clock' && CURRENT_USER) { renderClockPage(); initGPS(); }
   if (p === 'profile') renderProfile();
+  if (p === 'gps_log') renderGpsLog();
+  if (p === 'admin') loadAdminPage();
 }
 
-// ==========================================
-// DASHBOARD & CLOCK IN/OUT
-// ==========================================
+// ============================================
+// DASHBOARD
+// ============================================
 function renderDashboard() {
   var att = DATA.todayAttendance;
   var present = att.filter(r => r.status === 'มาทำงาน').length;
   var late = att.filter(r => r.status === 'สาย').length;
-  
-  document.getElementById('d-total').innerText = DATA.staff.length;
-  document.getElementById('d-present').innerText = present + late;
-  document.getElementById('d-late').innerText = late;
-  document.getElementById('d-notyet').innerText = Math.max(0, DATA.staff.length - (present + late));
+  var total = DATA.staff.length;
+  var notYet = Math.max(0, total - present - late);
+  var pct = total > 0 ? Math.round((present+late)/total*100) : 0;
 
+  var today = new Date();
+  document.getElementById('today-date-label').innerText = today.toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  // Stats
+  var stats = [
+    { label:'บุคลากรทั้งหมด', value:total, icon:'groups', accent:'#2563eb', iconBg:'#dbeafe', iconColor:'#1d4ed8', valColor:'var(--txt)', sub:'คน' },
+    { label:'มาทำงานปกติ', value:present, icon:'check_circle', accent:'#059669', iconBg:'#dcfce7', iconColor:'#16a34a', valColor:'var(--success)', sub:'คน' },
+    { label:'มาสาย', value:late, icon:'schedule', accent:'#d97706', iconBg:'#fef3c7', iconColor:'#d97706', valColor:'var(--warn)', sub:'คน' },
+    { label:'ยังไม่ลงเวลา', value:notYet, icon:'pending', accent:'#dc2626', iconBg:'#fee2e2', iconColor:'#dc2626', valColor:'var(--danger)', sub:'คน' },
+  ];
+  document.getElementById('stat-grid').innerHTML = stats.map(s => `
+    <div class="stat-card" style="--accent-color:${s.accent};--icon-bg:${s.iconBg};--icon-color:${s.iconColor};--val-color:${s.valColor}">
+      <div class="sc-icon"><span class="material-icons">${s.icon}</span></div>
+      <div class="sc-label">${s.label}</div>
+      <div class="sc-value">${s.value}</div>
+      <div class="sc-sub">${s.sub} • ${pct}% เข้างานแล้ว</div>
+    </div>`).join('');
+
+  // Table
   var rows = DATA.staff.map(s => {
     var rec = att.find(a => a.id === s.id);
-    var st = rec ? `<span class="badge ${rec.status==='สาย'?'badge-late':'badge-present'}">${rec.status}</span>` : '<span style="color:var(--txt2);font-size:.8rem">ยังไม่ลงเวลา</span>';
-    var tIn = rec ? rec.clockIn : '-';
-    var tOut = (rec && rec.clockOut) ? rec.clockOut : '-';
-    return `<tr><td><strong>${s.name}</strong><br><span style="font-size:.7rem;color:var(--txt2)">${s.dept}</span></td><td>${st}</td><td>${tIn}</td><td>${tOut}</td></tr>`;
+    var badge = rec
+      ? `<span class="badge ${rec.status==='สาย'?'badge-late':'badge-present'}">${rec.status==='มาทำงาน'?'<span class="material-icons" style="font-size:12px">check_circle</span> มาทำงาน':'<span class="material-icons" style="font-size:12px">schedule</span> มาสาย'}</span>`
+      : `<span class="badge badge-absent"><span class="material-icons" style="font-size:12px">radio_button_unchecked</span> ยังไม่ลงเวลา</span>`;
+    var tIn = rec?.clockIn || '-'; var tOut = rec?.clockOut || '-';
+    var init = s.name.charAt(3) || '?';
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:10px">
+        <div class="att-avatar">${init}</div>
+        <div><div style="font-weight:700">${s.name}</div><div style="font-size:.73rem;color:var(--txt2)">${s.dept}</div></div>
+      </div></td>
+      <td>${badge}</td>
+      <td style="font-weight:${rec?.clockIn?'700':'400'};color:${rec?.clockIn?'var(--success)':'var(--txt2)'}">${tIn}</td>
+      <td style="font-weight:${rec?.clockOut?'700':'400'};color:${rec?.clockOut?'var(--p2)':'var(--txt2)'}">${tOut}</td>
+    </tr>`;
   }).join('');
-  document.getElementById('tb-today').innerHTML = '<tr><th>ชื่อ-สกุล</th><th>สถานะ</th><th>เข้างาน</th><th>ออกงาน</th></tr>' + (rows||'<tr><td colspan="4" align="center">ไม่มีข้อมูล</td></tr>');
+  document.getElementById('tb-today').innerHTML = `
+    <thead><tr><th>ชื่อ-สกุล / กลุ่มงาน</th><th>สถานะ</th><th>เข้างาน</th><th>ออกงาน</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="4" align="center" style="padding:30px;color:var(--txt2)">ไม่มีข้อมูล</td></tr>'}</tbody>`;
 }
 
+// ============================================
+// CLOCK IN/OUT
+// ============================================
 function renderClockPage() {
+  if (!CURRENT_USER) return;
   document.getElementById('clock-name').innerText = CURRENT_USER.name;
   document.getElementById('clock-dept').innerText = CURRENT_USER.dept;
   document.getElementById('clock-avatar').innerText = CURRENT_USER.name.charAt(3) || '👤';
-
   var myAtt = DATA.todayAttendance.find(a => a.id === CURRENT_USER.id);
-  var timeIn = (myAtt && myAtt.clockIn) ? myAtt.clockIn + ' น.' : '-';
-  var timeOut = (myAtt && myAtt.clockOut) ? myAtt.clockOut + ' น.' : '-';
-
-  // เช็คและล็อกปุ่ม เพื่อไม่ให้เกิดการลงเวลาซ้ำ
-  var btnInHtml = (!myAtt || !myAtt.clockIn) 
-    ? `<button class="btn btn-success btn-lg" style="width:100%;max-width:250px;justify-content:center" onclick="doClockIn()"><span class="material-icons">login</span> ลงเวลาเข้างาน</button>`
-    : `<button class="btn btn-ghost btn-lg" style="width:100%;max-width:250px;justify-content:center" disabled><span class="material-icons">check_circle</span> เข้างานแล้ว</button>`;
-
-  var btnOutHtml = (myAtt && myAtt.clockOut)
-    ? `<button class="btn btn-ghost btn-lg" style="width:100%;max-width:250px;justify-content:center" disabled><span class="material-icons">check_circle</span> ออกงานแล้ว</button>`
-    : `<button class="btn btn-warn btn-lg" style="width:100%;max-width:250px;justify-content:center;background:var(--warn);color:#fff" onclick="doClockOut()"><span class="material-icons">logout</span> ลงเวลาออกงาน</button>`;
-
-  document.getElementById('clock-result').innerHTML = `
-    <div style="background:var(--bg);padding:16px;border-radius:12px;display:flex;justify-content:space-around;">
-      <div>
-        <div style="font-size:0.8rem;color:var(--txt2)">เวลาเข้างาน</div>
-        <strong style="color:var(--success);font-size:1.4rem">${timeIn}</strong>
-      </div>
-      <div>
-        <div style="font-size:0.8rem;color:var(--txt2)">เวลาออกงาน</div>
-        <strong style="color:var(--p);font-size:1.4rem">${timeOut}</strong>
-      </div>
-    </div>
-    
-    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px">
-      ${btnInHtml}
-      ${btnOutHtml}
-    </div>
-    
-    <div style="font-size:0.8rem;color:var(--danger);margin-top:12px;">
-      * หมายเหตุ: ลงเวลาได้เพียง 1 ครั้งต่อวัน และกด "ลงเวลาออกงาน" ได้ตั้งแต่เวลา 16:30 น. เป็นต้นไป
-    </div>
-  `;
+  var ctIn = document.getElementById('ct-in');
+  var ctOut = document.getElementById('ct-out');
+  if (myAtt?.clockIn) { ctIn.innerText = myAtt.clockIn + ' น.'; ctIn.className = 't-value'; }
+  else { ctIn.innerText = '-'; ctIn.className = 't-value no-time'; }
+  if (myAtt?.clockOut) { ctOut.innerText = myAtt.clockOut + ' น.'; ctOut.className = 't-value'; }
+  else { ctOut.innerText = '-'; ctOut.className = 't-value no-time'; }
+  updateClockButtons();
 }
 
 async function doClockIn() {
+  if (GPS_STATE.enforced && (!GPS_STATE.loaded || !GPS_STATE.withinRange)) {
+    return toast('❌ ไม่สามารถลงเวลาได้ เนื่องจาก GPS อยู่นอกพื้นที่อนุญาต', 'error');
+  }
   showLoader('กำลังบันทึก...');
   try {
-    var r = await api('clockIn', { id: CURRENT_USER.id, name: CURRENT_USER.name, dept: CURRENT_USER.dept, method: 'manual' });
-    hideLoader(); 
-    if (r.success) {
-      toast('✅ บันทึกเวลาเข้างานสำเร็จ', 'success');
-      setTimeout(refreshData, 1500); 
-    } else { toast(r.msg, 'error'); }
+    var gpsData = GPS_STATE.loaded ? { gpsLat: GPS_STATE.lat, gpsLng: GPS_STATE.lng, gpsAccuracy: GPS_STATE.accuracy } : {};
+    var r = await api('clockIn', { id: CURRENT_USER.id, name: CURRENT_USER.name, dept: CURRENT_USER.dept, method: 'manual', ...gpsData });
+    hideLoader();
+    if (r.success) { toast('✅ บันทึกเวลาเข้างานสำเร็จ', 'success'); setTimeout(refreshData, 1500); }
+    else toast(r.msg, 'error');
   } catch(e) { hideLoader(); toast('Error', 'error'); }
 }
 
 async function doClockOut() {
   showLoader('กำลังตรวจสอบ...');
   try {
-    var r = await api('clockOut', { id: CURRENT_USER.id, name: CURRENT_USER.name });
-    hideLoader(); 
-    if (r.success) {
-      toast('🏠 บันทึกเวลาออกงานสำเร็จ', 'success');
-      setTimeout(refreshData, 1500);
-    } else { toast(r.msg, 'error'); }
+    var gpsData = GPS_STATE.loaded ? { gpsLat: GPS_STATE.lat, gpsLng: GPS_STATE.lng, gpsAccuracy: GPS_STATE.accuracy } : {};
+    var r = await api('clockOut', { id: CURRENT_USER.id, name: CURRENT_USER.name, ...gpsData });
+    hideLoader();
+    if (r.success) { toast('🏠 บันทึกเวลาออกงานสำเร็จ', 'success'); setTimeout(refreshData, 1500); }
+    else toast(r.msg, 'error');
   } catch(e) { hideLoader(); toast('Error', 'error'); }
 }
 
-// ==========================================
-// REPORTS & WFH (ใหม่)
-// ==========================================
+// ============================================
+// GPS LOG (Admin)
+// ============================================
+function renderGpsLog() {
+  var att = DATA.todayAttendance;
+  var rows = att.filter(r => r.gpsLat || r.lat).map(r => {
+    var acc = r.gpsAccuracy || r.accuracy || null;
+    var chip = acc ? (acc<=20 ? '<span class="accuracy-chip acc-good">±'+acc+'ม.</span>' : acc<=50 ? '<span class="accuracy-chip acc-ok">±'+acc+'ม.</span>' : '<span class="accuracy-chip acc-bad">±'+acc+'ม.</span>') : '-';
+    var lat = r.gpsLat || r.lat || '-'; var lng = r.gpsLng || r.lng || '-';
+    var mapsLink = (lat !== '-') ? `<a href="https://maps.google.com/?q=${lat},${lng}" target="_blank" style="color:var(--p2);font-size:.75rem">ดูแผนที่</a>` : '-';
+    return `<tr class="gps-record-row">
+      <td>${r.name}</td>
+      <td style="font-size:.8rem;color:var(--txt2)">${r.dept}</td>
+      <td>${r.clockIn||'-'}</td>
+      <td style="font-size:.8rem">${lat!=='-'?Number(lat).toFixed(5):'-'}, ${lng!=='-'?Number(lng).toFixed(5):'-'}</td>
+      <td>${chip}</td>
+      <td>${mapsLink}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('gps-log-count').innerText = att.length + ' รายการวันนี้';
+  document.getElementById('tb-gps-log').innerHTML = `
+    <thead><tr><th>ชื่อ-สกุล</th><th>กลุ่มงาน</th><th>เวลาเข้า</th><th>พิกัด GPS</th><th>ความแม่นยำ</th><th>แผนที่</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="6" align="center" style="padding:30px;color:var(--txt2)">ไม่มีข้อมูล GPS วันนี้</td></tr>'}</tbody>`;
+}
+
+// ============================================
+// REPORTS
+// ============================================
 async function doSubmitDailyReport() {
   var w = document.getElementById('dr-work').value;
+  if (!w) return toast('กรุณาระบุผลการปฏิบัติงาน', 'error');
   var p = document.getElementById('dr-prob').value;
   var n = document.getElementById('dr-next').value;
-  if(!w) return toast('กรุณาระบุผลการปฏิบัติงาน', 'error');
-
   showLoader('กำลังส่งรายงาน...');
   try {
     var r = await api('submitDailyReport', { data: { staffId: CURRENT_USER.id, name: CURRENT_USER.name, dept: CURRENT_USER.dept, workDone: w, problems: p, nextPlan: n } });
-    hideLoader(); toast(r.msg, r.success?'success':'error');
-    if(r.success) { document.getElementById('dr-work').value=''; document.getElementById('dr-prob').value=''; document.getElementById('dr-next').value=''; }
-  } catch(e) { hideLoader(); toast('เกิดข้อผิดพลาด', 'error'); }
+    hideLoader(); toast(r.msg, r.success ? 'success' : 'error');
+    if (r.success) { document.getElementById('dr-work').value=''; document.getElementById('dr-prob').value=''; document.getElementById('dr-next').value=''; }
+  } catch(e) { hideLoader(); toast('เกิดข้อผิดพลาด','error'); }
 }
 
 async function doSubmitWFHTask() {
   var desc = document.getElementById('wfh-desc').value;
-  if(!desc) return toast('กรุณาระบุรายละเอียดงาน หรือวางลิงก์ไฟล์', 'error');
-
+  if (!desc) return toast('กรุณาระบุรายละเอียดงาน','error');
   showLoader('กำลังส่งงาน...');
   try {
     var r = await api('submitWFHTask', { data: { staffId: CURRENT_USER.id, name: CURRENT_USER.name, dept: CURRENT_USER.dept, taskDesc: desc } });
-    hideLoader(); toast(r.msg, r.success?'success':'error');
-    if(r.success) { document.getElementById('wfh-desc').value=''; }
-  } catch(e) { hideLoader(); toast('เกิดข้อผิดพลาด', 'error'); }
+    hideLoader(); toast(r.msg, r.success ? 'success' : 'error');
+    if (r.success) document.getElementById('wfh-desc').value = '';
+  } catch(e) { hideLoader(); toast('เกิดข้อผิดพลาด','error'); }
 }
 
-// ==========================================
-// PROFILE / PASSWORD
-// ==========================================
+// ============================================
+// PROFILE
+// ============================================
 function renderProfile() {
-  if(!CURRENT_USER) return;
+  if (!CURRENT_USER) return;
+  var roleColors = {superadmin:'#f59e0b',admin:'#3b82f6',head:'#8b5cf6',staff:'#10b981'};
+  var roleLabels = {superadmin:'Super Admin',admin:'Admin',head:'หัวหน้ากลุ่ม',staff:'เจ้าหน้าที่'};
+  var c = roleColors[SYSTEM_ROLE]||'#64748b';
   document.getElementById('profile-content').innerHTML = `
-    <div style="text-align:center;margin-bottom:20px">
-      <div style="width:70px;height:70px;background:var(--p);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 10px">${CURRENT_USER.name.charAt(3)||'?'}</div>
-      <h2>${CURRENT_USER.name}</h2><p style="color:var(--txt2)">${CURRENT_USER.dept}</p><p style="font-size:.8rem;color:var(--txt2)">ID: ${CURRENT_USER.id}</p>
+    <div class="profile-hero">
+      <div class="profile-avatar">${CURRENT_USER.name.charAt(3)||'?'}</div>
+      <h2 style="font-size:1.2rem;margin-bottom:4px">${CURRENT_USER.name}</h2>
+      <div style="opacity:.7;font-size:.88rem">${CURRENT_USER.dept}</div>
+      <div style="margin-top:8px;display:inline-block;background:${c}22;border:1px solid ${c}44;color:${c};padding:4px 12px;border-radius:20px;font-size:.78rem;font-weight:700">${roleLabels[SYSTEM_ROLE]||SYSTEM_ROLE}</div>
     </div>
-    <div style="border-top:1px solid var(--border);padding-top:20px">
-      <h3 style="margin-bottom:10px;color:var(--p2)">🔐 เปลี่ยนรหัสผ่าน</h3>
-      <div class="form-group"><label>รหัสผ่านเดิม</label><input type="password" id="cp-old"></div>
-      <div class="form-group"><label>รหัสผ่านใหม่ (6 ตัวขึ้นไป)</label><input type="password" id="cp-new"></div>
-      <button class="btn btn-warn" style="width:100%;justify-content:center" onclick="doChangePassword()">บันทึกรหัสผ่าน</button>
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;color:var(--txt2);font-size:.8rem;font-weight:700"><span class="material-icons" style="font-size:16px">badge</span>รหัสประจำตัว</div>
+      <div style="font-size:1.05rem;font-weight:800;color:var(--txt);font-family:monospace">${CURRENT_USER.id}</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="material-icons" style="color:var(--warn)">lock</span><h3>เปลี่ยนรหัสผ่าน</h3></div>
+      <div class="form-group"><label>รหัสผ่านเดิม</label><input type="password" id="cp-old" placeholder="รหัสผ่านปัจจุบัน"></div>
+      <div class="form-group"><label>รหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)</label><input type="password" id="cp-new" placeholder="รหัสผ่านใหม่"></div>
+      <button class="btn btn-warn btn-full" onclick="doChangePassword()"><span class="material-icons">save</span> บันทึกรหัสผ่านใหม่</button>
     </div>`;
 }
 
 async function doChangePassword() {
   var oldP = document.getElementById('cp-old').value, newP = document.getElementById('cp-new').value;
-  if(!oldP || newP.length < 6) return toast('กรอกข้อมูลไม่ครบ หรือรหัสสั้นไป', 'error');
+  if (!oldP || newP.length < 6) return toast('กรอกข้อมูลไม่ครบ หรือรหัสสั้นเกินไป','error');
   showLoader('กำลังเปลี่ยน...');
   try {
     var r = await api('changePassword', { staffId: CURRENT_USER.id, oldPass: oldP, newPass: newP });
-    hideLoader(); toast(r.msg, r.success?'success':'error');
-    if(r.success) { document.getElementById('cp-old').value=''; document.getElementById('cp-new').value=''; }
+    hideLoader(); toast(r.msg, r.success ? 'success' : 'error');
+    if (r.success) { document.getElementById('cp-old').value=''; document.getElementById('cp-new').value=''; }
   } catch(e) { hideLoader(); toast('Error','error'); }
 }
 
-// ==========================================
-// ADMIN TOOLS
-// ==========================================
+// ============================================
+// ADMIN
+// ============================================
+function loadAdminPage() {
+  // Load GPS settings into form
+  loadGpsSettings();
+  var s = JSON.parse(localStorage.getItem('gpsSettings') || '{}');
+  if (s.lat) {
+    document.getElementById('gps-lat').value = s.lat;
+    document.getElementById('gps-lng').value = s.lng;
+  }
+  if (s.radius) {
+    document.getElementById('gps-radius').value = s.radius;
+    updateRadiusDisplay(s.radius);
+  }
+  if (s.enforced !== undefined) {
+    document.getElementById('gps-enforce-toggle').checked = s.enforced;
+  }
+  showCurrentGpsSetting();
+}
+
 async function doAdminLogin() {
   var pass = document.getElementById('admin-pass').value;
   showLoader('Checking...');
   try {
     var r = await api('verifyAdminPassword', { password: pass });
     hideLoader();
-    if(r.success) {
+    if (r.success) {
       document.getElementById('admin-gate').style.display = 'none';
       document.getElementById('admin-content').style.display = 'block';
+      if (SYSTEM_ROLE === 'superadmin') {
+        document.getElementById('gps-settings-panel').style.display = 'block';
+      }
+      loadAdminPage();
     } else toast('รหัสผ่านไม่ถูกต้อง', 'error');
   } catch(e) { hideLoader(); toast('Error','error'); }
 }
 
-async function doSetup() { 
-  showLoader('Setup...'); 
-  try{ var r = await api('setupSheets'); hideLoader(); toast(r.msg,'success'); } catch(e){ hideLoader(); } 
+async function doSetup() {
+  showLoader('Setup...');
+  try { var r = await api('setupSheets'); hideLoader(); toast(r.msg,'success'); } catch(e) { hideLoader(); }
 }
 
-async function doImportStaff() { 
-  if(!confirm('คำเตือน! เริ่มสร้างรายชื่อและรหัสผ่านเริ่มต้น (12345678)?')) return; 
-  showLoader('กำลังสร้างฐานข้อมูล...'); 
-  try{ 
-    var r = await api('importStaff'); 
-    hideLoader(); 
-    toast(r.msg,'success'); 
-    refreshData(); 
-  } catch(e){ hideLoader(); } 
+async function doImportStaff() {
+  if (!confirm('คำเตือน! เริ่มสร้างรายชื่อและรหัสผ่านเริ่มต้น (12345678)?')) return;
+  showLoader('กำลังสร้างฐานข้อมูล...');
+  try { var r = await api('importStaff'); hideLoader(); toast(r.msg,'success'); refreshData(); } catch(e) { hideLoader(); }
 }
 
-// ==========================================
+// ============================================
 // UTILS
-// ==========================================
-function showLoader(t) { document.getElementById('loader').style.display='flex'; document.getElementById('load-txt').innerText=t||'กำลังโหลด...'; }
-function hideLoader() { document.getElementById('loader').style.display='none'; }
-function toast(msg, type='info') {
-  var el = document.createElement('div'); el.className = 'toast'; el.style.borderLeftColor = `var(--${type})`;
-  el.innerHTML = `<span>${{success:'✅',error:'❌',warn:'⚠️',info:'ℹ️'}[type]}</span><span>${msg}</span>`;
+// ============================================
+function showLoader(t) { var l = document.getElementById('loader'); l.classList.add('active'); document.getElementById('load-txt').innerText = t||'กำลังโหลด...'; }
+function hideLoader() { document.getElementById('loader').classList.remove('active'); }
+
+function toast(msg, type='info', dur=3500) {
+  var icons = {success:'✅',error:'❌',warn:'⚠️',info:'ℹ️'};
+  var colors = {success:'var(--success)',error:'var(--danger)',warn:'var(--warn)',info:'var(--p2)'};
+  var el = document.createElement('div'); el.className = 'toast';
+  el.style.borderLeftColor = colors[type] || 'var(--p2)';
+  el.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span style="flex:1">${msg}</span>`;
   document.getElementById('toast-container').appendChild(el);
-  setTimeout(() => { el.style.opacity=0; setTimeout(()=>el.remove(),300); }, 3500);
+  setTimeout(() => { el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),350); }, dur);
 }
+
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 function toggleSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebar-overlay').style.display='block'; }
