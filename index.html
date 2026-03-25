@@ -406,17 +406,22 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
     </div>
 
     <!-- REPORT (ใหม่) -->
-    <div id="report" class="page">
-      <div class="card" style="max-width:720px;margin:0 auto">
-        <div class="card-hd"><span class="material-icons">analytics</span><h3>สรุปการลงเวลาปฏิบัติงาน</h3></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
-          <div class="fg"><label>ตั้งแต่วันที่</label><input type="date" id="report-start"></div>
-          <div class="fg"><label>ถึงวันที่</label><input type="date" id="report-end"></div>
-        </div>
-        <button class="btn btn-primary btn-full" onclick="loadReport()">แสดงสรุป (ไม่รวมวันหยุด)</button>
-        <div id="report-result" style="margin-top:20px"></div>
-      </div>
+    <!-- REPORT PAGE - แสดงข้อมูลทุกคน -->
+<div id="report" class="page">
+  <div class="card" style="max-width:900px;margin:0 auto">
+    <div class="card-hd">
+      <span class="material-icons">analytics</span>
+      <h3>สรุปการลงเวลาปฏิบัติงาน</h3>
     </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+      <div class="fg"><label>ตั้งแต่วันที่</label><input type="date" id="report-start"></div>
+      <div class="fg"><label>ถึงวันที่</label><input type="date" id="report-end"></div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="loadDetailedReport()">แสดงข้อมูลทุกคน</button>
+    
+    <div id="report-result" style="margin-top:20px"></div>
+  </div>
+</div>
 
     <!-- STAFF MANAGEMENT (ใหม่) -->
     <div id="staffmgmt" class="page">
@@ -1058,49 +1063,67 @@ async function doImport() {
 // =============================================
 // REPORT & STAFF MGMT (ใหม่)
 // =============================================
-async function loadReport() {
+async function loadDetailedReport() {
   var start = document.getElementById('report-start').value;
   var end = document.getElementById('report-end').value;
   if (!start || !end) return toast('กรุณาเลือกช่วงวันที่', 'error');
-  showLd('กำลังดึงข้อมูล...');
-  var r = await api('getAttendanceSummary', {startDate: start, endDate: end});
+
+  showLd('กำลังดึงข้อมูลทุกคน...');
+  var r = await api('getDetailedReport', {startDate: start, endDate: end});
   hideLd();
-  if (r.success) {
-    document.getElementById('report-result').innerHTML = `<p style="color:var(--success);font-weight:700">พบ ${r.count} แถว (ไม่รวมวันหยุดราชการ)</p>`;
-  } else {
-    document.getElementById('report-result').innerHTML = `<p style="color:var(--danger)">${r.msg}</p>`;
+
+  if (!r.success) return toast(r.msg || 'เกิดข้อผิดพลาด', 'error');
+
+  var data = r.data;
+  if (data.length === 0) {
+    document.getElementById('report-result').innerHTML = '<p style="color:#dc2626;text-align:center;padding:40px">ไม่มีข้อมูลในช่วงวันที่ที่เลือก</p>';
+    return;
   }
-}
 
-async function addNewStaff() {
-  var staff = {
-    id: document.getElementById('new-id').value.trim(),
-    name: document.getElementById('new-name').value.trim(),
-    position: document.getElementById('new-position').value.trim(),
-    dept: document.getElementById('new-dept').value.trim(),
-    role: document.getElementById('new-role').value
-  };
-  if (!staff.id || !staff.name) return toast('กรุณากรอก ID และชื่อ-สกุล', 'error');
-  showLd();
-  var r = await api('addStaff', {staff});
-  hideLd();
-  toast(r.msg, r.success ? 'success' : 'error');
-  if (r.success) refreshData();
-}
+  // สร้างตาราง
+  var html = `<p style="margin-bottom:12px;font-weight:700">พบ ${data.length} แถวข้อมูล</p>`;
+  html += `<div class="tbl-wrap"><table>
+    <thead><tr>
+      <th>วันที่</th>
+      <th>ชื่อ-สกุล</th>
+      <th>กลุ่มงาน</th>
+      <th>เข้างาน</th>
+      <th>ออกงาน</th>
+      <th>สถานะ</th>
+    </tr></thead>
+    <tbody>`;
 
-async function exportStaffExcel() {
-  var r = await api('exportStaff');
-  if (!r.success) return toast(r.msg, 'error');
-  var csv = r.headers.join(',') + '\n' + r.data.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
-  var blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
-  var link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `บุคลากร_${new Date().toISOString().slice(0,10)}.csv`;
-  link.click();
-}
+  data.forEach(row => {
+    var statusClass = '';
+    var statusText = row.status;
 
-function importStaffCSV() {
-  toast('ฟีเจอร์นำเข้า CSV หลายคน อยู่ระหว่างพัฒนาเพิ่มเติม', 'warn');
+    if (row.workType === 'absent' || row.status === 'ยังไม่ลงเวลา') {
+      statusClass = 'b-absent';
+      statusText = 'ยังไม่ลงเวลา';
+    } else if (row.workType === 'wfh') {
+      statusClass = 'b-wfh';
+      statusText = 'WFH';
+    } else if (row.workType === 'leave') {
+      statusClass = 'b-leave';
+      statusText = row.status || 'ลา';
+    } else if (row.status === 'สาย') {
+      statusClass = 'b-late';
+    } else {
+      statusClass = 'b-office';
+    }
+
+    html += `<tr>
+      <td>${row.date}</td>
+      <td><strong>${row.name}</strong></td>
+      <td>${row.dept}</td>
+      <td>${row.clockIn || '-'}</td>
+      <td>${row.clockOut || '-'}</td>
+      <td><span class="badge ${statusClass}">${statusText}</span></td>
+    </tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  document.getElementById('report-result').innerHTML = html;
 }
 
 // =============================================
