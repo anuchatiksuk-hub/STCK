@@ -222,7 +222,12 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
     <div class="nav-item" data-p="dailyreport" onclick="go('dailyreport',this)"><span class="material-icons">assignment</span><span>รายงานผลปฏิบัติงาน</span></div>
     <div class="nav-item" data-p="wfh_task" onclick="go('wfh_task',this)"><span class="material-icons">home_work</span><span>เสนองาน WFH</span></div>
     <div class="nav-item" data-p="profile" onclick="go('profile',this)"><span class="material-icons">person</span><span>โปรไฟล์ / เปลี่ยนรหัส</span></div>
-
+    <!-- ✅ เมนูหัวหน้า -->
+    <div class="nav-sec" id="nav-sec-head" style="display:none">กลุ่มงานของฉัน</div>
+    <div class="nav-item" id="nav-head-wfh" data-p="head_wfh" style="display:none" onclick="go('head_wfh',this)">
+      <span class="material-icons">home_work</span>
+      <span>ผลการปฏิบัติงาน WFH กลุ่ม</span>
+    </div>
     <div class="nav-sec" id="nav-sec-mgr" style="display:none">จัดการ</div>
     <div class="nav-item" id="nav-summary" data-p="summary" style="display:none" onclick="go('summary',this)"><span class="material-icons">summarize</span><span>สรุปรายวัน & รับรอง</span></div>
 
@@ -272,7 +277,33 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
         </div>
       </div>
     </div>
+<!-- WFH TASK (คืนมา) -->
+  <div id="wfh_task" class="page">
+    <div class="card" style="max-width:680px;margin:0 auto">
+      <div class="card-hd"><span class="material-icons">home_work</span><h3>เสนองาน WFH</h3></div>
+      <div class="fg"><label>รายละเอียดงาน / ลิงก์ไฟล์ <span style="color:var(--danger)">*</span></label><textarea id="wfh-desc" rows="6" placeholder="พิมพ์รายละเอียดงาน หรือวางลิงก์ไฟล์..."></textarea></div>
+      <button class="btn btn-success btn-full" onclick="doSubmitWFH()"><span class="material-icons">cloud_upload</span> เสนองาน WFH</button>
+    </div>
+  </div>
 
+  <!-- HEAD WFH REPORTS -->
+  <div id="head_wfh" class="page">
+    <div class="card" style="max-width:920px;margin:0 auto">
+      <div class="card-hd">
+        <span class="material-icons">home_work</span>
+        <h3>ผลการปฏิบัติงาน WFH — กลุ่ม <span id="head-dept-name" style="color:#166534"></span></h3>
+        <button class="btn btn-ghost" onclick="loadGroupWFHReports()" style="font-size:.78rem">
+          <span class="material-icons" style="font-size:16px">refresh</span> โหลดใหม่
+        </button>
+      </div>
+      <div id="head-wfh-body" style="min-height:320px"></div>
+      <div style="margin-top:16px">
+        <button class="btn btn-primary" onclick="printGroupWFHPDF()">
+          <span class="material-icons">picture_as_pdf</span> สร้าง PDF สรุปทั้งกลุ่ม
+        </button>
+      </div>
+    </div>
+  </div>
     <!-- ═══════════════════ CLOCK ═══════════════════ -->
     <div id="clock" class="page">
       <div class="clock-wrap">
