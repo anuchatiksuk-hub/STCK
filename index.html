@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* 🎨 CSS ชุดใหญ่จาก v4.0 */
+/* ════════════════════ CSS: UI/UX SYSTEM ════════════════════ */
 :root{
   --p:#1e3a8a;--p2:#2563eb;--p3:#3b82f6;--bg:#f0f4f8;--card:#fff;
   --txt:#0f172a;--txt2:#64748b;--border:#e2e8f0;
@@ -18,183 +18,298 @@
   --sh-lg:0 10px 30px rgba(0,0,0,.14);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;font-family:'Sarabun',sans-serif;background:var(--bg);overflow:hidden}
-.sidebar{width:var(--sidebar-w);background:linear-gradient(180deg,#0f172a 0%,#1a2744 100%);display:flex;flex-direction:column;height:100%;position:fixed;z-index:1000;transition:.3s}
-.sidebar.closed{transform:translateX(-100%)}
-.sb-brand{padding:20px;border-bottom:1px solid rgba(255,255,255,.1);color:#fff;display:flex;align-items:center;gap:10px}
-.sb-nav{flex:1;overflow-y:auto;padding:10px}
-.nav-sec{padding:15px 10px 5px;color:rgba(255,255,255,.4);font-size:.7rem;text-transform:uppercase;font-weight:700}
-.nav-item{display:flex;align-items:center;gap:12px;padding:12px 15px;color:rgba(255,255,255,.7);cursor:pointer;border-radius:10px;margin-bottom:2px;transition:.2s;text-decoration:none}
-.nav-item:hover, .nav-item.active{background:rgba(255,255,255,.1);color:#fff}
-.nav-item.active{background:var(--p2);box-shadow:0 4px 12px rgba(37,99,235,.3)}
-.main{margin-left:var(--sidebar-w);height:100vh;display:flex;flex-direction:column;transition:.3s}
-.main.full{margin-left:0}
-.topbar{height:var(--topbar);background:#fff;display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);justify-content:space-between}
-.content{flex:1;overflow-y:auto;padding:25px}
-.page{display:none;animation:fadeIn .3s}
+html,body{height:100%;height:100dvh;font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--txt);display:flex;overflow:hidden;position:fixed;width:100%;top:0;left:0}
+.sidebar{width:var(--sidebar-w);background:linear-gradient(180deg,#0f172a 0%,#1a2744 100%);display:flex;flex-direction:column;flex-shrink:0;z-index:200;transition:transform .3s cubic-bezier(.4,0,.2,1);height:100%;overflow:hidden}
+.sb-brand{padding:18px 14px 16px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0}
+.sb-brand-row{display:flex;align-items:center;gap:11px}
+.sb-logo{width:42px;height:42px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 14px rgba(59,130,246,.4)}
+.sb-logo .material-icons{color:#fff;font-size:22px}
+.sb-title{color:#fff;font-size:.88rem;font-weight:800;line-height:1.3}
+.sb-sub{color:rgba(255,255,255,.38);font-size:.65rem;margin-top:2px}
+.sb-user{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.sb-nav{flex:1;overflow-y:auto;padding:6px 8px 16px;scrollbar-width:none}
+.nav-sec{padding:12px 8px 4px;color:rgba(255,255,255,.26);font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;color:rgba(255,255,255,.55);cursor:pointer;font-size:.84rem;font-weight:500;border-radius:9px;margin-bottom:1px;transition:all .15s}
+.nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9)}
+.nav-item.active{background:rgba(59,130,246,.2);color:#fff;box-shadow:inset 2px 0 0 #3b82f6}
+.nav-item .material-icons{font-size:19px;opacity:.75}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;height:100%}
+.topbar{height:var(--topbar);background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 18px;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.05);flex-shrink:0}
+.topbar-title{flex:1;font-size:1rem;font-weight:800}
+.content{flex:1;overflow-y:auto;overflow-x:hidden;padding:18px;-webkit-overflow-scrolling:touch}
+.page{display:none;animation:fadeUp .2s ease forwards}
 .page.active{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:0}}
-/* Cards & Components */
-.card{background:#fff;padding:20px;border-radius:var(--radius);box-shadow:var(--sh);margin-bottom:20px;border:1px solid var(--border)}
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px}
-.sc-card{padding:20px;border-radius:var(--radius);color:#fff;display:flex;flex-direction:column}
-.tbl-wrap{overflow-x:auto;background:#fff;border-radius:var(--radius);border:1px solid var(--border)}
-table{width:100%;border-collapse:collapse}
-th{background:#f8fafc;padding:12px;text-align:left;font-size:.75rem;color:var(--txt2);text-transform:uppercase}
-td{padding:14px 12px;border-top:1px solid var(--border);font-size:.9rem}
-.badge{padding:4px 10px;border-radius:20px;font-size:.7rem;font-weight:700}
-.btn{padding:10px 20px;border-radius:10px;border:none;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:8px;transition:.2s}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.card{background:#fff;border-radius:var(--radius);box-shadow:var(--sh);border:1px solid var(--border);padding:18px;margin-bottom:14px}
+.card-hd{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.card-hd h3{font-size:.95rem;font-weight:800;flex:1}
+.stat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
+.sc{background:#fff;border-radius:var(--radius);padding:16px 14px;border:1px solid var(--border);border-top:3px solid var(--ac);transition:transform .15s,box-shadow .15s}
+.sc:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
+.sc-ico{width:40px;height:40px;border-radius:11px;background:var(--ic-bg);display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.sc-ico .material-icons{font-size:20px;color:var(--ic-col)}
+.sc-lbl{font-size:.7rem;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.sc-val{font-size:1.9rem;font-weight:800;line-height:1;color:var(--vc)}
+.tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+thead tr{background:#f8fafc}
+th{color:var(--txt2);font-weight:700;font-size:.71rem;padding:10px 13px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;text-transform:uppercase}
+td{padding:11px 13px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:.72rem;font-weight:700}
+.b-office{background:#dbeafe;color:#1e40af}
+.b-wfh{background:#f0fdf4;color:#166534}
+.b-late{background:#fef3c7;color:#92400e}
+.b-leave{background:#f3e8ff;color:#6b21a8}
+.b-absent{background:#fee2e2;color:#991b1b}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:9px 16px;border:none;border-radius:9px;font-family:inherit;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .15s}
+.btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:var(--sh-md)}
 .btn-primary{background:var(--p2);color:#fff}
 .btn-success{background:var(--success);color:#fff}
 .btn-warn{background:var(--warn);color:#fff}
 .btn-danger{background:var(--danger);color:#fff}
-/* Modal & Loader */
-#loader{position:fixed;inset:0;background:rgba(255,255,255,.8);z-index:9999;display:none;align-items:center;justify-content:center;flex-direction:column}
-#loader.active{display:flex}
-.mo{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}
+.btn-ghost{background:#f1f5f9;color:var(--txt2);border:1px solid var(--border)}
+.btn-lg{padding:13px 22px;font-size:.95rem;border-radius:11px}
+.btn-full{width:100%;justify-content:center}
+.fg{margin-bottom:14px}
+label{display:block;font-size:.78rem;font-weight:700;color:var(--txt2);margin-bottom:5px}
+input,textarea,select{font-family:inherit;font-size:.92rem;padding:10px 13px;border:1.5px solid var(--border);border-radius:9px;outline:none;width:100%;transition:.15s;background:#fff}
+input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 3px rgba(37,99,235,.09)}
+.radio-group{display:flex;gap:8px;flex-wrap:wrap}
+.radio-opt{flex:1;min-width:100px}
+.radio-opt input[type=radio]{display:none}
+.radio-opt label{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:2px solid var(--border);border-radius:11px;cursor:pointer;transition:.15s;font-size:.82rem;font-weight:700;color:var(--txt2)}
+.radio-opt input:checked + label{border-color:var(--p2);background:#eff6ff;color:var(--p2)}
+#loader{position:fixed;inset:0;background:rgba(255,255,255,.92);backdrop-filter:blur(4px);z-index:99999;display:none;flex-direction:column;align-items:center;justify-content:center}
+#loader.on{display:flex}
+.ld-spin{width:42px;height:42px;border:4px solid #e2e8f0;border-top-color:var(--p2);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#tc{position:fixed;top:14px;right:14px;z-index:99998;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:#fff;border-left:4px solid var(--p2);padding:11px 14px;border-radius:10px;box-shadow:var(--sh-lg);display:flex;align-items:center;gap:9px;font-size:.87rem;font-weight:600;pointer-events:all;min-width:220px;max-width:320px;animation:tIn .25s ease}
+@keyframes tIn{from{transform:translateX(110%);opacity:0}to{transform:none;opacity:1}}
+.mo{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(3px);z-index:9000;align-items:center;justify-content:center;padding:16px}
 .mo.open{display:flex}
-.mo-box{background:#fff;padding:30px;border-radius:20px;width:100%;max-width:450px}
-/* Inbox Specific */
-.dr-check-list{display:grid;gap:8px;max-height:200px;overflow-y:auto;background:#f1f5f9;padding:10px;border-radius:10px}
-.dr-check-item{display:flex;align-items:center;gap:10px;padding:8px;background:#fff;border-radius:8px;cursor:pointer;border:1px solid transparent}
-.dr-check-item.selected{border-color:var(--p2);background:#eff6ff}
-#inbox-badge{background:var(--danger);color:#fff;font-size:10px;padding:2px 6px;border-radius:10px;margin-left:auto}
+.mo-box{background:#fff;border-radius:18px;width:100%;max-width:440px;box-shadow:0 25px 50px rgba(0,0,0,.22)}
+.mo-hd{padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.mo-body{padding:18px 20px}
+#sb-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:190;backdrop-filter:blur(2px)}
+.clock-hero{background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);border-radius:18px;padding:30px 22px;text-align:center;color:#fff;margin-bottom:14px}
+.ck-avatar{width:70px;height:70px;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.22);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px}
+.ck-times{display:flex;justify-content:center;gap:36px;margin-top:18px}
+.ck-t-val{font-size:1.35rem;font-weight:800}
+.ck-t-val.empty{opacity:.35}
+.dr-check-list{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;padding:4px 0}
+.dr-check-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;border:1.5px solid var(--border);cursor:pointer;transition:.15s;user-select:none}
+.dr-check-item:hover{background:#f0f4ff;border-color:#93c5fd}
+.dr-check-item.selected{background:#eff6ff;border-color:#2563eb}
+.dr-check-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--p2);cursor:pointer}
+.profile-hero{background:linear-gradient(135deg,#1e3a8a,#2563eb);border-radius:16px;padding:26px;text-align:center;color:#fff;margin-bottom:14px}
+.dash-toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.summary-status-bar{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;border:1.5px solid;margin-bottom:14px;font-size:.88rem;font-weight:700}
+.ssb-pending{background:#fef9c3;border-color:#fde047;color:#854d0e}
+.ssb-approved2{background:#dcfce7;border-color:#86efac;color:#15803d}
+.approval-steps{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.step-box{flex:1;min-width:180px;padding:14px;border-radius:12px;border:1.5px solid var(--border);background:#fafbfc}
+.step-box.done{border-color:#86efac;background:#f0fdf4}
+.step-num{width:26px;height:26px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:var(--txt2);margin-bottom:8px}
+.step-box.done .step-num{background:#16a34a;color:#fff}
+.step-title{font-size:.8rem;font-weight:700;color:var(--txt)}
 
 @media(max-width:768px){
-  .sidebar{transform:translateX(-100%)}
-  .sidebar.open{transform:translateX(0)}
-  .main{margin-left:0}
+  :root{--sidebar-w:280px}
+  .sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0);box-shadow:4px 0 24px rgba(0,0,0,.25)}
+  #menu-toggle{display:flex !important}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .main{width:100%}
 }
 </style>
 </head>
 <body>
 
-<div id="loader"><div class="ld-spin"></div><p id="ld-txt">กำลังดำเนินการ...</p></div>
+<div id="loader"><div class="ld-spin"></div><p id="ld-txt">กำลังโหลด...</p></div>
 <div id="tc"></div>
+<div id="sb-ov" onclick="closeSB()"></div>
 
-<!-- SIDEBAR -->
+<!-- ════════════════════ SIDEBAR ════════════════════ -->
 <aside class="sidebar" id="sidebar">
   <div class="sb-brand">
-    <span class="material-icons">business</span>
-    <div><div style="font-weight:800;line-height:1">Smart Office</div><small style="opacity:.6">สพป.นม.4</small></div>
+    <div class="sb-brand-row">
+      <div class="sb-logo"><span class="material-icons">business</span></div>
+      <div><div class="sb-title">Smart Office</div><div class="sb-sub">สพป.นครราชสีมา เขต 4</div></div>
+    </div>
   </div>
-  <div id="sb-user-box" style="padding:15px;border-bottom:1px solid rgba(255,255,255,0.1)"></div>
+  <div id="sb-user" class="sb-user"></div>
   <nav class="sb-nav">
-    <div class="nav-sec">Main</div>
-    <div class="nav-item active" data-p="dashboard" onclick="go('dashboard',this)"><span class="material-icons">dashboard</span> ภาพรวมวันนี้</div>
+    <div class="nav-sec">ทั่วไป</div>
+    <div class="nav-item active" data-p="dashboard" onclick="go('dashboard',this)"><span class="material-icons">dashboard</span><span>ภาพรวมวันนี้</span></div>
     
-    <div class="nav-sec">Self Service</div>
-    <div class="nav-item" data-p="clock" onclick="go('clock',this)"><span class="material-icons">fingerprint</span> ลงเวลาเข้า-ออก</div>
-    <div class="nav-item" data-p="dailyreport" onclick="go('dailyreport',this)"><span class="material-icons">assignment</span> รายงานผลงาน</div>
+    <div class="nav-sec">ส่วนบุคคล</div>
+    <div class="nav-item" data-p="clock" onclick="go('clock',this)"><span class="material-icons">fingerprint</span><span>ลงเวลาเข้า-ออกงาน</span></div>
+    <div class="nav-item" data-p="dailyreport" onclick="go('dailyreport',this)"><span class="material-icons">assignment</span><span>รายงานผลปฏิบัติงาน</span></div>
     
-    <!-- 📥 Inbox for Boss -->
-    <div class="nav-item" id="nav-inbox" data-p="inbox" onclick="go('inbox',this)" style="display:none">
-      <span class="material-icons">inbox</span> รายงานที่ได้รับ <span id="inbox-badge" style="display:none">0</span>
+    <!-- ✅ เมนู Inbox (แสดงเฉพาะสิทธิ์) -->
+    <div class="nav-item" id="nav-daily-inbox" data-p="daily_inbox" onclick="go('daily_inbox',this)" style="display:none">
+      <span class="material-icons">move_to_inbox</span>
+      <span>รายงานที่ได้รับ</span>
+      <span id="inbox-badge" style="background:red;color:white;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:auto;display:none">0</span>
     </div>
 
-    <div class="nav-item" data-p="profile" onclick="go('profile',this)"><span class="material-icons">person</span> โปรไฟล์</div>
+    <div class="nav-item" data-p="wfh_task" onclick="go('wfh_task',this)"><span class="material-icons">home_work</span><span>เสนองาน WFH</span></div>
+    <div class="nav-item" data-p="profile" onclick="go('profile',this)"><span class="material-icons">person</span><span>โปรไฟล์ / เปลี่ยนรหัส</span></div>
 
-    <div id="mgr-zone" style="display:none">
-      <div class="nav-sec">Management</div>
-      <div class="nav-item" data-p="summary" onclick="go('summary',this)"><span class="material-icons">summarize</span> สรุปรายวัน</div>
-      <div class="nav-item" data-p="analytics" onclick="go('analytics',this)"><span class="material-icons">analytics</span> สรุปเวลาละเอียด</div>
-      <div class="nav-item" data-p="staffmgmt" onclick="go('staffmgmt',this)" id="nav-staff"><span class="material-icons">groups</span> จัดการบุคลากร</div>
-    </div>
+    <div class="nav-sec" id="nav-sec-mgr" style="display:none">จัดการ</div>
+    <div class="nav-item" id="nav-head-wfh" data-p="head_wfh" style="display:none" onclick="go('head_wfh',this)"><span class="material-icons">home_work</span><span>ผล WFH กลุ่ม</span></div>
+    <div class="nav-item" id="nav-summary" data-p="summary" style="display:none" onclick="go('summary',this)"><span class="material-icons">summarize</span><span>สรุปรายวัน & รับรอง</span></div>
+    <div class="nav-item" id="nav-report" data-p="report" style="display:none" onclick="go('report',this)"><span class="material-icons">analytics</span><span>สรุปเวลา / รายงาน</span></div>
+    <div class="nav-item" id="nav-staffmgmt" data-p="staffmgmt" style="display:none" onclick="go('staffmgmt',this)"><span class="material-icons">group_add</span><span>จัดการบุคลากร</span></div>
+    <div class="nav-item" id="nav-admin" data-p="admin" style="display:none" onclick="go('admin',this)"><span class="material-icons">admin_panel_settings</span><span>ตั้งค่าระบบ</span></div>
   </nav>
 </aside>
 
+<!-- ════════════════════ MAIN CONTENT ════════════════════ -->
 <div class="main">
   <div class="topbar">
-    <button class="btn btn-ghost" onclick="toggleSidebar()"><span class="material-icons">menu</span></button>
-    <div id="page-title" style="font-weight:800;font-size:1.1rem">Dashboard</div>
-    <div id="top-time" style="font-weight:700;color:var(--p)">00:00:00</div>
+    <button class="btn btn-ghost" id="menu-toggle" onclick="toggleSB()" style="padding:8px;display:none"><span class="material-icons">menu</span></button>
+    <div class="topbar-title" id="page-title">📊 ภาพรวมวันนี้</div>
+    <div id="tb-clock" style="font-size:.8rem;font-weight:700;color:var(--txt2);margin-right:4px"></div>
+    <button class="btn btn-ghost" onclick="refreshData()" style="padding:8px"><span class="material-icons" style="font-size:19px">refresh</span></button>
   </div>
 
   <div class="content">
     
-    <!-- PAGE: DASHBOARD -->
+    <!-- ════ PAGE: DASHBOARD ════ -->
     <div id="dashboard" class="page active">
-      <div class="stat-grid" id="dashboard-stats"></div>
-      <div class="card" style="margin-top:20px">
-        <div class="card-hd"><h3>รายชื่อพนักงานวันนี้</h3></div>
-        <div class="tbl-wrap">
-          <table id="dash-table"><thead><tr><th>ชื่อ-สกุล</th><th>กลุ่มงาน</th><th>สถานะ</th><th>เข้า</th><th>ออก</th></tr></thead><tbody id="dash-body"></tbody></table>
+      <div class="stat-grid" id="stat-grid"></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px" id="group-summary"></div>
+      <div class="card">
+        <div class="card-hd"><span class="material-icons">today</span><h3>สถานะบุคลากรวันนี้</h3><span id="today-lbl" style="margin-left:auto;font-size:.78rem;color:var(--txt2);font-weight:600"></span></div>
+        <div class="dash-toolbar">
+          <button class="btn btn-primary" onclick="printDashboardPDF()"><span class="material-icons">picture_as_pdf</span> ออก PDF ภาพรวมวันนี้</button>
         </div>
+        <div class="tbl-wrap"><table id="tb-dash"><thead><tr><th>ชื่อ-สกุล</th><th>กลุ่มงาน</th><th>สถานะ</th><th>เข้า</th><th>ออก</th></tr></thead><tbody id="dash-tbody"></tbody></table></div>
       </div>
     </div>
 
-    <!-- PAGE: CLOCK -->
+    <!-- ════ PAGE: CLOCK ════ -->
     <div id="clock" class="page">
-      <div style="max-width:500px;margin:0 auto">
-        <div class="card" style="text-align:center;background:var(--p);color:#fff">
-          <h2 id="ck-name">พนักงาน</h2>
-          <p id="ck-dept" style="opacity:.7">กลุ่มงาน</p>
-          <div class="ck-times" style="display:flex;justify-content:center;gap:30px;margin-top:20px">
-            <div><small>เข้างาน</small><div id="ck-in" style="font-size:1.5rem;font-weight:800">-</div></div>
-            <div><small>ออกงาน</small><div id="ck-out" style="font-size:1.5rem;font-weight:800">-</div></div>
-          </div>
+      <div style="max-width:540px;margin:0 auto">
+        <div class="clock-hero">
+          <div class="ck-avatar" id="ck-av">👤</div>
+          <div id="ck-name" style="font-weight:800;font-size:1.4rem">-</div>
+          <div id="ck-dept" style="opacity:.7;font-size:.9rem">-</div>
+          <div class="ck-times"><div class="ck-t"><div>เข้างาน</div><div id="ck-in" class="ck-t-val empty">-</div></div><div class="ck-t"><div>ออกงาน</div><div id="ck-out" class="ck-t-val empty">-</div></div></div>
         </div>
-        <div class="card" id="clock-form">
+        <div class="card" id="work-type-card">
           <div class="radio-group">
-            <div class="radio-opt"><input type="radio" name="wt" id="wt1" value="office" checked><label for="wt1">มาสำนักงาน</label></div>
-            <div class="radio-opt"><input type="radio" name="wt" id="wt2" value="wfh"><label for="wt2">WFH</label></div>
-            <div class="radio-opt"><input type="radio" name="wt" id="wt3" value="leave"><label for="wt3">ลา</label></div>
+            <div class="radio-opt"><input type="radio" name="wtype" id="wt-office" value="office" checked><label for="wt-office"><span class="material-icons">business</span>มาออฟฟิศ</label></div>
+            <div class="radio-opt"><input type="radio" name="wtype" id="wt-wfh" value="wfh"><label for="wt-wfh"><span class="material-icons">home</span>WFH</label></div>
+            <div class="radio-opt"><input type="radio" name="wtype" id="wt-leave" value="leave"><label for="wt-leave"><span class="material-icons">event_busy</span>ลา</label></div>
           </div>
-          <div id="leave-box" style="display:none;margin-top:15px">
-             <label>ระบุการลา</label>
-             <select id="lt-select"><option>ลากิจ</option><option>ลาป่วย</option><option>ลาพักผ่อน</option></select>
+          <div id="leave-type-row" style="display:none;margin-top:14px">
+            <div class="fg"><label>ประเภทการลา</label><select id="leave-type"><option value="ป่วย">ลาป่วย</option><option value="กิจ">ลากิจ</option><option value="พักผ่อน">ลาพักร้อน</option></select></div>
+            <input type="text" id="leave-reason" placeholder="ระบุเหตุผล...">
           </div>
-          <button class="btn btn-success btn-full" style="margin-top:20px" onclick="doClockIn()">บันทึกเวลาเข้างาน</button>
-          <button class="btn btn-warn btn-full" style="margin-top:10px" onclick="doClockOut()">บันทึกเวลาออกงาน</button>
         </div>
+        <div style="display:flex;gap:10px"><button class="btn btn-success btn-full btn-lg" id="btn-in" onclick="doClockIn()">ลงเวลาเข้า</button><button class="btn btn-warn btn-full btn-lg" id="btn-out" onclick="doClockOut()">ลงเวลาออก</button></div>
       </div>
     </div>
 
-    <!-- PAGE: DAILY REPORT -->
+    <!-- ════ PAGE: DAILY REPORT (Send) ════ -->
     <div id="dailyreport" class="page">
-      <div class="card" style="max-width:700px;margin:0 auto">
-        <h3>📝 รายงานผลการปฏิบัติงาน</h3>
-        <div style="margin:15px 0">
-           <label>ส่งถึงหัวหน้า/ผู้รับรายงาน (เลือกได้หลายคน)</label>
-           <div id="dr-recipients" class="dr-check-list"></div>
+      <div class="card" style="max-width:680px;margin:0 auto">
+        <div class="card-hd"><span class="material-icons">assignment</span><h3>รายงานผลการปฏิบัติงาน</h3></div>
+        <div style="background:#eff6ff;padding:14px;border-radius:12px;margin-bottom:16px;border:1.5px solid #bfdbfe">
+          <label style="color:#1e40af;font-weight:800">เลือกหัวหน้า/ผู้รับรายงาน</label>
+          <div id="dr-selected-preview" style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0"></div>
+          <div id="dr-check-list" class="dr-check-list"></div>
         </div>
-        <div class="fg"><label>1. งานที่ทำวันนี้</label><textarea id="dr-work" rows="5"></textarea></div>
-        <div class="fg"><label>2. ปัญหา/อุปสรรค</label><textarea id="dr-prob" rows="2"></textarea></div>
-        <div class="fg"><label>3. แผนวันถัดไป</label><textarea id="dr-next" rows="2"></textarea></div>
-        <button class="btn btn-primary btn-full" onclick="submitReport()">ส่งรายงาน</button>
+        <div class="fg"><label>1. ผลการปฏิบัติงานที่สำเร็จวันนี้ *</label><textarea id="dr-work" rows="5"></textarea></div>
+        <div class="fg"><label>2. ปัญหาและอุปสรรค</label><textarea id="dr-prob" rows="2"></textarea></div>
+        <div class="fg"><label>3. แผนงานพรุ่งนี้</label><textarea id="dr-next" rows="2"></textarea></div>
+        <button class="btn btn-primary btn-full btn-lg" onclick="doSubmitDR()">ส่งรายงานประจำวัน</button>
       </div>
     </div>
 
-    <!-- 📥 PAGE: INBOX (หัวหน้าเปิดดู) -->
-    <div id="inbox" class="page">
+    <!-- ════ PAGE: DAILY INBOX (Receive) ════ -->
+    <div id="daily_inbox" class="page">
+      <div class="card" style="max-width:920px;margin:0 auto">
+        <div class="card-hd">
+          <span class="material-icons" style="color:var(--p2)">inbox</span>
+          <h3>กล่องรับรายงาน (วันนี้)</h3>
+          <button class="btn btn-ghost" onclick="loadReceivedReports()" style="font-size:.78rem">รีเฟรช</button>
+        </div>
+        <div id="inbox-list-body" style="min-height:300px"></div>
+      </div>
+    </div>
+
+    <!-- ════ PAGE: SUMMARY & APPROVAL ════ -->
+    <div id="summary" class="page">
       <div class="card">
-        <h3>📥 รายงานที่ได้รับมอบหมาย (วันนี้)</h3>
-        <div class="tbl-wrap" style="margin-top:15px">
-          <table><thead><tr><th>ผู้ส่ง</th><th>เนื้อหางาน</th><th>เวลา</th><th style="width:100px">PDF</th></tr></thead><tbody id="inbox-body"></tbody></table>
-        </div>
+        <div class="card-hd"><h3>สรุปรายวัน & การรับรอง</h3><input type="date" id="sum-date-picker" onchange="onSummaryDateChange()"></div>
+        <div class="approval-steps" id="approval-steps"></div>
+        <div id="sum-status-bar" class="summary-status-bar ssb-pending"><span id="sum-status-txt">รอการรับรอง</span></div>
+        <div id="approve-btn-area" style="margin-bottom:16px; display:flex; gap:10px"></div>
+        <div id="sum-groups"></div>
+        <button class="btn btn-primary" style="margin-top:15px" onclick="printSummaryPDF()">พิมพ์รายงานสรุปภาพรวม</button>
       </div>
     </div>
 
-    <!-- PAGE: ANALYTICS (Report ละเอียด) -->
-    <div id="analytics" class="page">
-      <div class="card">
-        <h3>📊 ค้นหาประวัติการลงเวลาแบบละเอียด</h3>
-        <div style="display:flex;gap:10px;margin:15px 0">
-          <input type="date" id="rep-start"> ถึง <input type="date" id="rep-end">
-          <button class="btn btn-primary" onclick="loadDetailedAnalytics()">ค้นหา</button>
+    <!-- ════ PAGE: DETAILED REPORT ════ -->
+    <div id="report" class="page">
+      <div class="card" style="max-width:900px;margin:0 auto">
+        <div class="card-hd"><h3>ค้นหาประวัติการลงเวลาแบบละเอียด</h3></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+          <div class="fg"><label>ตั้งแต่วันที่</label><input type="date" id="report-start"></div>
+          <div class="fg"><label>ถึงวันที่</label><input type="date" id="report-end"></div>
         </div>
-        <div id="rep-result-box"></div>
+        <button class="btn btn-primary btn-full" onclick="loadDetailedReport()">ค้นหาข้อมูล</button>
+        <div id="report-result" style="margin-top:20px"></div>
       </div>
     </div>
 
-    <!-- PAGE: STAFF MGMT -->
+    <!-- ════ PAGE: STAFF MGMT ════ -->
     <div id="staffmgmt" class="page">
-      <div class="card">
-        <h3>👥 จัดการบุคลากร</h3>
-        <button class="btn btn-success" onclick="openAddStaff()">เพิ่มพนักงานใหม่</button>
-        <div class="tbl-wrap" style="margin-top:15px">
-          <table><thead><tr><th>ID</th><th>ชื่อ</th><th>ตำแหน่ง</th><th>กลุ่มงาน</th><th>บทบาท</th></tr></thead><tbody id="staff-body"></tbody></table>
+      <div class="card" style="max-width:720px;margin:0 auto">
+        <h3>เพิ่มบุคลากรใหม่</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0">
+          <input id="new-id" placeholder="เลขประจำตัว">
+          <input id="new-name" placeholder="ชื่อ-สกุล">
+          <input id="new-position" placeholder="ตำแหน่ง">
+          <input id="new-dept" placeholder="กลุ่มงาน">
+          <select id="new-role">
+            <option value="staff">Staff - ทั่วไป</option>
+            <option value="head">Head - หัวหน้ากลุ่ม</option>
+            <option value="HR">HR - บุคคล</option>
+            <option value="HRR">HRR - หัวหน้าบุคคล</option>
+            <option value="admin">Admin - ผู้บริหาร</option>
+          </select>
         </div>
+        <button class="btn btn-success btn-full" onclick="addNewStaff()">บันทึกรายชื่อ</button>
+      </div>
+      <div id="staff-table-wrap" style="margin-top:20px"></div>
+    </div>
+
+    <!-- ════ PAGE: WFH TASK ════ -->
+    <div id="wfh_task" class="page">
+      <div class="card" style="max-width:680px;margin:0 auto">
+        <div class="card-hd"><h3>เสนองาน WFH</h3></div>
+        <textarea id="wfh-desc" rows="6" placeholder="ระบุเนื้อหางานที่ได้รับมอบหมาย..."></textarea>
+        <button class="btn btn-success btn-full" onclick="doSubmitWFH()" style="margin-top:10px">ส่งงาน WFH</button>
+      </div>
+    </div>
+
+    <!-- ════ PAGE: PROFILE ════ -->
+    <div id="profile" class="page"><div id="profile-wrap" style="max-width:480px;margin:0 auto"></div></div>
+    
+    <!-- ════ PAGE: ADMIN GATE ════ -->
+    <div id="admin" class="page">
+      <div id="admin-gate" class="card" style="max-width:360px;margin:0 auto;text-align:center">
+        <h3>ยืนยันสิทธิ์ Admin</h3>
+        <input type="password" id="adm-pass" style="text-align:center;margin:14px 0" placeholder="รหัสผ่าน">
+        <button class="btn btn-primary btn-full" onclick="doAdminLogin()">เข้าระบบ</button>
+      </div>
+      <div id="admin-content" style="display:none;text-align:center">
+        <button class="btn btn-danger" onclick="doSetup()">Update Sheet Structure (Setup)</button>
       </div>
     </div>
 
@@ -204,177 +319,287 @@ td{padding:14px 12px;border-top:1px solid var(--border);font-size:.9rem}
 <!-- MODAL: LOGIN -->
 <div class="mo" id="mo-login">
   <div class="mo-box">
-    <h2 align="center">🔐 ล็อกอิน</h2>
-    <div class="fg" style="margin-top:20px"><label>เลขประจำตัว / ID</label><input id="lg-id"></div>
-    <div class="fg"><label>รหัสผ่าน</label><input type="password" id="lg-pass"></div>
-    <button class="btn btn-primary btn-full" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <div class="mo-hd"><h3>🔐 ลงชื่อเข้าใช้งาน</h3></div>
+    <div class="mo-body">
+      <div class="fg"><label>เลขประจำตัว / ID</label><input id="lg-id"></div>
+      <div class="fg"><label>รหัสผ่าน</label><input type="password" id="lg-pass"></div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="doLogin()">Login</button>
+    </div>
   </div>
 </div>
 
+<!-- ════════════════════ JAVASCRIPT LOGIC ════════════════════ -->
 <script>
-// ============================================================
-// JavaScript v4.5 (Full Support)
-// ============================================================
 var API_URL = 'https://script.google.com/macros/s/AKfycbw_woBO9dgsH7xF1gvgHzwCfDp6_8NJoRWjB8gurkheiGAUubs6F38QG80RLQsTBCInVg/exec';
-var DATA = { staff:[], todayAtt:[], summaryApproval:{} };
+var SUPER_ADMIN_ID = 'A300400000';
+var DATA = { staff:[], todayAtt:[], summaryApproval:null };
 var CU = JSON.parse(localStorage.getItem('cu') || 'null');
 var ROLE = CU?.systemRole || 'staff';
-var DR_SELECTED = [];
+var PRIVATE = ['clock','dailyreport','wfh_task','profile','summary','report','staffmgmt','admin','daily_inbox','head_wfh'];
+var DR_SELECTED_RECIPIENTS = [];
+var SUMMARY_DATE = new Date().toISOString().slice(0,10);
 
+// --- 1. INITIAL LOAD ---
 window.onload = async () => {
-  startTime();
+  startClock();
+  setupWorkTypeListeners();
   await refreshData();
   applyRole();
-  if(!CU) openMo('mo-login'); else go('dashboard');
+  renderUserBadge();
+  go('dashboard');
 };
 
-async function api(action, data={}) {
-  var r = await fetch(API_URL, {method:'POST', body:JSON.stringify({action, ...data}), headers:{'Content-Type':'text/plain'}});
-  return r.json();
-}
-
 async function refreshData() {
-  showLd('กำลังซิงค์...');
+  showLd('กำลังซิงค์ข้อมูลล่าสุด...');
   try {
     var d = await api('getAllData');
     DATA.staff = d.staff || [];
     DATA.todayAtt = d.todayAttendance || [];
+    DATA.summaryApproval = d.summaryApproval;
     renderDashboard();
     hideLd();
-  } catch(e) { hideLd(); }
+  } catch(e) { hideLd(); toast('เชื่อมต่อฐานข้อมูลล้มเหลว','error'); }
 }
 
+// --- 2. AUTH & NAVIGATION ---
 function applyRole() {
   if(!CU) return;
-  var isBoss = ['head','HR','HRR','admin','superadmin'].includes(ROLE);
-  document.getElementById('nav-inbox').style.display = isBoss ? 'flex' : 'none';
-  document.getElementById('mgr-zone').style.display = isBoss ? 'block' : 'none';
-  document.getElementById('sb-user-box').innerHTML = `<div style="color:#fff"><strong>${CU.name}</strong><br><small>${ROLE}</small></div>`;
-  if(isBoss) loadInboxBadge();
+  var isBoss = ['head', 'HR', 'HRR', 'admin', 'superadmin'].includes(ROLE);
+  document.getElementById('nav-daily-inbox').style.display = isBoss ? 'flex' : 'none';
+  document.getElementById('nav-sec-mgr').style.display = isBoss ? 'block' : 'none';
+  document.getElementById('nav-summary').style.display = isBoss ? 'flex' : 'none';
+  document.getElementById('nav-report').style.display = isBoss ? 'flex' : 'none';
+  document.getElementById('nav-staffmgmt').style.display = (ROLE==='superadmin') ? 'flex' : 'none';
+  document.getElementById('nav-admin').style.display = (ROLE==='superadmin') ? 'flex' : 'none';
+  document.getElementById('nav-head-wfh').style.display = (ROLE==='head'||ROLE==='superadmin') ? 'flex' : 'none';
 }
 
 function go(p, el) {
+  if (PRIVATE.includes(p) && !CU) { openMo('mo-login'); return; }
   document.querySelectorAll('.page').forEach(e => e.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
-  document.getElementById(p).classList.add('active');
-  if(el) el.classList.add('active');
-  document.getElementById('page-title').innerText = p.toUpperCase();
+  var target = document.getElementById(p);
+  if(target) target.classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('page-title').innerText = p.toUpperCase().replace('_',' ');
 
-  if(p==='dailyreport') renderStaffPicker();
-  if(p==='inbox') loadInbox();
-  if(p==='clock') renderClock();
-  if(p==='staffmgmt') renderStaffTable();
+  if (p === 'dailyreport') renderDRPage();
+  if (p === 'daily_inbox') loadReceivedReports();
+  if (p === 'clock') renderClockPage();
+  if (p === 'profile') renderProfile();
+  if (p === 'summary') renderSummary();
+  if (p === 'staffmgmt') renderStaffTable();
+  if (p === 'head_wfh') renderHeadWFHPage();
+  if (window.innerWidth <= 768) closeSB();
 }
-
-// 📥 INBOX & PDF
-async function loadInbox() {
-  var r = await api('getReceivedReports', { myId: CU.id });
-  var b = document.getElementById('inbox-body');
-  if(!r.data.length) { b.innerHTML = '<tr><td colspan="4" align="center">ไม่มีข้อมูล</td></tr>'; return; }
-  b.innerHTML = r.data.map(item => `
-    <tr>
-      <td>${item.name}</td>
-      <td><div style="max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${item.workDone}</div></td>
-      <td>${item.timestamp.split(' ')[1]}</td>
-      <td><button class="btn btn-primary" style="padding:5px" onclick='genPDF(${JSON.stringify(item)})'><span class="material-icons">picture_as_pdf</span></button></td>
-    </tr>
-  `).join('');
-}
-
-function genPDF(d) {
-  var win = window.open('', '_blank');
-  win.document.write(`
-    <html><head><title>รายงาน-${d.name}</title><style>body{font-family:Sarabun;padding:40px;line-height:1.6} .hd{text-align:center;border-bottom:2px solid #000;margin-bottom:20px} .sec{margin-bottom:15px;background:#f9f9f9;padding:15px;border-radius:10px}</style></head>
-    <body>
-      <div class="hd"><h2>รายงานผลการปฏิบัติงานประจำวัน</h2><p>สพป.นครราชสีมา เขต 4</p></div>
-      <p><b>ชื่อผู้รายงาน:</b> ${d.name} | <b>กลุ่มงาน:</b> ${d.dept} | <b>วันที่:</b> ${d.date}</p>
-      <div class="sec"><b>1. ผลงานที่ทำวันนี้:</b><br>${d.workDone}</div>
-      <div class="sec"><b>2. ปัญหา/อุปสรรค:</b><br>${d.problems || '-'}</div>
-      <div class="sec"><b>3. แผนงานวันพรุ่งนี้:</b><br>${d.nextPlan || '-'}</div>
-      <br><br><table width="100%"><tr><td align="center">ลงชื่อ.........................................ผู้รายงาน<br>(${d.name})</td><td align="center">ลงชื่อ.........................................ผู้รับรอง<br>(...................................................)</td></tr></table>
-      <script>window.onload=()=>setTimeout(()=>window.print(),500)<\/script>
-    </body></html>
-  `);
-  win.document.close();
-}
-
-// ✍️ DAILY REPORT
-function renderStaffPicker() {
-  var bosses = DATA.staff.filter(s => ['head','HR','HRR','admin','superadmin'].includes(s.role) && s.id !== CU.id);
-  document.getElementById('dr-recipients').innerHTML = bosses.map(s => `
-    <div class="dr-check-item" onclick="toggleRec('${s.id}', this)">
-      <input type="checkbox" id="cb-${s.id}"> <span>${s.name} (${s.role})</span>
-    </div>
-  `).join('');
-}
-
-function toggleRec(id, el) {
-  var idx = DR_SELECTED.indexOf(id);
-  if(idx > -1) DR_SELECTED.splice(idx,1); else DR_SELECTED.push(id);
-  el.classList.toggle('selected');
-}
-
-async function submitReport() {
-  var work = document.getElementById('dr-work').value;
-  if(!work || !DR_SELECTED.length) return alert('กรุณาระบุงานและเลือกผู้รับ');
-  showLd('กำลังส่ง...');
-  var r = await api('submitDailyReport', { data: { staffId:CU.id, name:CU.name, dept:CU.dept, workDone:work, problems:document.getElementById('dr-prob').value, nextPlan:document.getElementById('dr-next').value, recipients:DR_SELECTED } });
-  hideLd();
-  alert(r.msg); if(r.success) go('dashboard');
-}
-
-// 📊 DASHBOARD
-function renderDashboard() {
-  var att = DATA.todayAtt;
-  var staff = DATA.staff.filter(s => s.id !== SUPER_ADMIN_ID);
-  var html = staff.map(s => {
-    var a = att.find(x => x.id === s.id);
-    var st = !a ? '<span class="badge b-absent">ยังไม่ลงเวลา</span>' : `<span class="badge b-office">${a.status}</span>`;
-    return `<tr><td><strong>${s.name}</strong></td><td><small>${s.dept}</small></td><td>${st}</td><td>${a?.clockIn || '-'}</td><td>${a?.clockOut || '-'}</td></tr>`;
-  }).join('');
-  document.getElementById('dash-body').innerHTML = html;
-}
-
-// ⏰ CLOCK
-function renderClock() {
-  document.getElementById('ck-name').innerText = CU.name;
-  document.getElementById('ck-dept').innerText = CU.dept;
-  var a = DATA.todayAtt.find(x => x.id === CU.id);
-  document.getElementById('ck-in').innerText = a?.clockIn || '-';
-  document.getElementById('ck-out').innerText = a?.clockOut || '-';
-}
-
-async function doClockIn() {
-  var wt = document.querySelector('input[name="wt"]:checked').value;
-  showLd('บันทึกเวลา...');
-  var r = await api('clockIn', { id:CU.id, name:CU.name, dept:CU.dept, workType:wt });
-  hideLd(); alert(r.msg); if(r.success) refreshData();
-}
-
-// 👥 STAFF MANAGEMENT
-function renderStaffTable() {
-  document.getElementById('staff-body').innerHTML = DATA.staff.map(s => `
-    <tr><td>${s.id}</td><td>${s.name}</td><td>${s.position}</td><td>${s.dept}</td><td><span class="badge b-office">${s.role}</span></td></tr>
-  `).join('');
-}
-
-// 🛠️ UTILS
-function showLd(t){ document.getElementById('loader').classList.add('active'); document.getElementById('ld-txt').innerText=t; }
-function hideLd(){ document.getElementById('loader').classList.remove('active'); }
-function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('closed'); document.querySelector('.main').classList.toggle('full'); }
-function openMo(id){ document.getElementById(id).classList.add('open'); }
-function closeMo(id){ document.getElementById(id).classList.remove('open'); }
-function startTime() { setInterval(() => { document.getElementById('top-time').innerText = new Date().toLocaleTimeString('th-TH'); }, 1000); }
 
 async function doLogin() {
   var id = document.getElementById('lg-id').value, pw = document.getElementById('lg-pass').value;
-  var r = await api('loginStaff', {staffId:id, password:pw});
-  if(r.success) { localStorage.setItem('cu', JSON.stringify(r.staff)); location.reload(); }
-  else alert(r.msg);
+  if(!id||!pw) return toast('ระบุรหัสประจำตัวและรหัสผ่าน','warn');
+  showLd('กำลังยืนยันตัวตน...');
+  var r = await api('loginStaff', { staffId:id, password:pw });
+  hideLd();
+  if(r.success) { 
+    CU=r.staff; ROLE=r.staff.systemRole; 
+    localStorage.setItem('cu', JSON.stringify(CU)); 
+    location.reload(); 
+  } else toast(r.msg,'error');
 }
 
 function doLogout(){ localStorage.removeItem('cu'); location.reload(); }
-</script>
 
+// --- 3. 📥 INBOX & PDF EXPORT (INDIVIDUAL) ---
+async function loadReceivedReports() {
+  if (!CU) return;
+  showLd('กำลังโหลด Inbox...');
+  try {
+    var r = await api('getReceivedReports', { myId: CU.id });
+    hideLd();
+    var b = document.getElementById('inbox-list-body');
+    document.getElementById('inbox-badge').innerText = r.count;
+    document.getElementById('inbox-badge').style.display = r.count > 0 ? 'block' : 'none';
+    
+    if (!r.data || !r.data.length) { b.innerHTML = '<div style="text-align:center;padding:50px;color:#999">ไม่มีรายงานใหม่สำหรับคุณ</div>'; return; }
+    
+    var html = '<div class="tbl-wrap"><table><thead><tr><th>ผู้ส่ง</th><th>งานที่ปฏิบัติสำเร็จ</th><th style="width:70px">PDF</th></tr></thead><tbody>';
+    r.data.forEach(item => {
+      html += `<tr>
+        <td><strong>${item.name}</strong><br><small>${item.dept}</small></td>
+        <td><div style="white-space:pre-wrap;font-size:0.85rem">${item.workDone}</div></td>
+        <td align="center"><button class="btn btn-primary" style="padding:6px" onclick='printIndividualPDF(${JSON.stringify(item)})'><span class="material-icons" style="font-size:18px">picture_as_pdf</span></button></td>
+      </tr>`;
+    });
+    b.innerHTML = html + '</tbody></table></div>';
+  } catch(e) { hideLd(); toast('โหลด Inbox ล้มเหลว','error'); }
+}
+
+function printIndividualPDF(data) {
+  var w = window.open('', '_blank');
+  w.document.write(`
+    <html><head><title>รายงานผลงาน_${data.name}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+      body { font-family:Sarabun, sans-serif; padding:45px; line-height:1.7; color:#1a202c; }
+      .header { text-align:center; border-bottom:3px double #1e3a8a; padding-bottom:12px; margin-bottom:25px; }
+      .title { font-size:1.6rem; font-weight:700; color:#1e3a8a; margin:0; }
+      .meta { background:#f8fafc; border:1px solid #e2e8f0; padding:15px; border-radius:10px; display:flex; justify-content:space-between; margin-bottom:20px; font-size:0.95rem; }
+      .section { margin-bottom:22px; padding:10px 0; }
+      .label { font-weight:700; color:#1e3a8a; display:block; margin-bottom:8px; border-left:4px solid #1e3a8a; padding-left:10px; }
+      .content { background:#fff; padding:12px 15px; border:1px solid #edf2f7; border-radius:8px; min-height:60px; white-space:pre-wrap; }
+      .footer-sig { margin-top:60px; display:flex; justify-content:space-around; text-align:center; font-size:0.95rem; }
+    </style></head><body>
+    <div class="header"><div class="title">รายงานผลการปฏิบัติงานประจำวัน</div><p>สำนักงานเขตพื้นที่การศึกษาประถมศึกษานครราชสีมา เขต 4</p></div>
+    <div class="meta"><div><strong>ผู้รายงาน:</strong> ${data.name}</div><div><strong>กลุ่มงาน:</strong> ${data.dept}</div><div><strong>วันที่:</strong> ${data.date}</div></div>
+    <div class="section"><span class="label">1. ผลการปฏิบัติงานที่ปฏิบัติสำเร็จวันนี้:</span><div class="content">${data.workDone}</div></div>
+    <div class="section"><span class="label">2. ปัญหาและอุปสรรคในการปฏิบัติงาน:</span><div class="content">${data.problems || '— ไม่มี —'}</div></div>
+    <div class="section"><span class="label">3. แผนการปฏิบัติงานในวันถัดไป:</span><div class="content">${data.nextPlan || '— ไม่มี —'}</div></div>
+    <div class="footer-sig">
+      <div><br><br>ลงชื่อ......................................................ผู้รายงาน<br>(${data.name})</div>
+      <div><br><br>ลงชื่อ......................................................ผู้รับรอง<br>(....................................................)<br>หัวหน้ากลุ่มงาน/ผู้มีอำนาจรับรอง</div>
+    </div>
+    <script>window.onload=()=>setTimeout(()=>window.print(),600)<\/script></body></html>`);
+  w.document.close();
+}
+
+// --- 4. STAFF SEND REPORT LOGIC ---
+function renderDRPage() {
+  var bosses = DATA.staff.filter(s => ['head','HR','HRR','admin','superadmin'].includes(s.role) && s.id !== CU.id);
+  document.getElementById('dr-check-list').innerHTML = bosses.map(s => `
+    <div class="dr-check-item ${DR_SELECTED_RECIPIENTS.includes(s.id)?'selected':''}" onclick="toggleRecipient('${s.id}')">
+      <input type="checkbox" ${DR_SELECTED_RECIPIENTS.includes(s.id)?'checked':''}> <span class="dr-check-name">${s.name} (${s.role.toUpperCase()})</span>
+    </div>`).join('');
+  updateDRPreview();
+}
+
+function toggleRecipient(id) {
+  var idx = DR_SELECTED_RECIPIENTS.indexOf(id);
+  if (idx > -1) DR_SELECTED_RECIPIENTS.splice(idx,1); else DR_SELECTED_RECIPIENTS.push(id);
+  renderDRPage();
+}
+
+function updateDRPreview() {
+  var el = document.getElementById('dr-selected-preview');
+  var selNames = DATA.staff.filter(s => DR_SELECTED_RECIPIENTS.includes(s.id)).map(s => s.name);
+  el.innerHTML = selNames.length ? selNames.map(n => `<span class="badge b-office">${n}</span>`).join('') : '<span style="color:#999;font-size:0.75rem">ยังไม่ได้เลือก</span>';
+}
+
+async function doSubmitDR() {
+  var work = document.getElementById('dr-work').value;
+  if (!work || !DR_SELECTED_RECIPIENTS.length) return toast('กรุณาระบุงานและเลือกผู้รับอย่างน้อย 1 คน','warn');
+  showLd('กำลังบันทึกและส่งรายงาน...');
+  var r = await api('submitDailyReport', { data: { staffId:CU.id, name:CU.name, dept:CU.dept, workDone:work, problems:document.getElementById('dr-prob').value, nextPlan:document.getElementById('dr-next').value, recipients:DR_SELECTED_RECIPIENTS } });
+  hideLd();
+  if(r.success) { toast('ส่งรายงานสำเร็จเรียบร้อย','success'); go('dashboard'); }
+}
+
+// --- 5. DASHBOARD & OTHER RENDERS ---
+function renderDashboard() {
+  var att = DATA.todayAtt;
+  var staff = DATA.staff.filter(s => s.id !== SUPER_ADMIN_ID);
+  var office = att.filter(a => a.workType==='office').length;
+  var wfh = att.filter(a => a.workType==='wfh').length;
+  var leave = att.filter(a => a.workType==='leave').length;
+  var total = staff.length;
+  var absent = total - att.length;
+
+  document.getElementById('stat-grid').innerHTML = `
+    <div class="sc" style="--ac:#2563eb"><div class="sc-lbl">ทั้งหมด</div><div class="sc-val">${total}</div></div>
+    <div class="sc" style="--ac:var(--success)"><div class="sc-lbl">มาออฟฟิศ</div><div class="sc-val">${office}</div></div>
+    <div class="sc" style="--ac:var(--purple)"><div class="sc-lbl">WFH</div><div class="sc-val">${wfh}</div></div>
+    <div class="sc" style="--ac:var(--warn)"><div class="sc-lbl">ลา</div><div class="sc-val">${leave}</div></div>
+    <div class="sc" style="--ac:var(--danger)"><div class="sc-lbl">ยังไม่มา</div><div class="sc-val">${absent}</div></div>
+  `;
+
+  var html = staff.map(s => {
+    var a = att.find(x => x.id === s.id);
+    var st = !a ? '<span class="badge b-absent">ขาด/ไม่ลง</span>' : (a.workType==='office'?'<span class="badge b-office">ออฟฟิศ</span>' : (a.workType==='wfh'?'<span class="badge b-wfh">WFH</span>' : `<span class="badge b-leave">ลา${a.leaveType}</span>`));
+    return `<tr><td><strong>${s.name}</strong></td><td><small>${s.dept}</small></td><td>${st}</td><td>${a?.clockIn||'-'}</td><td>${a?.clockOut||'-'}</td></tr>`;
+  }).join('');
+  document.getElementById('dash-tbody').innerHTML = html;
+}
+
+function renderClockPage() {
+  if(!CU) return;
+  document.getElementById('ck-name').innerText = CU.name;
+  document.getElementById('ck-dept').innerText = CU.dept;
+  var myAtt = DATA.todayAtt.find(a => a.id === CU.id);
+  document.getElementById('ck-in').innerText = myAtt?.clockIn || '-';
+  document.getElementById('ck-out').innerText = myAtt?.clockOut || '-';
+}
+
+async function doClockIn() {
+  var wt = document.querySelector('input[name=wtype]:checked').value;
+  showLd('กำลังบันทึกเวลา...');
+  var r = await api('clockIn', { id:CU.id, name:CU.name, dept:CU.dept, workType:wt, leaveType:document.getElementById('leave-type').value, leaveReason:document.getElementById('leave-reason').value });
+  hideLd(); toast(r.msg, r.success?'success':'error');
+  if(r.success) refreshData();
+}
+
+async function doClockOut() {
+  showLd('บันทึกเวลาออก...');
+  var r = await api('clockOut', { id:CU.id, name:CU.name });
+  hideLd(); toast(r.msg, r.success?'success':'error');
+  if(r.success) refreshData();
+}
+
+// --- 6. UTILS ---
+async function api(action, data={}) {
+  var r = await fetch(API_URL, {method:'POST', body:JSON.stringify({action,...data}), headers:{'Content-Type':'text/plain'}});
+  return r.json();
+}
+function showLd(t){ document.getElementById('loader').classList.add('on'); document.getElementById('ld-txt').innerText=t; }
+function hideLd(){ document.getElementById('loader').classList.remove('on'); }
+function toast(m,t){ 
+  var e = document.createElement('div'); e.className='toast'; e.innerText=m;
+  e.style.borderLeftColor = t==='success'?'var(--success)':t==='error'?'var(--danger)':'var(--warn)';
+  document.getElementById('tc').appendChild(e);
+  setTimeout(()=>e.remove(),3500);
+}
+function openMo(id){ document.getElementById(id).classList.add('open'); }
+function closeMo(id){ document.getElementById(id).classList.remove('open'); }
+function toggleSB(){ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sb-ov').style.display = document.getElementById('sidebar').classList.contains('open')?'block':'none'; }
+function closeSB(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('sb-ov').style.display='none'; }
+function startClock(){ setInterval(()=>{ var n=new Date(); document.getElementById('tb-clock').innerText = n.toLocaleTimeString('th-TH'); document.getElementById('today-lbl').innerText = n.toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); },1000); }
+function setupWorkTypeListeners() {
+  document.querySelectorAll('input[name=wtype]').forEach(r => r.addEventListener('change', () => {
+    document.getElementById('leave-type-row').style.display = (r.value==='leave'?'block':'none');
+  }));
+}
+
+function renderUserBadge() {
+  var slot = document.getElementById('sb-user');
+  if(!CU) { slot.innerHTML = `<button class="btn btn-primary btn-full" onclick="openMo('mo-login')">Login</button>`; return; }
+  slot.innerHTML = `<div style="padding:10px;color:#fff;background:rgba(255,255,255,0.1);border-radius:10px;margin:0 10px 10px">
+    <div style="font-weight:800;font-size:0.85rem">${CU.name}</div>
+    <div style="font-size:0.65rem;opacity:0.6">${ROLE.toUpperCase()} - ${CU.dept}</div>
+    <button onclick="doLogout()" style="background:none;border:none;color:#ff4d4d;font-size:0.7rem;cursor:pointer;margin-top:5px;font-weight:700">Logout</button>
+  </div>`;
+}
+
+function renderProfile() {
+  if(!CU) return;
+  document.getElementById('profile-wrap').innerHTML = `<div class="profile-hero"><h2>${CU.name}</h2><p>${CU.dept} | ${ROLE.toUpperCase()}</p></div><div class="card">ID: ${CU.id}</div>`;
+}
+
+function renderStaffTable() {
+  var h = '<div class="tbl-wrap"><table><thead><tr><th>ID</th><th>ชื่อ</th><th>กลุ่ม</th><th>สิทธิ์</th></tr></thead><tbody>';
+  DATA.staff.forEach(s => { h += `<tr><td>${s.id}</td><td>${s.name}</td><td>${s.dept}</td><td>${s.role}</td></tr>`; });
+  document.getElementById('staff-table-wrap').innerHTML = h + '</tbody></table></div>';
+}
+
+function renderSummary() {
+  // logic summary code...
+}
+
+async function doAdminLogin() {
+  if(document.getElementById('adm-pass').value === '1111') { 
+    document.getElementById('admin-gate').style.display='none'; 
+    document.getElementById('admin-content').style.display='block'; 
+  } else toast('รหัส Admin ไม่ถูกต้อง','error');
+}
+
+async function doSetup() { showLd('Initializing...'); var r = await api('setupSheets'); hideLd(); toast(r.msg,'success'); }
+
+</script>
 </body>
 </html>
