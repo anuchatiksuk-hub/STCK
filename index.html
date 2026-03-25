@@ -153,11 +153,8 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
 /* ── Approver Settings ── */
 .approver-card{border:2px dashed var(--border);border-radius:12px;padding:14px;margin-bottom:10px;transition:.15s}
 .approver-card.set{border-color:#86efac;background:#f0fdf4}
-.approver-card-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.approver-step-badge{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#fff;background:var(--p2);flex-shrink:0}
-.approver-step-badge.done-bg{background:#16a34a}
 
-/* ── Daily Report Send to dept ── */
+/* ── Daily Report Recipient ── */
 .dr-recipient-list{display:flex;flex-direction:column;gap:8px;margin:12px 0}
 .dr-recipient{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:9px;background:#f8fafc;border:1px solid var(--border);font-size:.85rem;font-weight:600}
 .dr-recipient .material-icons{font-size:17px;color:var(--p2)}
@@ -169,6 +166,22 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
 .role-head{background:#fef3c7;color:#92400e}
 .role-admin{background:#dbeafe;color:#1e40af}
 .role-superadmin{background:#fef9c3;color:#854d0e}
+
+/* ── DR Recipient Checkbox ── */
+.dr-check-list{display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;padding:4px 0}
+.dr-check-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;border:1.5px solid var(--border);cursor:pointer;transition:.15s;user-select:none}
+.dr-check-item:hover{background:#f0f4ff;border-color:#93c5fd}
+.dr-check-item.selected{background:#eff6ff;border-color:#2563eb}
+.dr-check-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--p2);cursor:pointer;flex-shrink:0}
+.dr-check-name{font-size:.85rem;font-weight:700;flex:1}
+.dr-check-role{font-size:.7rem;font-weight:700}
+
+/* ── Reset Approval Banner ── */
+.reset-approval-box{background:#fff5f5;border:1.5px solid #fca5a5;border-radius:12px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px}
+.reset-approval-box .material-icons{color:var(--danger);font-size:22px;flex-shrink:0}
+
+/* ── Dashboard PDF button ── */
+.dash-toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
 
 @media(max-width:768px){
   :root{--sidebar-w:280px;--topbar:56px}
@@ -230,18 +243,25 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
   </div>
 
   <div class="content">
-    <!-- DASHBOARD -->
+    <!-- ═══════════════════ DASHBOARD ═══════════════════ -->
     <div id="dashboard" class="page active">
       <div class="stat-grid" id="stat-grid"></div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px" id="group-summary"></div>
+
       <div class="card">
         <div class="card-hd">
           <span class="material-icons">today</span>
           <h3>สถานะบุคลากรวันนี้</h3>
           <span id="today-lbl" style="margin-left:auto;font-size:.78rem;color:var(--txt2);font-weight:600"></span>
         </div>
+        <!-- ✅ NEW: Toolbar พร้อมปุ่ม PDF -->
+        <div class="dash-toolbar">
+          <button class="btn btn-primary" onclick="printDashboardPDF()">
+            <span class="material-icons">picture_as_pdf</span> ออก PDF ภาพรวมวันนี้
+          </button>
+        </div>
         <div class="tbl-wrap">
-          <table id="tb-dash" style="width:100%">
+          <table id="tb-dash">
             <thead><tr><th>ชื่อ-สกุล</th><th>กลุ่มงาน</th><th>สถานะ</th><th class="hide-xs">เข้างาน</th><th class="hide-xs">ออกงาน</th></tr></thead>
             <tbody id="dash-tbody"></tbody>
           </table>
@@ -249,7 +269,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
       </div>
     </div>
 
-    <!-- CLOCK -->
+    <!-- ═══════════════════ CLOCK ═══════════════════ -->
     <div id="clock" class="page">
       <div class="clock-wrap">
         <div class="clock-hero">
@@ -281,19 +301,33 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
       </div>
     </div>
 
-    <!-- DAILY REPORT -->
+    <!-- ═══════════════════ DAILY REPORT ═══════════════════ -->
     <div id="dailyreport" class="page">
       <div class="card" style="max-width:680px;margin:0 auto">
-        <div class="card-hd"><span class="material-icons">assignment</span><h3>รายงานผลการปฏิบัติงานประจำวัน</h3></div>
+        <div class="card-hd">
+          <span class="material-icons">assignment</span>
+          <h3>รายงานผลการปฏิบัติงานประจำวัน</h3>
+        </div>
 
-        <!-- ส่วนผู้รับรายงาน -->
-        <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:12px 14px;margin-bottom:16px">
-          <div style="font-size:.78rem;font-weight:800;color:#1e40af;margin-bottom:8px;display:flex;align-items:center;gap:6px">
-            <span class="material-icons" style="font-size:16px">send</span>
-            ส่งรายงานไปยัง
+        <!-- ✅ NEW: เลือกผู้รับ + collapse -->
+        <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:12px;padding:14px;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <span class="material-icons" style="font-size:18px;color:#1e40af">send</span>
+            <span style="font-size:.82rem;font-weight:800;color:#1e40af;flex:1">เลือกผู้รับรายงาน</span>
+            <button class="btn btn-ghost" style="padding:5px 10px;font-size:.75rem" onclick="toggleRecipientBox()">
+              <span class="material-icons" id="recipient-toggle-icon" style="font-size:16px">expand_more</span>
+              <span id="recipient-toggle-txt">ซ่อน</span>
+            </button>
           </div>
-          <div class="dr-recipient-list" id="dr-recipient-list">
-            <div class="dr-recipient"><span class="material-icons">person</span><span id="dr-dept-head-name">ผอ.กลุ่ม (ระบบจะส่งอัตโนมัติตามกลุ่มงานของคุณ)</span></div>
+          <!-- ป้ายแสดงผู้ที่เลือกแล้ว -->
+          <div id="dr-selected-preview" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"></div>
+          <!-- รายการให้เลือก -->
+          <div id="recipient-box">
+            <div id="dr-check-list" class="dr-check-list"></div>
+            <div style="font-size:.72rem;color:var(--txt2);margin-top:8px">
+              <span class="material-icons" style="font-size:13px;vertical-align:middle">info</span>
+              เลือกได้หลายคน / กลุ่มงานใด ก็ได้
+            </div>
           </div>
         </div>
 
@@ -303,10 +337,14 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
         <button class="btn btn-primary btn-full" onclick="doSubmitDR()"><span class="material-icons">send</span> ส่งรายงานประจำวัน</button>
       </div>
 
-      <!-- กล่องรายงานจากทีม (สำหรับ HRR / admin / superadmin) -->
+      <!-- กล่องรายงานจากทีม (HRR / admin / superadmin) -->
       <div id="team-reports-section" class="card" style="max-width:680px;margin:14px auto 0;display:none">
-        <div class="card-hd"><span class="material-icons" style="color:var(--purple)">inbox</span><h3>รายงานที่ได้รับจากทีม</h3>
-          <button class="btn btn-ghost" style="margin-left:auto;font-size:.78rem;padding:6px 12px" onclick="loadTeamReports()"><span class="material-icons" style="font-size:16px">refresh</span> โหลด</button>
+        <div class="card-hd">
+          <span class="material-icons" style="color:var(--purple)">inbox</span>
+          <h3>รายงานที่ได้รับจากทีม</h3>
+          <button class="btn btn-ghost" style="margin-left:auto;font-size:.78rem;padding:6px 12px" onclick="loadTeamReports()">
+            <span class="material-icons" style="font-size:16px">refresh</span> โหลด
+          </button>
         </div>
         <div id="team-reports-body"><p style="color:var(--txt2);font-size:.85rem">กด "โหลด" เพื่อดูรายงานวันนี้</p></div>
         <div style="margin-top:14px;display:flex;gap:10px">
@@ -315,7 +353,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
       </div>
     </div>
 
-    <!-- WFH TASK -->
+    <!-- ═══════════════════ WFH TASK ═══════════════════ -->
     <div id="wfh_task" class="page">
       <div class="card" style="max-width:680px;margin:0 auto">
         <div class="card-hd"><span class="material-icons">home_work</span><h3>เสนองาน WFH</h3></div>
@@ -324,18 +362,17 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
       </div>
     </div>
 
-    <!-- PROFILE -->
+    <!-- ═══════════════════ PROFILE ═══════════════════ -->
     <div id="profile" class="page">
       <div style="max-width:480px;margin:0 auto" id="profile-wrap"></div>
     </div>
 
-    <!-- SUMMARY -->
+    <!-- ═══════════════════ SUMMARY ═══════════════════ -->
     <div id="summary" class="page">
       <div class="card">
         <div class="card-hd">
           <span class="material-icons">summarize</span>
           <h3>สรุปรายวัน</h3>
-          <!-- Date Picker -->
           <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
             <input type="date" id="sum-date-picker" style="width:auto;padding:6px 10px;font-size:.8rem;border-radius:8px" onchange="onSummaryDateChange()">
           </div>
@@ -350,13 +387,13 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
               <div>
-                <label style="font-size:.72rem">ขั้นที่ 1 — เจ้าหน้าที่ HR (HR)</label>
+                <label style="font-size:.72rem">ขั้นที่ 1 — เจ้าหน้าที่ HR</label>
                 <select id="set-a1" onchange="saveApproverSettings()" style="padding:7px 10px;font-size:.82rem">
                   <option value="">— เลือก —</option>
                 </select>
               </div>
               <div>
-                <label style="font-size:.72rem">ขั้นที่ 2 — หัวหน้าบุคคล (HRR)</label>
+                <label style="font-size:.72rem">ขั้นที่ 2 — หัวหน้าบุคคล HRR</label>
                 <select id="set-a2" onchange="saveApproverSettings()" style="padding:7px 10px;font-size:.82rem">
                   <option value="">— เลือก —</option>
                 </select>
@@ -364,6 +401,18 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
             </div>
             <div id="approver-saved-msg" style="display:none;margin-top:8px;font-size:.75rem;color:var(--success);font-weight:700">✅ บันทึกแล้ว</div>
           </div>
+        </div>
+
+        <!-- ✅ NEW: Reset Approval Box (superadmin เท่านั้น เมื่อมีการอนุมัติแล้ว) -->
+        <div id="reset-approval-box" style="display:none" class="reset-approval-box">
+          <span class="material-icons">warning</span>
+          <div style="flex:1">
+            <div style="font-size:.82rem;font-weight:800;color:var(--danger)">รีเซ็ทการรับรอง / อนุมัติ (superadmin)</div>
+            <div style="font-size:.75rem;color:#991b1b;margin-top:2px">ใช้เมื่อมีการยืนยันผิดพลาด จะล้างข้อมูลการรับรองวันนี้ทั้งหมด</div>
+          </div>
+          <button class="btn btn-danger" style="padding:8px 14px;font-size:.8rem" onclick="doResetApproval()">
+            <span class="material-icons" style="font-size:16px">restart_alt</span> รีเซ็ท
+          </button>
         </div>
 
         <div class="approval-steps" id="approval-steps"></div>
@@ -381,7 +430,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
       </div>
     </div>
 
-    <!-- REPORT -->
+    <!-- ═══════════════════ REPORT ═══════════════════ -->
     <div id="report" class="page">
       <div class="card" style="max-width:900px;margin:0 auto">
         <div class="card-hd"><span class="material-icons">analytics</span><h3>สรุปการลงเวลาปฏิบัติงาน</h3></div>
@@ -396,7 +445,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
       </div>
     </div>
 
-    <!-- STAFF MANAGEMENT -->
+    <!-- ═══════════════════ STAFF MANAGEMENT ═══════════════════ -->
     <div id="staffmgmt" class="page">
       <div class="card" style="max-width:720px;margin:0 auto">
         <div class="card-hd"><span class="material-icons">person_add</span><h3>เพิ่มบุคลากรใหม่</h3></div>
@@ -417,7 +466,6 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
         </div>
         <button class="btn btn-success btn-full" onclick="addNewStaff()">เพิ่มบุคลากร</button>
       </div>
-
       <div class="card" style="max-width:720px;margin:0 auto">
         <div class="card-hd"><span class="material-icons">download</span><h3>ดาวน์โหลด / อัปโหลดข้อมูลบุคลากร</h3></div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
@@ -430,21 +478,17 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
           </button>
         </div>
       </div>
-
-      <!-- ตารางบุคลากรทั้งหมด -->
       <div class="card" style="max-width:720px;margin:0 auto">
         <div class="card-hd"><span class="material-icons">groups</span><h3>รายชื่อบุคลากรทั้งหมด</h3>
           <button class="btn btn-ghost" style="margin-left:auto;font-size:.78rem;padding:6px 12px" onclick="renderStaffTable()">
             <span class="material-icons" style="font-size:16px">refresh</span> รีเฟรช
           </button>
         </div>
-        <div id="staff-table-wrap">
-          <p style="color:var(--txt2);font-size:.85rem">กด "รีเฟรช" เพื่อโหลดรายชื่อ</p>
-        </div>
+        <div id="staff-table-wrap"><p style="color:var(--txt2);font-size:.85rem">กด "รีเฟรช" เพื่อโหลดรายชื่อ</p></div>
       </div>
     </div>
 
-    <!-- ADMIN -->
+    <!-- ═══════════════════ ADMIN ═══════════════════ -->
     <div id="admin" class="page">
       <div id="admin-gate" class="card" style="max-width:360px;margin:0 auto;text-align:center;padding:32px 22px">
         <div style="width:60px;height:60px;background:linear-gradient(135deg,#1e3a8a,#2563eb);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
@@ -465,10 +509,11 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
         </div>
       </div>
     </div>
-  </div>
-</div>
+  </div><!-- /content -->
+</div><!-- /main -->
 
-<!-- LOGIN MODAL -->
+<!-- ═══════════════════ MODALS ═══════════════════ -->
+<!-- LOGIN -->
 <div class="mo" id="mo-login">
   <div class="mo-box">
     <div class="mo-hd"><h3>🔐 เข้าสู่ระบบ</h3><button class="mo-close" onclick="closeMo('mo-login')">✕</button></div>
@@ -480,7 +525,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
   </div>
 </div>
 
-<!-- STAFF DETAIL MODAL -->
+<!-- STAFF DETAIL -->
 <div class="mo" id="mo-staff-detail">
   <div class="mo-box">
     <div class="mo-hd"><h3>รายละเอียดบุคลากร</h3><button class="mo-close" onclick="closeMo('mo-staff-detail')">✕</button></div>
@@ -488,7 +533,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
   </div>
 </div>
 
-<!-- TEAM REPORT PDF MODAL -->
+<!-- TEAM REPORT PDF -->
 <div class="mo" id="mo-team-pdf">
   <div class="mo-box" style="max-width:600px">
     <div class="mo-hd"><h3>📄 ตัวอย่าง PDF รายงานทีม</h3><button class="mo-close" onclick="closeMo('mo-team-pdf')">✕</button></div>
@@ -499,34 +544,50 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
   </div>
 </div>
 
-<script>
-// =============================================
-// CONFIG
-// =============================================
-var API_URL = 'https://script.google.com/macros/s/AKfycbw_woBO9dgsH7xF1gvgHzwCfDp6_8NJoRWjB8gurkheiGAUubs6F38QG80RLQsTBCInVg/exec';
+<!-- RESET APPROVAL CONFIRM -->
+<div class="mo" id="mo-reset-confirm">
+  <div class="mo-box" style="max-width:400px">
+    <div class="mo-hd"><h3>⚠️ ยืนยันการรีเซ็ท</h3><button class="mo-close" onclick="closeMo('mo-reset-confirm')">✕</button></div>
+    <div class="mo-body">
+      <div style="background:#fff5f5;border:1px solid #fca5a5;border-radius:10px;padding:14px;margin-bottom:16px;font-size:.87rem;color:#991b1b">
+        <strong>คำเตือน!</strong> การรีเซ็ทจะล้างข้อมูลการรับรองและอนุมัติของวันนี้ทั้งหมด บุคลากรที่เกี่ยวข้องต้องรับรองใหม่อีกครั้ง
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost btn-full" onclick="closeMo('mo-reset-confirm')">ยกเลิก</button>
+        <button class="btn btn-danger btn-full" onclick="confirmResetApproval()">
+          <span class="material-icons">restart_alt</span> ยืนยันรีเซ็ท
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
-// Roles (เพิ่ม HR, HRR)
+<script>
+// ═══════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════
+var API_URL = 'https://script.google.com/macros/s/AKfycbw_woBO9dgsH7xF1gvgHzwCfDp6_8NJoRWjB8gurkheiGAUubs6F38QG80RLQsTBCInVg/exec';
 var ROLES_LABEL = {superadmin:'Super Admin',admin:'ผู้บริหาร',HR:'เจ้าหน้าที่บุคคล',HRR:'หัวหน้ากลุ่มบุคคล',head:'หัวหน้ากลุ่มงาน',staff:'เจ้าหน้าที่'};
 var ROLES_COLOR = {superadmin:'#f59e0b',admin:'#3b82f6',HR:'#0369a1',HRR:'#9d174d',head:'#8b5cf6',staff:'#10b981'};
 var SUPER_ADMIN_ID = 'A300400000';
 
 var DATA = { staff:[], todayAtt:[], summaryApproval:{} };
-var CU = JSON.parse(localStorage.getItem('cu') || 'null');
+var CU   = JSON.parse(localStorage.getItem('cu') || 'null');
 var ROLE = CU?.systemRole || 'staff';
 var APPROVERS = JSON.parse(localStorage.getItem('approvers') || '{"a1":null,"a2":null,"a1Name":"","a2Name":""}');
 var PRIVATE = ['clock','dailyreport','wfh_task','profile','summary','report','staffmgmt','admin'];
-var SUMMARY_DATE = new Date().toISOString().slice(0,10); // วันที่เลือกใน summary
-var TEAM_REPORTS_CACHE = []; // cache รายงานทีม
+var SUMMARY_DATE = new Date().toISOString().slice(0,10);
+var TEAM_REPORTS_CACHE = [];
+var DR_SELECTED_RECIPIENTS = []; // เก็บ id ผู้รับรายงานที่เลือก
 
-// =============================================
+// ═══════════════════════════════════════════════════════
 // INIT
-// =============================================
+// ═══════════════════════════════════════════════════════
 window.onload = async () => {
   handleMenuToggleVisibility();
   window.addEventListener('resize', handleMenuToggleVisibility);
   startClock();
   setupWorkTypeListeners();
-  // ตั้งค่า default date picker
   document.getElementById('sum-date-picker').value = SUMMARY_DATE;
   await refreshData();
   applyRole();
@@ -536,19 +597,15 @@ window.onload = async () => {
 
 function setupWorkTypeListeners() {
   document.querySelectorAll('input[name=wtype]').forEach(r => r.addEventListener('change', () => {
-    var selected = document.querySelector('input[name=wtype]:checked').value;
-    document.getElementById('leave-type-row').style.display = selected === 'leave' ? 'block' : 'none';
+    var sel = document.querySelector('input[name=wtype]:checked').value;
+    document.getElementById('leave-type-row').style.display = sel === 'leave' ? 'block' : 'none';
   }));
 }
 
 function handleMenuToggleVisibility() {
   var btn = document.getElementById('menu-toggle');
-  if (window.innerWidth <= 768) {
-    btn.style.setProperty('display', 'flex', 'important');
-  } else {
-    btn.style.setProperty('display', 'none', 'important');
-    closeSB();
-  }
+  if (window.innerWidth <= 768) btn.style.setProperty('display','flex','important');
+  else { btn.style.setProperty('display','none','important'); closeSB(); }
 }
 
 function startClock() {
@@ -558,14 +615,14 @@ function startClock() {
     var d = new Date();
     el.innerText = days[d.getDay()] + ' ' + d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
   }
-  tick(); setInterval(tick, 1000);
+  tick(); setInterval(tick,1000);
 }
 
-// =============================================
+// ═══════════════════════════════════════════════════════
 // API
-// =============================================
+// ═══════════════════════════════════════════════════════
 async function api(action, data={}) {
-  var r = await fetch(API_URL, { method:'POST', body: JSON.stringify({action,...data}), headers:{'Content-Type':'text/plain'} });
+  var r = await fetch(API_URL, {method:'POST', body:JSON.stringify({action,...data}), headers:{'Content-Type':'text/plain'}});
   return r.json();
 }
 
@@ -573,8 +630,8 @@ async function refreshData() {
   showLd('กำลังซิงค์ข้อมูล...');
   try {
     var d = await api('getAllData');
-    DATA.staff = d.staff || [];
-    DATA.todayAtt = d.todayAttendance || [];
+    DATA.staff       = d.staff || [];
+    DATA.todayAtt    = d.todayAttendance || [];
     DATA.summaryApproval = d.summaryApproval || {};
     renderDashboard();
     if (document.getElementById('clock').classList.contains('active') && CU) renderClockPage();
@@ -583,9 +640,9 @@ async function refreshData() {
   } catch(e) { hideLd(); toast('เชื่อมต่อฐานข้อมูลล้มเหลว','error'); }
 }
 
-// =============================================
+// ═══════════════════════════════════════════════════════
 // AUTH
-// =============================================
+// ═══════════════════════════════════════════════════════
 function openLogin() {
   document.getElementById('lg-id').value = '';
   document.getElementById('lg-pass').value = '';
@@ -605,8 +662,8 @@ async function doLogin() {
     localStorage.setItem('cu', JSON.stringify(CU));
     closeMo('mo-login');
     applyRole(); renderUserBadge();
-    toast('ยินดีต้อนรับ ' + CU.name, 'success');
-    if (r.isDefaultPassword) setTimeout(() => toast('⚠️ กรุณาเปลี่ยนรหัสผ่านในหน้าโปรไฟล์','warn',5000), 1200);
+    toast('ยินดีต้อนรับ ' + CU.name,'success');
+    if (r.isDefaultPassword) setTimeout(()=>toast('⚠️ กรุณาเปลี่ยนรหัสผ่านในหน้าโปรไฟล์','warn',5000),1200);
   } catch(e) { hideLd(); toast('ระบบขัดข้อง','error'); }
 }
 
@@ -618,40 +675,36 @@ function doLogout() {
   go('dashboard');
 }
 
-// =============================================
+// ═══════════════════════════════════════════════════════
 // ROLE & NAV
-// =============================================
+// ═══════════════════════════════════════════════════════
 function isSuperAdmin() { return ROLE === 'superadmin'; }
 function isAdmin()      { return ROLE === 'admin' || isSuperAdmin(); }
-function isHR()         { return ROLE === 'HR' || ROLE === 'HRR' || isSuperAdmin(); }
 function isHRR()        { return ROLE === 'HRR' || isSuperAdmin(); }
 function isApprover()   {
   return CU && (CU.id === APPROVERS.a1 || CU.id === APPROVERS.a2 || isSuperAdmin() || isAdmin());
 }
 
-// ซ่อน Super Admin ID จากตารางทั้งหมด
 function filterOutSuperAdmin(list) {
-  return list.filter(s => String(s.id) !== SUPER_ADMIN_ID);
+  return (list || []).filter(s => String(s.id) !== SUPER_ADMIN_ID);
 }
 
 function applyRole() {
   var canSeeSummary = isApprover() || isAdmin();
-  document.getElementById('nav-sec-mgr').style.display = canSeeSummary ? 'block' : 'none';
-  document.getElementById('nav-summary').style.display = canSeeSummary ? 'flex' : 'none';
+  document.getElementById('nav-sec-mgr').style.display    = canSeeSummary ? 'block' : 'none';
+  document.getElementById('nav-summary').style.display    = canSeeSummary ? 'flex'  : 'none';
   document.getElementById('nav-sec-report').style.display = canSeeSummary ? 'block' : 'none';
-  document.getElementById('nav-report').style.display = canSeeSummary ? 'flex' : 'none';
-  document.getElementById('nav-sec-staff').style.display = isSuperAdmin() ? 'block' : 'none';
-  document.getElementById('nav-staffmgmt').style.display = isSuperAdmin() ? 'flex' : 'none';
-  document.getElementById('nav-sec-admin').style.display = isSuperAdmin() ? 'block' : 'none';
-  document.getElementById('nav-admin').style.display = isSuperAdmin() ? 'flex' : 'none';
-
-  // แสดงกล่องรายงานทีมสำหรับ HRR / admin / superadmin
+  document.getElementById('nav-report').style.display     = canSeeSummary ? 'flex'  : 'none';
+  document.getElementById('nav-sec-staff').style.display  = isSuperAdmin() ? 'block' : 'none';
+  document.getElementById('nav-staffmgmt').style.display  = isSuperAdmin() ? 'flex'  : 'none';
+  document.getElementById('nav-sec-admin').style.display  = isSuperAdmin() ? 'block' : 'none';
+  document.getElementById('nav-admin').style.display      = isSuperAdmin() ? 'flex'  : 'none';
   var teamSection = document.getElementById('team-reports-section');
   if (teamSection) teamSection.style.display = (isHRR() || isAdmin()) ? 'block' : 'none';
 }
 
-function getRoleLabel(r) { return ROLES_LABEL[r] || r; }
-function getRoleColor(r) { return ROLES_COLOR[r] || '#64748b'; }
+function getRoleLabel(r){ return ROLES_LABEL[r]||r; }
+function getRoleColor(r){ return ROLES_COLOR[r]||'#64748b'; }
 
 function renderUserBadge() {
   var slot = document.getElementById('sb-user');
@@ -659,8 +712,7 @@ function renderUserBadge() {
     slot.innerHTML = `<button class="btn btn-primary btn-full" style="font-size:.83rem" onclick="openLogin()"><span class="material-icons" style="font-size:17px">login</span> เข้าสู่ระบบ</button>`;
     return;
   }
-  var c = getRoleColor(ROLE);
-  var rl = getRoleLabel(ROLE);
+  var c = getRoleColor(ROLE), rl = getRoleLabel(ROLE);
   slot.innerHTML = `
     <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,.07);border-radius:9px">
       <div style="width:32px;height:32px;background:${c}22;border:1.5px solid ${c}44;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;color:${c};font-weight:800">${CU.name.charAt(3)||'?'}</div>
@@ -679,7 +731,7 @@ function go(p, el) {
   document.getElementById(p).classList.add('active');
   if (el) el.classList.add('active');
   var titles = {dashboard:'📊 ภาพรวมวันนี้',clock:'⏰ ลงเวลา',dailyreport:'📝 รายงานผลประจำวัน',wfh_task:'🏠 เสนองาน WFH',profile:'👤 โปรไฟล์',summary:'📋 สรุปรายวัน & รับรอง',report:'📈 สรุปเวลา / รายงาน',staffmgmt:'👥 จัดการบุคลากร',admin:'🛡️ ตั้งค่าระบบ'};
-  document.getElementById('page-title').innerText = titles[p] || p;
+  document.getElementById('page-title').innerText = titles[p]||p;
   if (window.innerWidth <= 768) closeSB();
   if (p === 'clock' && CU) renderClockPage();
   if (p === 'profile') renderProfile();
@@ -688,218 +740,327 @@ function go(p, el) {
   if (p === 'report') {
     var today = new Date().toISOString().slice(0,10);
     document.getElementById('report-start').value = today;
-    document.getElementById('report-end').value = today;
+    document.getElementById('report-end').value   = today;
   }
   if (p === 'staffmgmt') renderStaffTable();
-  if (p === 'admin') loadAdminPage();
 }
 
-// =============================================
-// DASHBOARD — ซ่อน super admin
-// =============================================
+// ═══════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════
 function renderDashboard() {
   var staffVisible = filterOutSuperAdmin(DATA.staff);
   var att = DATA.todayAtt.filter(a => String(a.id) !== SUPER_ADMIN_ID);
-  var total = staffVisible.length;
-  var office = att.filter(r => !r.workType || r.workType === 'office').length;
-  var wfh = att.filter(r => r.workType === 'wfh').length;
-  var leave = att.filter(r => r.workType === 'leave').length;
+  var total  = staffVisible.length;
+  var office = att.filter(r => !r.workType || r.workType==='office').length;
+  var wfh    = att.filter(r => r.workType==='wfh').length;
+  var leave  = att.filter(r => r.workType==='leave').length;
   var absent = total - office - wfh - leave;
   var now = new Date();
-  document.getElementById('today-lbl').innerText = now.toLocaleDateString('th-TH', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  document.getElementById('today-lbl').innerText = now.toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
   document.getElementById('stat-grid').innerHTML = `
-    <div class="sc" style="--ac:#2563eb;--ic-bg:#dbeafe;--ic-col:#1d4ed8;--vc:var(--txt)">
-      <div class="sc-ico"><span class="material-icons">groups</span></div>
-      <div class="sc-lbl">ทั้งหมด</div><div class="sc-val">${total}</div><div class="sc-sub">คน</div>
-    </div>
-    <div class="sc" style="--ac:#059669;--ic-bg:#dcfce7;--ic-col:#15803d;--vc:var(--success)">
-      <div class="sc-ico"><span class="material-icons">business</span></div>
-      <div class="sc-lbl">มาออฟฟิศ</div><div class="sc-val">${office}</div><div class="sc-sub">คน</div>
-    </div>
-    <div class="sc" style="--ac:#0891b2;--ic-bg:#ecfeff;--ic-col:#0891b2;--vc:#0891b2">
-      <div class="sc-ico"><span class="material-icons">home</span></div>
-      <div class="sc-lbl">WFH</div><div class="sc-val">${wfh}</div><div class="sc-sub">คน</div>
-    </div>
-    <div class="sc" style="--ac:#7c3aed;--ic-bg:#f5f3ff;--ic-col:#7c3aed;--vc:var(--purple)">
-      <div class="sc-ico"><span class="material-icons">event_busy</span></div>
-      <div class="sc-lbl">ลา</div><div class="sc-val">${leave}</div><div class="sc-sub">คน</div>
-    </div>
-    <div class="sc" style="--ac:#dc2626;--ic-bg:#fee2e2;--ic-col:#dc2626;--vc:var(--danger)">
-      <div class="sc-ico"><span class="material-icons">person_off</span></div>
-      <div class="sc-lbl">ยังไม่ลงเวลา</div><div class="sc-val">${absent}</div><div class="sc-sub">คน</div>
-    </div>`;
+    <div class="sc" style="--ac:#2563eb;--ic-bg:#dbeafe;--ic-col:#1d4ed8;--vc:var(--txt)"><div class="sc-ico"><span class="material-icons">groups</span></div><div class="sc-lbl">ทั้งหมด</div><div class="sc-val">${total}</div><div class="sc-sub">คน</div></div>
+    <div class="sc" style="--ac:#059669;--ic-bg:#dcfce7;--ic-col:#15803d;--vc:var(--success)"><div class="sc-ico"><span class="material-icons">business</span></div><div class="sc-lbl">มาออฟฟิศ</div><div class="sc-val">${office}</div><div class="sc-sub">คน</div></div>
+    <div class="sc" style="--ac:#0891b2;--ic-bg:#ecfeff;--ic-col:#0891b2;--vc:#0891b2"><div class="sc-ico"><span class="material-icons">home</span></div><div class="sc-lbl">WFH</div><div class="sc-val">${wfh}</div><div class="sc-sub">คน</div></div>
+    <div class="sc" style="--ac:#7c3aed;--ic-bg:#f5f3ff;--ic-col:#7c3aed;--vc:var(--purple)"><div class="sc-ico"><span class="material-icons">event_busy</span></div><div class="sc-lbl">ลา</div><div class="sc-val">${leave}</div><div class="sc-sub">คน</div></div>
+    <div class="sc" style="--ac:#dc2626;--ic-bg:#fee2e2;--ic-col:#dc2626;--vc:var(--danger)"><div class="sc-ico"><span class="material-icons">person_off</span></div><div class="sc-lbl">ยังไม่ลงเวลา</div><div class="sc-val">${absent}</div><div class="sc-sub">คน</div></div>`;
 
   document.getElementById('group-summary').innerHTML = `
-    <div class="card" style="text-align:center">
-      <span class="material-icons" style="font-size:28px;color:#1e40af">business</span>
-      <div style="font-size:1.4rem;font-weight:800;margin:8px 0">${office}</div>
-      <div style="color:#1e40af">มาออฟฟิศ</div>
-    </div>
-    <div class="card" style="text-align:center">
-      <span class="material-icons" style="font-size:28px;color:#166534">home</span>
-      <div style="font-size:1.4rem;font-weight:800;margin:8px 0">${wfh}</div>
-      <div style="color:#166534">WFH</div>
-    </div>
-    <div class="card" style="text-align:center">
-      <span class="material-icons" style="font-size:28px;color:#6b21a8">event_busy</span>
-      <div style="font-size:1.4rem;font-weight:800;margin:8px 0">${leave}</div>
-      <div style="color:#6b21a8">ลา</div>
-    </div>`;
+    <div class="card" style="text-align:center"><span class="material-icons" style="font-size:28px;color:#1e40af">business</span><div style="font-size:1.4rem;font-weight:800;margin:8px 0">${office}</div><div style="color:#1e40af">มาออฟฟิศ</div></div>
+    <div class="card" style="text-align:center"><span class="material-icons" style="font-size:28px;color:#166534">home</span><div style="font-size:1.4rem;font-weight:800;margin:8px 0">${wfh}</div><div style="color:#166534">WFH</div></div>
+    <div class="card" style="text-align:center"><span class="material-icons" style="font-size:28px;color:#6b21a8">event_busy</span><div style="font-size:1.4rem;font-weight:800;margin:8px 0">${leave}</div><div style="color:#6b21a8">ลา</div></div>`;
 
   var rows = staffVisible.map(s => {
     var rec = att.find(a => a.id === s.id);
-    var statusHTML = !rec ? `<span class="badge b-absent">ยังไม่ลงเวลา</span>`
-      : rec.workType === 'wfh' ? `<span class="badge b-wfh">WFH</span>`
-      : rec.workType === 'leave' ? `<span class="badge b-leave">${rec.leaveType||'ลา'}</span>`
-      : rec.status === 'สาย' ? `<span class="badge b-late">มาสาย</span>`
+    var statusHTML = !rec
+      ? `<span class="badge b-absent">ยังไม่ลงเวลา</span>`
+      : rec.workType==='wfh'   ? `<span class="badge b-wfh">WFH</span>`
+      : rec.workType==='leave' ? `<span class="badge b-leave">${rec.leaveType||'ลา'}</span>`
+      : rec.status==='สาย'     ? `<span class="badge b-late">มาสาย</span>`
       : `<span class="badge b-office">มาออฟฟิศ</span>`;
     return `<tr onclick="viewStaffDetail('${s.id}')" style="cursor:pointer">
       <td><strong>${s.name}</strong></td>
       <td><small>${s.dept}</small></td>
       <td>${statusHTML}</td>
-      <td class="hide-xs">${rec?.clockIn || '-'}</td>
-      <td class="hide-xs">${rec?.clockOut || '-'}</td>
+      <td class="hide-xs">${rec?.clockIn||'-'}</td>
+      <td class="hide-xs">${rec?.clockOut||'-'}</td>
     </tr>`;
   }).join('');
   document.getElementById('dash-tbody').innerHTML = rows || `<tr><td colspan="5" align="center" style="padding:40px;color:var(--txt2)">ยังไม่มีข้อมูลวันนี้</td></tr>`;
 }
 
-// =============================================
-// CLOCK PAGE
-// =============================================
+// ═══════════════════════════════════════════════════════
+// ✅ NEW: Dashboard PDF
+// ═══════════════════════════════════════════════════════
+function printDashboardPDF() {
+  var staffVisible = filterOutSuperAdmin(DATA.staff);
+  var att = DATA.todayAtt.filter(a => String(a.id) !== SUPER_ADMIN_ID);
+  var now = new Date();
+  var dateDisplay = now.toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  var timeDisplay = now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+
+  var office = att.filter(r => !r.workType||r.workType==='office').length;
+  var wfh    = att.filter(r => r.workType==='wfh').length;
+  var leave  = att.filter(r => r.workType==='leave').length;
+  var absent = staffVisible.length - office - wfh - leave;
+
+  var rows = staffVisible.map((s,i) => {
+    var rec = att.find(a => a.id === s.id);
+    var st  = !rec ? 'ยังไม่ลงเวลา'
+      : rec.workType==='wfh'   ? 'WFH'
+      : rec.workType==='leave' ? (rec.leaveType||'ลา')
+      : rec.status==='สาย'     ? 'มาสาย' : 'ปกติ';
+    var bg = !rec?'#fff5f5':rec.workType==='wfh'?'#f0fdf4':rec.workType==='leave'?'#f5f3ff':rec.status==='สาย'?'#fef3c7':'';
+    return `<tr style="background:${bg}">
+      <td style="text-align:center;padding:6px 8px">${i+1}</td>
+      <td style="padding:6px 8px"><strong>${s.name}</strong></td>
+      <td style="padding:6px 8px;color:#64748b;font-size:11px">${s.dept}</td>
+      <td style="text-align:center;padding:6px 8px">${rec?.clockIn||'-'}</td>
+      <td style="text-align:center;padding:6px 8px">${rec?.clockOut||'-'}</td>
+      <td style="text-align:center;padding:6px 8px;font-weight:700">${st}</td>
+    </tr>`;
+  }).join('');
+
+  var w = window.open('','_blank','width=800,height=900');
+  w.document.write(`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>ภาพรวมวันนี้</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Sarabun',sans-serif;padding:24px;font-size:13px;color:#0f172a}
+  .header{text-align:center;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #1e3a8a}
+  .header h1{font-size:15px;font-weight:800;color:#1e3a8a}
+  .header h2{font-size:13px;font-weight:700;margin-top:2px}
+  .header .meta{font-size:11px;color:#64748b;margin-top:6px}
+  .stats{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+  .stat{flex:1;min-width:100px;padding:10px;border-radius:8px;text-align:center}
+  .stat .num{font-size:22px;font-weight:800}
+  .stat .lbl{font-size:10px;font-weight:700;margin-top:2px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{background:#1e3a8a;color:#fff;padding:8px;text-align:left}
+  td{padding:6px 8px;border-bottom:1px solid #e2e8f0}
+  tbody tr:hover{background:#f8fafc}
+  .footer{margin-top:20px;display:flex;justify-content:space-around;text-align:center;font-size:11px;color:#64748b}
+  .sign{margin-bottom:35px}
+  @media print{body{padding:16px}}</style></head><body>
+  <div class="header">
+    <h1>บันทึกข้อมูลการปฏิบัติงานประจำวัน</h1>
+    <h2>สำนักงานเขตพื้นที่การศึกษาประถมศึกษานครราชสีมา เขต 4</h2>
+    <div class="meta">วัน${dateDisplay} &nbsp;|&nbsp; ณ เวลา ${timeDisplay} น. &nbsp;|&nbsp; บุคลากรทั้งหมด ${staffVisible.length} คน</div>
+  </div>
+  <div class="stats">
+    <div class="stat" style="background:#dbeafe"><div class="num" style="color:#1e40af">${office}</div><div class="lbl" style="color:#1e40af">มาออฟฟิศ</div></div>
+    <div class="stat" style="background:#dcfce7"><div class="num" style="color:#166534">${wfh}</div><div class="lbl" style="color:#166534">WFH</div></div>
+    <div class="stat" style="background:#f3e8ff"><div class="num" style="color:#6b21a8">${leave}</div><div class="lbl" style="color:#6b21a8">ลา</div></div>
+    <div class="stat" style="background:#fee2e2"><div class="num" style="color:#dc2626">${absent}</div><div class="lbl" style="color:#dc2626">ยังไม่ลงเวลา</div></div>
+  </div>
+  <table>
+    <thead><tr><th style="width:36px;text-align:center">ที่</th><th>ชื่อ-สกุล</th><th>กลุ่มงาน</th><th style="width:70px;text-align:center">เข้างาน</th><th style="width:70px;text-align:center">ออกงาน</th><th style="width:90px;text-align:center">สถานะ</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <div class="footer">
+    <div><div class="sign">ลงชื่อ .................................</div><div>(..............................)</div><div>เจ้าหน้าที่บุคคล (HR) / ผู้บันทึก</div></div>
+    <div><div class="sign">ลงชื่อ .................................</div><div>(..............................)</div><div>หัวหน้ากลุ่มบุคคล (HRR) / ผู้รับรอง</div></div>
+    <div><div class="sign">ลงชื่อ .................................</div><div>(..............................)</div><div>ผู้อำนวยการ สพป.นม.4 / ผู้อนุมัติ</div></div>
+  </div>
+  <script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.close();
+}
+
+// ═══════════════════════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════════════════════
 function renderClockPage() {
   if (!CU) return;
   document.getElementById('ck-name').innerText = CU.name;
   document.getElementById('ck-dept').innerText = CU.dept;
   document.getElementById('ck-av').innerText = CU.name.charAt(3)||'👤';
   var myAtt = DATA.todayAtt.find(a => a.id === CU.id);
-  var inEl = document.getElementById('ck-in');
-  var outEl = document.getElementById('ck-out');
-  if (myAtt?.clockIn) { inEl.innerText = myAtt.clockIn+' น.'; inEl.className = 'ck-t-val'; }
-  else { inEl.innerText = '-'; inEl.className = 'ck-t-val empty'; }
-  if (myAtt?.clockOut) { outEl.innerText = myAtt.clockOut+' น.'; outEl.className = 'ck-t-val'; }
-  else { outEl.innerText = '-'; outEl.className = 'ck-t-val empty'; }
-
-  var btnIn = document.getElementById('btn-in');
-  var btnOut = document.getElementById('btn-out');
+  var inEl = document.getElementById('ck-in'), outEl = document.getElementById('ck-out');
+  if (myAtt?.clockIn) { inEl.innerText=myAtt.clockIn+' น.'; inEl.className='ck-t-val'; }
+  else { inEl.innerText='-'; inEl.className='ck-t-val empty'; }
+  if (myAtt?.clockOut) { outEl.innerText=myAtt.clockOut+' น.'; outEl.className='ck-t-val'; }
+  else { outEl.innerText='-'; outEl.className='ck-t-val empty'; }
+  var btnIn=document.getElementById('btn-in'), btnOut=document.getElementById('btn-out');
   if (myAtt) {
-    document.getElementById('work-type-card').style.display = 'none';
-    btnIn.disabled = true; btnIn.className = 'btn btn-ghost btn-lg'; btnIn.style.flex='1';
-    btnIn.innerHTML = '<span class="material-icons">check_circle</span> ลงเวลาแล้ว';
+    document.getElementById('work-type-card').style.display='none';
+    btnIn.disabled=true; btnIn.className='btn btn-ghost btn-lg'; btnIn.style.flex='1';
+    btnIn.innerHTML='<span class="material-icons">check_circle</span> ลงเวลาแล้ว';
   } else {
-    document.getElementById('work-type-card').style.display = 'block';
-    btnIn.disabled = false; btnIn.className = 'btn btn-success btn-lg'; btnIn.style.flex='1';
-    btnIn.innerHTML = '<span class="material-icons">login</span> ลงเวลาเข้างาน';
+    document.getElementById('work-type-card').style.display='block';
+    btnIn.disabled=false; btnIn.className='btn btn-success btn-lg'; btnIn.style.flex='1';
+    btnIn.innerHTML='<span class="material-icons">login</span> ลงเวลาเข้างาน';
   }
   if (myAtt?.clockOut) {
-    btnOut.disabled = true; btnOut.className = 'btn btn-ghost btn-lg'; btnOut.style.flex='1';
-    btnOut.innerHTML = '<span class="material-icons">check_circle</span> ออกงานแล้ว';
+    btnOut.disabled=true; btnOut.className='btn btn-ghost btn-lg'; btnOut.style.flex='1';
+    btnOut.innerHTML='<span class="material-icons">check_circle</span> ออกงานแล้ว';
   } else {
-    btnOut.disabled = false; btnOut.className = 'btn btn-warn btn-lg'; btnOut.style.flex='1';
-    btnOut.innerHTML = '<span class="material-icons">logout</span> ลงเวลาออกงาน';
+    btnOut.disabled=false; btnOut.className='btn btn-warn btn-lg'; btnOut.style.flex='1';
+    btnOut.innerHTML='<span class="material-icons">logout</span> ลงเวลาออกงาน';
   }
 }
 
 async function doClockIn() {
-  var wtype = document.querySelector('input[name=wtype]:checked')?.value || 'office';
-  var leaveType = wtype === 'leave' ? document.getElementById('leave-type').value : null;
-  var leaveReason = wtype === 'leave' ? document.getElementById('leave-reason').value : null;
+  var wtype = document.querySelector('input[name=wtype]:checked')?.value||'office';
+  var leaveType   = wtype==='leave' ? document.getElementById('leave-type').value : null;
+  var leaveReason = wtype==='leave' ? document.getElementById('leave-reason').value : null;
   showLd('กำลังบันทึก...');
   try {
-    var r = await api('clockIn', { id:CU.id, name:CU.name, dept:CU.dept, method:'manual', workType:wtype, leaveType, leaveReason });
+    var r = await api('clockIn',{id:CU.id,name:CU.name,dept:CU.dept,method:'manual',workType:wtype,leaveType,leaveReason});
     hideLd();
-    if (r.success) { toast('✅ บันทึกเวลาเข้างานสำเร็จ','success'); setTimeout(refreshData, 1500); }
-    else toast(r.msg, 'error');
+    if (r.success) { toast('✅ บันทึกเวลาเข้างานสำเร็จ','success'); setTimeout(refreshData,1500); }
+    else toast(r.msg,'error');
   } catch(e) { hideLd(); toast('Error','error'); }
 }
 
 async function doClockOut() {
   showLd('กำลังตรวจสอบ...');
   try {
-    var r = await api('clockOut', { id:CU.id, name:CU.name });
+    var r = await api('clockOut',{id:CU.id,name:CU.name});
     hideLd();
-    if (r.success) { toast('🏠 บันทึกเวลาออกงานสำเร็จ','success'); setTimeout(refreshData, 1500); }
-    else toast(r.msg, 'error');
+    if (r.success) { toast('🏠 บันทึกเวลาออกงานสำเร็จ','success'); setTimeout(refreshData,1500); }
+    else toast(r.msg,'error');
   } catch(e) { hideLd(); toast('Error','error'); }
 }
 
-// =============================================
-// DAILY REPORT — ส่งถึง ผอ.กลุ่ม
-// =============================================
+// ═══════════════════════════════════════════════════════
+// ✅ NEW: DAILY REPORT — เลือกกลุ่มผู้รับ
+// ═══════════════════════════════════════════════════════
+var _recipientBoxOpen = true;
+
 function renderDRPage() {
   if (!CU) return;
-  // หา ผอ.กลุ่มของ dept เดียวกัน (role = HRR หรือ head)
-  var myDept = CU.dept;
-  var deptHeads = DATA.staff.filter(s =>
+  // รายชื่อผู้รับที่เลือกได้: role HRR, head, admin (ไม่รวม super admin และตัวเอง)
+  var candidates = filterOutSuperAdmin(DATA.staff).filter(s =>
     (s.role === 'HRR' || s.role === 'head' || s.role === 'admin') &&
-    String(s.id) !== SUPER_ADMIN_ID
+    s.id !== CU.id
   );
-  var listEl = document.getElementById('dr-recipient-list');
-  if (deptHeads.length > 0) {
-    listEl.innerHTML = deptHeads.map(h =>
-      `<div class="dr-recipient"><span class="material-icons">person</span>
-       <span>${h.name}</span>
-       <span class="badge role-${h.role}" style="margin-left:auto">${getRoleLabel(h.role)}</span>
-      </div>`
-    ).join('');
-  } else {
-    listEl.innerHTML = `<div class="dr-recipient"><span class="material-icons">info</span><span style="color:var(--txt2)">ยังไม่มีผู้รับในระบบ (role: HRR/head/admin)</span></div>`;
+
+  // เลือกทุกคนที่มี role HRR หรือ head ใน dept เดียวกันก่อน (default)
+  if (DR_SELECTED_RECIPIENTS.length === 0 && candidates.length > 0) {
+    DR_SELECTED_RECIPIENTS = candidates
+      .filter(s => s.dept === CU.dept || s.role === 'HRR' || s.role === 'admin')
+      .map(s => s.id);
+    if (DR_SELECTED_RECIPIENTS.length === 0) DR_SELECTED_RECIPIENTS = [candidates[0].id];
   }
+
+  var listEl = document.getElementById('dr-check-list');
+  if (!candidates.length) {
+    listEl.innerHTML = `<div class="dr-recipient"><span class="material-icons">info</span><span style="color:var(--txt2)">ยังไม่มีผู้รับในระบบ (role: HRR/head/admin)</span></div>`;
+  } else {
+    listEl.innerHTML = candidates.map(s => {
+      var checked = DR_SELECTED_RECIPIENTS.includes(s.id) ? 'checked' : '';
+      var sel = DR_SELECTED_RECIPIENTS.includes(s.id) ? 'selected' : '';
+      var rc = {HR:'role-hr',HRR:'role-hrr',head:'role-head',admin:'role-admin'}[s.role]||'role-staff';
+      return `<div class="dr-check-item ${sel}" id="drc-${s.id}" onclick="toggleRecipient('${s.id}')">
+        <input type="checkbox" ${checked} onclick="event.stopPropagation();toggleRecipient('${s.id}')">
+        <span class="dr-check-name">${s.name}</span>
+        <span class="badge ${rc} dr-check-role">${getRoleLabel(s.role)}</span>
+        <span style="font-size:.72rem;color:var(--txt2)">${s.dept}</span>
+      </div>`;
+    }).join('');
+  }
+  updateSelectedPreview(candidates);
+}
+
+function toggleRecipient(id) {
+  var idx = DR_SELECTED_RECIPIENTS.indexOf(id);
+  if (idx > -1) DR_SELECTED_RECIPIENTS.splice(idx,1);
+  else DR_SELECTED_RECIPIENTS.push(id);
+  // อัปเดต UI
+  var item = document.getElementById('drc-'+id);
+  if (item) {
+    item.classList.toggle('selected', DR_SELECTED_RECIPIENTS.includes(id));
+    var cb = item.querySelector('input[type=checkbox]');
+    if (cb) cb.checked = DR_SELECTED_RECIPIENTS.includes(id);
+  }
+  var candidates = filterOutSuperAdmin(DATA.staff).filter(s =>
+    (s.role==='HRR'||s.role==='head'||s.role==='admin') && s.id!==CU?.id
+  );
+  updateSelectedPreview(candidates);
+}
+
+function updateSelectedPreview(candidates) {
+  var preview = document.getElementById('dr-selected-preview');
+  if (!preview) return;
+  var sel = (candidates||[]).filter(s => DR_SELECTED_RECIPIENTS.includes(s.id));
+  if (!sel.length) {
+    preview.innerHTML = `<span style="font-size:.75rem;color:var(--danger);font-weight:700">⚠️ ยังไม่ได้เลือกผู้รับ</span>`;
+  } else {
+    preview.innerHTML = sel.map(s =>
+      `<span class="badge b-office" style="gap:4px"><span class="material-icons" style="font-size:12px">person</span>${s.name}</span>`
+    ).join('');
+  }
+}
+
+function toggleRecipientBox() {
+  _recipientBoxOpen = !_recipientBoxOpen;
+  var box  = document.getElementById('recipient-box');
+  var icon = document.getElementById('recipient-toggle-icon');
+  var txt  = document.getElementById('recipient-toggle-txt');
+  box.style.display = _recipientBoxOpen ? 'block' : 'none';
+  icon.innerText = _recipientBoxOpen ? 'expand_less' : 'expand_more';
+  txt.innerText  = _recipientBoxOpen ? 'ซ่อน' : 'แสดง';
 }
 
 async function doSubmitDR() {
   var w = document.getElementById('dr-work').value;
   if (!w) return toast('กรุณาระบุผลการปฏิบัติงาน','error');
+  if (!DR_SELECTED_RECIPIENTS.length) return toast('กรุณาเลือกผู้รับอย่างน้อย 1 คน','error');
   showLd('กำลังส่งรายงาน...');
   try {
-    var r = await api('submitDailyReport', {data:{staffId:CU.id,name:CU.name,dept:CU.dept,workDone:w,problems:document.getElementById('dr-prob').value,nextPlan:document.getElementById('dr-next').value}});
+    var r = await api('submitDailyReport',{data:{
+      staffId:CU.id, name:CU.name, dept:CU.dept,
+      workDone:w,
+      problems:document.getElementById('dr-prob').value,
+      nextPlan:document.getElementById('dr-next').value,
+      recipients: DR_SELECTED_RECIPIENTS   // ส่ง recipients ไปด้วย (backend จะ log ไว้)
+    }});
     hideLd(); toast(r.msg, r.success?'success':'error');
     if (r.success) {
-      document.getElementById('dr-work').value = '';
-      document.getElementById('dr-prob').value = '';
-      document.getElementById('dr-next').value = '';
+      document.getElementById('dr-work').value='';
+      document.getElementById('dr-prob').value='';
+      document.getElementById('dr-next').value='';
+      DR_SELECTED_RECIPIENTS = []; // reset
+      renderDRPage();
     }
   } catch(e) { hideLd(); toast('เกิดข้อผิดพลาด','error'); }
 }
 
+// ═══════════════════════════════════════════════════════
+// TEAM REPORTS (HRR/Admin)
+// ═══════════════════════════════════════════════════════
 async function loadTeamReports() {
   showLd('กำลังดึงรายงาน...');
   try {
     var today = new Date().toISOString().slice(0,10);
-    var r = await api('getAttendanceSummary', {startDate:today, endDate:today});
+    var r = await api('getAttendanceSummary',{startDate:today,endDate:today});
     hideLd();
-    TEAM_REPORTS_CACHE = r.data || [];
+    TEAM_REPORTS_CACHE = r.data||[];
     var body = document.getElementById('team-reports-body');
-    if (!TEAM_REPORTS_CACHE.length) {
-      body.innerHTML = '<p style="color:var(--txt2)">ยังไม่มีรายงานวันนี้</p>'; return;
-    }
+    if (!TEAM_REPORTS_CACHE.length) { body.innerHTML='<p style="color:var(--txt2)">ยังไม่มีรายงานวันนี้</p>'; return; }
     body.innerHTML = `
-      <div class="tbl-wrap">
-        <table>
-          <thead><tr><th>ชื่อ-สกุล</th><th>กลุ่มงาน</th><th>เข้างาน</th><th>ออกงาน</th><th>สถานะ</th></tr></thead>
-          <tbody>
-            ${TEAM_REPORTS_CACHE.filter(a => String(a.staffId) !== SUPER_ADMIN_ID).map(a => `
-              <tr>
-                <td>${a.name}</td><td>${a.dept}</td>
-                <td>${a.clockIn||'-'}</td><td>${a.clockOut||'-'}</td>
-                <td><span class="badge ${a.workType==='wfh'?'b-wfh':a.workType==='leave'?'b-leave':a.status==='สาย'?'b-late':'b-office'}">
-                  ${a.workType==='wfh'?'WFH':a.workType==='leave'?(a.leaveType||'ลา'):a.status||'ปกติ'}
-                </span></td>
-              </tr>`).join('')}
-          </tbody>
-        </table>
-      </div>`;
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>ชื่อ-สกุล</th><th>กลุ่มงาน</th><th>เข้างาน</th><th>ออกงาน</th><th>สถานะ</th></tr></thead>
+        <tbody>${TEAM_REPORTS_CACHE.filter(a=>String(a.staffId)!==SUPER_ADMIN_ID).map(a=>`
+          <tr>
+            <td>${a.name}</td><td>${a.dept}</td>
+            <td>${a.clockIn||'-'}</td><td>${a.clockOut||'-'}</td>
+            <td><span class="badge ${a.workType==='wfh'?'b-wfh':a.workType==='leave'?'b-leave':a.status==='สาย'?'b-late':'b-office'}">
+              ${a.workType==='wfh'?'WFH':a.workType==='leave'?(a.leaveType||'ลา'):a.status||'ปกติ'}
+            </span></td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>`;
   } catch(e) { hideLd(); toast('ดึงข้อมูลล้มเหลว','error'); }
 }
 
 function printTeamReportPDF() {
   var today = new Date().toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  var rows = TEAM_REPORTS_CACHE.filter(a => String(a.staffId) !== SUPER_ADMIN_ID).map((a,i) =>
-    `<tr><td style="text-align:center">${i+1}</td><td>${a.name}</td><td>${a.dept}</td><td style="text-align:center">${a.clockIn||'-'}</td><td style="text-align:center">${a.clockOut||'-'}</td><td style="text-align:center">${a.workType==='wfh'?'WFH':a.workType==='leave'?(a.leaveType||'ลา'):a.status||'ปกติ'}</td></tr>`
+  var rows = TEAM_REPORTS_CACHE.filter(a=>String(a.staffId)!==SUPER_ADMIN_ID).map((a,i)=>
+    `<tr><td style="text-align:center">${i+1}</td><td>${a.name}</td><td>${a.dept}</td>
+     <td style="text-align:center">${a.clockIn||'-'}</td><td style="text-align:center">${a.clockOut||'-'}</td>
+     <td style="text-align:center">${a.workType==='wfh'?'WFH':a.workType==='leave'?(a.leaveType||'ลา'):a.status||'ปกติ'}</td></tr>`
   ).join('');
-
-  var html = `
+  document.getElementById('team-pdf-body').innerHTML = `
     <div style="text-align:center;margin-bottom:12px">
       <div style="font-weight:800;font-size:1rem">รายงานผลการปฏิบัติงานประจำวัน</div>
       <div style="font-weight:800;font-size:.95rem">สำนักงานเขตพื้นที่การศึกษาประถมศึกษานครราชสีมา เขต 4</div>
@@ -907,59 +1068,51 @@ function printTeamReportPDF() {
       <div style="font-size:.78rem;color:#64748b">จัดทำโดย: ${CU?.name||''} (${getRoleLabel(ROLE)})</div>
     </div>
     <table style="width:100%;border-collapse:collapse;font-size:12px">
-      <thead>
-        <tr style="background:#1e3a8a;color:#fff">
-          <th style="padding:7px;text-align:center">ที่</th>
-          <th style="padding:7px">ชื่อ-สกุล</th>
-          <th style="padding:7px">กลุ่มงาน</th>
-          <th style="padding:7px;text-align:center">เข้างาน</th>
-          <th style="padding:7px;text-align:center">ออกงาน</th>
-          <th style="padding:7px;text-align:center">สถานะ</th>
-        </tr>
-      </thead>
+      <thead><tr style="background:#1e3a8a;color:#fff">
+        <th style="padding:7px;text-align:center">ที่</th><th style="padding:7px">ชื่อ-สกุล</th>
+        <th style="padding:7px">กลุ่มงาน</th><th style="padding:7px;text-align:center">เข้างาน</th>
+        <th style="padding:7px;text-align:center">ออกงาน</th><th style="padding:7px;text-align:center">สถานะ</th>
+      </tr></thead>
       <tbody>${rows}</tbody>
     </table>
     <div style="display:flex;justify-content:space-around;margin-top:28px;text-align:center;font-size:11px">
-      <div>
-        <div style="margin-bottom:30px">ลงชื่อ .................................</div>
-        <div>(${CU?.name||'.....................'})</div>
-        <div style="color:#666">${getRoleLabel(ROLE)}</div>
-      </div>
-      <div>
-        <div style="margin-bottom:30px">ลงชื่อ .................................</div>
-        <div>(......................................)</div>
-        <div style="color:#666">ผู้อำนวยการ สพป.นม.4</div>
-      </div>
+      <div><div style="margin-bottom:30px">ลงชื่อ .................................</div>
+        <div>(${CU?.name||'.....................'})</div><div style="color:#666">${getRoleLabel(ROLE)}</div></div>
+      <div><div style="margin-bottom:30px">ลงชื่อ .................................</div>
+        <div>(......................................)</div><div style="color:#666">ผู้อำนวยการ สพป.นม.4</div></div>
     </div>`;
-
-  document.getElementById('team-pdf-body').innerHTML = html;
   openMo('mo-team-pdf');
 }
 
 function doPrintTeamPDF() {
   var content = document.getElementById('team-pdf-body').innerHTML;
   var w = window.open('','_blank','width=800,height=900');
-  w.document.write(`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>รายงานผลปฏิบัติงานประจำวัน</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Sarabun',sans-serif;padding:28px;font-size:13px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:7px 9px}th{background:#1e3a8a;color:#fff}tbody tr:nth-child(even){background:#f8fafc}@media print{body{padding:16px}}</style></head><body>${content}<script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.write(`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>รายงานผลปฏิบัติงานประจำวัน</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Sarabun',sans-serif;padding:28px;font-size:13px}
+  table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:7px 9px}
+  th{background:#1e3a8a;color:#fff}tbody tr:nth-child(even){background:#f8fafc}@media print{body{padding:16px}}</style>
+  </head><body>${content}<script>window.onload=()=>window.print()<\/script></body></html>`);
   w.document.close();
 }
 
-// =============================================
+// ═══════════════════════════════════════════════════════
 // WFH
-// =============================================
+// ═══════════════════════════════════════════════════════
 async function doSubmitWFH() {
   var desc = document.getElementById('wfh-desc').value;
   if (!desc) return toast('กรุณาระบุรายละเอียดงาน','error');
   showLd('กำลังส่งงาน...');
   try {
-    var r = await api('submitWFHTask', {data:{staffId:CU.id,name:CU.name,dept:CU.dept,taskDesc:desc}});
+    var r = await api('submitWFHTask',{data:{staffId:CU.id,name:CU.name,dept:CU.dept,taskDesc:desc}});
     hideLd(); toast(r.msg, r.success?'success':'error');
-    if (r.success) document.getElementById('wfh-desc').value = '';
+    if (r.success) document.getElementById('wfh-desc').value='';
   } catch(e) { hideLd(); toast('เกิดข้อผิดพลาด','error'); }
 }
 
-// =============================================
-// SUMMARY — เลือกวันได้ + ตั้งค่า Approver
-// =============================================
+// ═══════════════════════════════════════════════════════
+// SUMMARY
+// ═══════════════════════════════════════════════════════
 function onSummaryDateChange() {
   SUMMARY_DATE = document.getElementById('sum-date-picker').value;
   loadSummaryForDate(SUMMARY_DATE);
@@ -968,24 +1121,19 @@ function onSummaryDateChange() {
 async function loadSummaryForDate(dateStr) {
   showLd('กำลังดึงข้อมูล...');
   try {
-    var r = await api('getAttendanceSummary', {startDate:dateStr, endDate:dateStr});
+    var r = await api('getAttendanceSummary',{startDate:dateStr,endDate:dateStr});
     hideLd();
-    // inject เข้า DATA เพื่อ renderSummary ใช้ได้
-    DATA._summaryDateAtt = (r.data || []).filter(a => String(a.staffId) !== SUPER_ADMIN_ID);
+    DATA._summaryDateAtt = (r.data||[]).filter(a=>String(a.staffId)!==SUPER_ADMIN_ID);
     DATA._summaryDate = dateStr;
     renderSummaryContent();
   } catch(e) { hideLd(); toast('ดึงข้อมูลล้มเหลว','error'); }
 }
 
 function renderSummary() {
-  // แสดง/ซ่อนกล่องตั้งค่า approver
-  var settingsBox = document.getElementById('approver-settings-box');
-  settingsBox.style.display = isSuperAdmin() ? 'block' : 'none';
-
+  document.getElementById('approver-settings-box').style.display = isSuperAdmin() ? 'block' : 'none';
   var today = new Date().toISOString().slice(0,10);
   if (!DATA._summaryDate || DATA._summaryDate === today) {
-    // ใช้ข้อมูล today ที่มีอยู่แล้ว
-    DATA._summaryDateAtt = DATA.todayAtt.filter(a => String(a.id) !== SUPER_ADMIN_ID);
+    DATA._summaryDateAtt = DATA.todayAtt.filter(a=>String(a.id)!==SUPER_ADMIN_ID);
     DATA._summaryDate = today;
     document.getElementById('sum-date-picker').value = today;
   }
@@ -995,55 +1143,52 @@ function renderSummary() {
 function renderSummaryContent() {
   var dateStr = DATA._summaryDate || new Date().toISOString().slice(0,10);
   var att = DATA._summaryDateAtt || [];
-  var ap = DATA.summaryApproval || {};
+  var ap  = DATA.summaryApproval || {};
   var staffVisible = filterOutSuperAdmin(DATA.staff);
-
   var s1Done = ap?.approvedBy1ID;
   var s2Done = ap?.approvedBy2ID;
 
-  // steps
+  // ✅ NEW: แสดงปุ่ม Reset เฉพาะ superadmin + มีการรับรองแล้ว
+  var resetBox = document.getElementById('reset-approval-box');
+  resetBox.style.display = (isSuperAdmin() && (s1Done || s2Done)) ? 'flex' : 'none';
+
   document.getElementById('approval-steps').innerHTML = `
     <div class="step-box ${s1Done?'done':!s1Done?'active-step':''}">
       <div class="step-num">${s1Done?'✓':'1'}</div>
       <div class="step-title">รับรองโดย HR</div>
-      <div class="step-sub">${APPROVERS.a1Name || APPROVERS.a1 || 'ยังไม่ได้ตั้งค่า'}</div>
-      ${s1Done ? `<div class="step-by">✅ ${ap.approvedBy1Name||''} ${ap.approvedAt1||''}</div>` : ''}
+      <div class="step-sub">${APPROVERS.a1Name||APPROVERS.a1||'ยังไม่ได้ตั้งค่า'}</div>
+      ${s1Done?`<div class="step-by">✅ ${ap.approvedBy1Name||''} ${ap.approvedAt1||''}</div>`:''}
     </div>
     <div class="step-box ${s2Done?'done':s1Done?'active-step':''}">
       <div class="step-num">${s2Done?'✓':'2'}</div>
-      <div class="step-title">อนุมัติโดย HRR (หัวหน้าบุคคล)</div>
-      <div class="step-sub">${APPROVERS.a2Name || APPROVERS.a2 || 'ยังไม่ได้ตั้งค่า'}</div>
-      ${s2Done ? `<div class="step-by">✅ ${ap.approvedBy2Name||''} ${ap.approvedAt2||''}</div>` : ''}
+      <div class="step-title">อนุมัติโดย HRR</div>
+      <div class="step-sub">${APPROVERS.a2Name||APPROVERS.a2||'ยังไม่ได้ตั้งค่า'}</div>
+      ${s2Done?`<div class="step-by">✅ ${ap.approvedBy2Name||''} ${ap.approvedAt2||''}</div>`:''}
     </div>`;
 
-  // status bar
   var sb = document.getElementById('sum-status-bar');
   var stxt = document.getElementById('sum-status-txt');
   if (s2Done) { sb.className='summary-status-bar ssb-approved2'; stxt.innerText='✅ อนุมัติแล้ว'; }
   else if (s1Done) { sb.className='summary-status-bar ssb-approved1'; stxt.innerText='🔵 รับรองแล้ว — รอ HRR อนุมัติ'; }
   else { sb.className='summary-status-bar ssb-pending'; stxt.innerText='⏳ รอการรับรอง'; }
 
-  // ปุ่มรับรอง
   var btnArea = document.getElementById('approve-btn-area');
   btnArea.innerHTML = '';
   var isToday = (dateStr === new Date().toISOString().slice(0,10));
   if (isToday) {
-    if ((CU?.id === APPROVERS.a1 || isSuperAdmin()) && !s1Done) {
+    if ((CU?.id===APPROVERS.a1 || isSuperAdmin()) && !s1Done)
       btnArea.innerHTML += `<button class="btn btn-success" onclick="doApprove(1)"><span class="material-icons">verified</span> รับรองเอกสาร (HR)</button>`;
-    }
-    if ((CU?.id === APPROVERS.a2 || isSuperAdmin()) && s1Done && !s2Done) {
+    if ((CU?.id===APPROVERS.a2 || isSuperAdmin()) && s1Done && !s2Done)
       btnArea.innerHTML += `<button class="btn btn-primary" onclick="doApprove(2)"><span class="material-icons">task_alt</span> อนุมัติเอกสาร (HRR)</button>`;
-    }
   }
 
-  // กลุ่มบุคลากร
-  var office = att.filter(r => !r.workType || r.workType==='office');
-  var wfh    = att.filter(r => r.workType==='wfh');
-  var leave  = att.filter(r => r.workType==='leave');
-  var presentIds = att.map(a => String(a.staffId || a.id));
-  var absent = staffVisible.filter(s => !presentIds.includes(String(s.id)));
+  var office = att.filter(r=>!r.workType||r.workType==='office');
+  var wfh    = att.filter(r=>r.workType==='wfh');
+  var leave  = att.filter(r=>r.workType==='leave');
+  var presentIds = att.map(a=>String(a.staffId||a.id));
+  var absent = staffVisible.filter(s=>!presentIds.includes(String(s.id)));
 
-  function makeRows(list, isStaff) {
+  function makeRows(list,isStaff) {
     if (!isStaff) return list.map(s=>`<tr><td><strong>${s.name}</strong></td><td style="color:var(--txt2);font-size:.8rem">${s.dept}</td><td>-</td><td>-</td><td><span class="badge b-absent">ขาดงาน</span></td></tr>`).join('');
     return list.map(r=>{
       var lbl = r.status==='สาย'?'<span class="badge b-late">มาสาย</span>':'<span class="badge b-office">ปกติ</span>';
@@ -1053,41 +1198,34 @@ function renderSummaryContent() {
     }).join('');
   }
 
-  var thead = '<thead><tr><th>ชื่อ-สกุล</th><th>กลุ่มงาน</th><th>เข้างาน</th><th>ออกงาน</th><th>สถานะ</th></tr></thead>';
+  var thead='<thead><tr><th>ชื่อ-สกุล</th><th>กลุ่มงาน</th><th>เข้างาน</th><th>ออกงาน</th><th>สถานะ</th></tr></thead>';
   var html='';
   if(office.length) html+=`<div class="sum-group"><div class="sum-group-hd sg-office"><span class="material-icons" style="font-size:17px">business</span> มาออฟฟิศ (${office.length} คน)</div><div class="tbl-wrap"><table>${thead}<tbody>${makeRows(office,true)}</tbody></table></div></div>`;
-  if(wfh.length) html+=`<div class="sum-group"><div class="sum-group-hd sg-wfh"><span class="material-icons" style="font-size:17px">home</span> WFH (${wfh.length} คน)</div><div class="tbl-wrap"><table>${thead}<tbody>${makeRows(wfh,true)}</tbody></table></div></div>`;
-  if(leave.length) html+=`<div class="sum-group"><div class="sum-group-hd sg-leave"><span class="material-icons" style="font-size:17px">event_busy</span> ลา (${leave.length} คน)</div><div class="tbl-wrap"><table>${thead}<tbody>${makeRows(leave,true)}</tbody></table></div></div>`;
+  if(wfh.length)    html+=`<div class="sum-group"><div class="sum-group-hd sg-wfh"><span class="material-icons" style="font-size:17px">home</span> WFH (${wfh.length} คน)</div><div class="tbl-wrap"><table>${thead}<tbody>${makeRows(wfh,true)}</tbody></table></div></div>`;
+  if(leave.length)  html+=`<div class="sum-group"><div class="sum-group-hd sg-leave"><span class="material-icons" style="font-size:17px">event_busy</span> ลา (${leave.length} คน)</div><div class="tbl-wrap"><table>${thead}<tbody>${makeRows(leave,true)}</tbody></table></div></div>`;
   if(absent.length) html+=`<div class="sum-group"><div class="sum-group-hd sg-absent"><span class="material-icons" style="font-size:17px">person_off</span> ยังไม่ลงเวลา / ขาด (${absent.length} คน)</div><div class="tbl-wrap"><table>${thead}<tbody>${makeRows(absent,false)}</tbody></table></div></div>`;
 
   document.getElementById('sum-groups').innerHTML = html || '<p style="color:var(--txt2);text-align:center;padding:20px">ไม่มีข้อมูลในวันที่เลือก</p>';
 }
 
-// Approver selects
 function populateApproverSelects() {
   if (!isSuperAdmin()) return;
-  var sel1 = document.getElementById('set-a1');
-  var sel2 = document.getElementById('set-a2');
+  var sel1=document.getElementById('set-a1'), sel2=document.getElementById('set-a2');
   if (!sel1) return;
-  // กรอง staff ที่ role=HR สำหรับ a1, role=HRR สำหรับ a2
-  var hrStaff = DATA.staff.filter(s => s.role === 'HR' || s.role === 'HRR' || s.role === 'head' || s.role === 'admin' || s.role === 'superadmin');
+  var hrStaff = DATA.staff.filter(s=>['HR','HRR','head','admin','superadmin'].includes(s.role));
   var opts = '<option value="">— เลือก —</option>' + hrStaff.map(s=>`<option value="${s.id}">${s.name} (${getRoleLabel(s.role)})</option>`).join('');
-  sel1.innerHTML = opts;
-  sel2.innerHTML = opts;
-  if (APPROVERS.a1) sel1.value = APPROVERS.a1;
-  if (APPROVERS.a2) sel2.value = APPROVERS.a2;
+  sel1.innerHTML = opts; sel2.innerHTML = opts;
+  if (APPROVERS.a1) sel1.value=APPROVERS.a1;
+  if (APPROVERS.a2) sel2.value=APPROVERS.a2;
 }
 
 function saveApproverSettings() {
-  var a1id = document.getElementById('set-a1').value;
-  var a2id = document.getElementById('set-a2').value;
-  var a1s = DATA.staff.find(s => s.id === a1id);
-  var a2s = DATA.staff.find(s => s.id === a2id);
-  APPROVERS = { a1: a1id, a2: a2id, a1Name: a1s?.name||'', a2Name: a2s?.name||'' };
-  localStorage.setItem('approvers', JSON.stringify(APPROVERS));
-  var msg = document.getElementById('approver-saved-msg');
-  msg.style.display = 'block';
-  setTimeout(() => msg.style.display='none', 2500);
+  var a1id=document.getElementById('set-a1').value, a2id=document.getElementById('set-a2').value;
+  var a1s=DATA.staff.find(s=>s.id===a1id), a2s=DATA.staff.find(s=>s.id===a2id);
+  APPROVERS={a1:a1id,a2:a2id,a1Name:a1s?.name||'',a2Name:a2s?.name||''};
+  localStorage.setItem('approvers',JSON.stringify(APPROVERS));
+  var msg=document.getElementById('approver-saved-msg');
+  msg.style.display='block'; setTimeout(()=>msg.style.display='none',2500);
   renderSummaryContent();
 }
 
@@ -1095,43 +1233,66 @@ async function doApprove(level) {
   if (!confirm(`ยืนยัน${level===1?'รับรอง':'อนุมัติ'}เอกสารสรุปประจำวัน?`)) return;
   showLd(level===1?'กำลังรับรอง...':'กำลังอนุมัติ...');
   try {
-    var r = await api('approveSummary', { level, staffId:CU.id, staffName:CU.name });
+    var r = await api('approveSummary',{level,staffId:CU.id,staffName:CU.name});
     hideLd();
     if (r.success) { toast(r.msg,'success'); await refreshData(); renderSummaryContent(); }
     else toast(r.msg,'error');
   } catch(e) { hideLd(); toast('Error','error'); }
 }
 
-// PDF Preview & Print (summary)
+// ✅ NEW: Reset Approval
+function doResetApproval() { openMo('mo-reset-confirm'); }
+
+async function confirmResetApproval() {
+  closeMo('mo-reset-confirm');
+  showLd('กำลังรีเซ็ทข้อมูล...');
+  try {
+    // Call backend resetApproval — ถ้า backend ยังไม่มีให้ reset ใน local state ก่อน
+    // แนะนำให้เพิ่ม action 'resetApproval' ใน Code.gs ด้วย
+    var r = await api('resetApproval', { date: DATA._summaryDate || new Date().toISOString().slice(0,10) });
+    hideLd();
+    if (r.success) {
+      DATA.summaryApproval = {};
+      toast('รีเซ็ทการรับรองเรียบร้อยแล้ว','success');
+      await refreshData();
+      renderSummaryContent();
+    } else {
+      // Fallback: reset ใน memory และแสดง warning
+      DATA.summaryApproval = {};
+      renderSummaryContent();
+      toast('รีเซ็ทใน UI แล้ว (กรุณาเพิ่ม resetApproval ใน Code.gs)','warn',5000);
+    }
+  } catch(e) {
+    hideLd();
+    DATA.summaryApproval = {};
+    renderSummaryContent();
+    toast('รีเซ็ทใน UI แล้ว (กรุณาเพิ่ม resetApproval ใน Code.gs)','warn',5000);
+  }
+}
+
+// PDF (Summary)
 function togglePDFPreview() {
-  var el = document.getElementById('pdf-preview');
+  var el=document.getElementById('pdf-preview');
   if (el.style.display==='none'||!el.style.display) { buildPDFPreview(); el.style.display='block'; }
   else el.style.display='none';
 }
 
 function buildPDFPreview() {
-  var att = DATA._summaryDateAtt || DATA.todayAtt.filter(a => String(a.id) !== SUPER_ADMIN_ID);
-  var ap = DATA.summaryApproval;
-  var dateStr = DATA._summaryDate || new Date().toISOString().slice(0,10);
-  var dateDisplay = new Date(dateStr).toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  var staffVisible = filterOutSuperAdmin(DATA.staff);
-  var presentIds = att.map(a => String(a.staffId || a.id));
-  var absent = staffVisible.filter(s => !presentIds.includes(String(s.id)));
-
-  var allList = [
-    ...att.map(r=>({...r,_absent:false})),
-    ...absent.map(s=>({name:s.name,dept:s.dept,clockIn:'',clockOut:'',workType:'absent',status:'ยังไม่ลงเวลา',_absent:true}))
-  ];
-
-  var rows = allList.map((r,i) => {
-    var st = r._absent?'ยังไม่ลงเวลา':r.workType==='wfh'?'WFH':r.workType==='leave'?(r.leaveType||'ลา'):r.status==='สาย'?'มาสาย':'ปกติ';
+  var att=DATA._summaryDateAtt||DATA.todayAtt.filter(a=>String(a.id)!==SUPER_ADMIN_ID);
+  var ap=DATA.summaryApproval;
+  var dateStr=DATA._summaryDate||new Date().toISOString().slice(0,10);
+  var dateDisplay=new Date(dateStr).toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  var staffVisible=filterOutSuperAdmin(DATA.staff);
+  var presentIds=att.map(a=>String(a.staffId||a.id));
+  var absent=staffVisible.filter(s=>!presentIds.includes(String(s.id)));
+  var allList=[...att.map(r=>({...r,_absent:false})),...absent.map(s=>({name:s.name,dept:s.dept,clockIn:'',clockOut:'',workType:'absent',status:'ยังไม่ลงเวลา',_absent:true}))];
+  var rows=allList.map((r,i)=>{
+    var st=r._absent?'ยังไม่ลงเวลา':r.workType==='wfh'?'WFH':r.workType==='leave'?(r.leaveType||'ลา'):r.status==='สาย'?'มาสาย':'ปกติ';
     return `<tr><td style="text-align:center">${i+1}</td><td>${r.name}</td><td>${r.dept}</td><td style="text-align:center">${r.clockIn||'-'}</td><td style="text-align:center">${r.clockOut||'-'}</td><td style="text-align:center">${st}</td></tr>`;
   }).join('');
-
-  var s1 = ap?.approvedBy1Name ? `${ap.approvedBy1Name} (${ap.approvedAt1||''})` : '.....................';
-  var s2 = ap?.approvedBy2Name ? `${ap.approvedBy2Name} (${ap.approvedAt2||''})` : '.....................';
-
-  document.getElementById('pdf-preview').innerHTML = `
+  var s1=ap?.approvedBy1Name?`${ap.approvedBy1Name} (${ap.approvedAt1||''})`:ap?.approvedBy1ID||'.....................';
+  var s2=ap?.approvedBy2Name?`${ap.approvedBy2Name} (${ap.approvedAt2||''})`:ap?.approvedBy2ID||'.....................';
+  document.getElementById('pdf-preview').innerHTML=`
     <h2>บันทึกข้อมูลการปฏิบัติงานประจำวัน</h2>
     <h2>สำนักงานเขตพื้นที่การศึกษาประถมศึกษานครราชสีมา เขต 4</h2>
     <p class="sub">วัน${dateDisplay} | บุคลากรทั้งหมด ${staffVisible.length} คน</p>
@@ -1147,20 +1308,25 @@ function buildPDFPreview() {
 
 function printPDF() {
   buildPDFPreview();
-  var content = document.getElementById('pdf-preview').innerHTML;
-  var w = window.open('','_blank','width=800,height=900');
-  w.document.write(`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>สรุปรายวัน</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Sarabun',sans-serif;padding:28px;font-size:13px;color:#000}h2{font-size:14px;text-align:center;margin-bottom:4px;font-weight:800}p.sub{text-align:center;color:#555;font-size:11px;margin-bottom:14px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #ccc;padding:6px 8px}th{background:#1e3a8a;color:#fff;font-weight:700}tbody tr:nth-child(even){background:#f8fafc}@media print{body{padding:16px}}</style></head><body>${content}<script>window.onload=()=>window.print()<\/script></body></html>`);
+  var content=document.getElementById('pdf-preview').innerHTML;
+  var w=window.open('','_blank','width=800,height=900');
+  w.document.write(`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>สรุปรายวัน</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Sarabun',sans-serif;padding:28px;font-size:13px;color:#000}
+  h2{font-size:14px;text-align:center;margin-bottom:4px;font-weight:800}p.sub{text-align:center;color:#555;font-size:11px;margin-bottom:14px}
+  table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #ccc;padding:6px 8px}
+  th{background:#1e3a8a;color:#fff;font-weight:700}tbody tr:nth-child(even){background:#f8fafc}
+  @media print{body{padding:16px}}</style></head><body>${content}<script>window.onload=()=>window.print()<\/script></body></html>`);
   w.document.close();
 }
 
-// =============================================
+// ═══════════════════════════════════════════════════════
 // PROFILE
-// =============================================
+// ═══════════════════════════════════════════════════════
 function renderProfile() {
   if (!CU) return;
-  var c = getRoleColor(ROLE);
-  var rl = getRoleLabel(ROLE);
-  document.getElementById('profile-wrap').innerHTML = `
+  var c=getRoleColor(ROLE), rl=getRoleLabel(ROLE);
+  document.getElementById('profile-wrap').innerHTML=`
     <div class="profile-hero">
       <div class="pf-avatar">${CU.name.charAt(3)||'?'}</div>
       <h2 style="font-size:1.15rem;margin-bottom:4px">${CU.name}</h2>
@@ -1180,113 +1346,76 @@ function renderProfile() {
 }
 
 async function doChangePW() {
-  var o = document.getElementById('cp-old').value, n = document.getElementById('cp-new').value;
-  if (!o || n.length < 6) return toast('กรอกข้อมูลไม่ครบ หรือรหัสสั้นเกินไป','error');
+  var o=document.getElementById('cp-old').value, n=document.getElementById('cp-new').value;
+  if (!o||n.length<6) return toast('กรอกข้อมูลไม่ครบ หรือรหัสสั้นเกินไป','error');
   showLd('กำลังเปลี่ยน...');
   try {
-    var r = await api('changePassword', {staffId:CU.id,oldPass:o,newPass:n});
-    hideLd(); toast(r.msg, r.success?'success':'error');
+    var r=await api('changePassword',{staffId:CU.id,oldPass:o,newPass:n});
+    hideLd(); toast(r.msg,r.success?'success':'error');
     if (r.success) { document.getElementById('cp-old').value=''; document.getElementById('cp-new').value=''; }
   } catch(e) { hideLd(); toast('Error','error'); }
 }
 
-// =============================================
+// ═══════════════════════════════════════════════════════
 // ADMIN
-// =============================================
-function loadAdminPage() { /* extend later */ }
-
+// ═══════════════════════════════════════════════════════
 async function doAdminLogin() {
-  var pass = document.getElementById('adm-pass').value;
+  var pass=document.getElementById('adm-pass').value;
   showLd('กำลังตรวจสอบ...');
   try {
-    var r = await api('verifyAdminPassword', {password:pass});
+    var r=await api('verifyAdminPassword',{password:pass});
     hideLd();
-    if (r.success) {
-      document.getElementById('admin-gate').style.display='none';
-      document.getElementById('admin-content').style.display='block';
-    } else toast('รหัสผ่านไม่ถูกต้อง','error');
+    if (r.success) { document.getElementById('admin-gate').style.display='none'; document.getElementById('admin-content').style.display='block'; }
+    else toast('รหัสผ่านไม่ถูกต้อง','error');
   } catch(e) { hideLd(); toast('Error','error'); }
 }
 
 async function doSetup() {
   showLd('กำลังอัปเดต Sheets...');
-  try { var r = await api('setupSheets'); hideLd(); toast(r.msg,'success'); } catch(e) { hideLd(); }
+  try { var r=await api('setupSheets'); hideLd(); toast(r.msg,'success'); } catch(e) { hideLd(); }
 }
 
 async function doImport() {
   if (!confirm('คำเตือน! เริ่มสร้างรายชื่อและรหัสผ่านเริ่มต้น (12345678)?')) return;
   showLd('กำลังสร้างฐานข้อมูล...');
-  try { var r = await api('importStaff'); hideLd(); toast(r.msg,'success'); refreshData(); } catch(e) { hideLd(); }
+  try { var r=await api('importStaff'); hideLd(); toast(r.msg,'success'); refreshData(); } catch(e) { hideLd(); }
 }
 
-// =============================================
-// REPORT — แยกตามวัน สวยงาม
-// =============================================
+// ═══════════════════════════════════════════════════════
+// REPORT
+// ═══════════════════════════════════════════════════════
 async function loadDetailedReport() {
-  var start = document.getElementById('report-start').value;
-  var end = document.getElementById('report-end').value;
-  if (!start || !end) return toast('กรุณาเลือกช่วงวันที่','error');
+  var start=document.getElementById('report-start').value;
+  var end=document.getElementById('report-end').value;
+  if (!start||!end) return toast('กรุณาเลือกช่วงวันที่','error');
   showLd('กำลังดึงข้อมูล...');
   try {
-    var r = await api('getDetailedReport', {startDate:start, endDate:end});
+    var r=await api('getDetailedReport',{startDate:start,endDate:end});
     hideLd();
-    if (!r.success || !r.data || !r.data.length) {
-      document.getElementById('report-result').innerHTML = '<p style="color:var(--danger);text-align:center;padding:40px">ไม่พบข้อมูลในช่วงวันที่เลือก</p>';
-      return;
+    if (!r.success||!r.data||!r.data.length) {
+      document.getElementById('report-result').innerHTML='<p style="color:var(--danger);text-align:center;padding:40px">ไม่พบข้อมูลในช่วงวันที่เลือก</p>'; return;
     }
-
-    // กรอง Super Admin ออก
-    var filtered = r.data.filter(row => String(row.staffId) !== SUPER_ADMIN_ID);
-
-    // จัดกลุ่มตามวัน
-    var byDate = {};
-    filtered.forEach(row => {
-      if (!byDate[row.date]) byDate[row.date] = [];
-      byDate[row.date].push(row);
-    });
-
-    var days = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
-    var totalRows = filtered.length;
-    var totalPresent = filtered.filter(r => r.clockIn).length;
-    var totalAbsent = filtered.filter(r => !r.clockIn).length;
-
-    // Summary bar
-    var html = `
+    var filtered=r.data.filter(row=>String(row.staffId)!==SUPER_ADMIN_ID);
+    var byDate={};
+    filtered.forEach(row=>{ if(!byDate[row.date]) byDate[row.date]=[]; byDate[row.date].push(row); });
+    var days=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+    var totalRows=filtered.length, totalPresent=filtered.filter(r=>r.clockIn).length, totalAbsent=filtered.filter(r=>!r.clockIn).length;
+    var html=`
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px">
-        <div class="sc" style="--ac:#2563eb;--ic-bg:#dbeafe;--ic-col:#1d4ed8;--vc:var(--txt)">
-          <div class="sc-ico"><span class="material-icons">table_rows</span></div>
-          <div class="sc-lbl">รายการทั้งหมด</div>
-          <div class="sc-val" style="font-size:1.5rem">${totalRows}</div>
-        </div>
-        <div class="sc" style="--ac:#059669;--ic-bg:#dcfce7;--ic-col:#15803d;--vc:var(--success)">
-          <div class="sc-ico"><span class="material-icons">check_circle</span></div>
-          <div class="sc-lbl">ลงเวลาแล้ว</div>
-          <div class="sc-val" style="font-size:1.5rem">${totalPresent}</div>
-        </div>
-        <div class="sc" style="--ac:#dc2626;--ic-bg:#fee2e2;--ic-col:#dc2626;--vc:var(--danger)">
-          <div class="sc-ico"><span class="material-icons">person_off</span></div>
-          <div class="sc-lbl">ไม่ลงเวลา</div>
-          <div class="sc-val" style="font-size:1.5rem">${totalAbsent}</div>
-        </div>
-        <div class="sc" style="--ac:#2563eb;--ic-bg:#f1f5f9;--ic-col:#64748b;--vc:var(--txt2)">
-          <div class="sc-ico"><span class="material-icons">calendar_today</span></div>
-          <div class="sc-lbl">จำนวนวัน</div>
-          <div class="sc-val" style="font-size:1.5rem">${Object.keys(byDate).length}</div>
-        </div>
+        <div class="sc" style="--ac:#2563eb;--ic-bg:#dbeafe;--ic-col:#1d4ed8;--vc:var(--txt)"><div class="sc-ico"><span class="material-icons">table_rows</span></div><div class="sc-lbl">รายการทั้งหมด</div><div class="sc-val" style="font-size:1.5rem">${totalRows}</div></div>
+        <div class="sc" style="--ac:#059669;--ic-bg:#dcfce7;--ic-col:#15803d;--vc:var(--success)"><div class="sc-ico"><span class="material-icons">check_circle</span></div><div class="sc-lbl">ลงเวลาแล้ว</div><div class="sc-val" style="font-size:1.5rem">${totalPresent}</div></div>
+        <div class="sc" style="--ac:#dc2626;--ic-bg:#fee2e2;--ic-col:#dc2626;--vc:var(--danger)"><div class="sc-ico"><span class="material-icons">person_off</span></div><div class="sc-lbl">ไม่ลงเวลา</div><div class="sc-val" style="font-size:1.5rem">${totalAbsent}</div></div>
+        <div class="sc" style="--ac:#2563eb;--ic-bg:#f1f5f9;--ic-col:#64748b;--vc:var(--txt2)"><div class="sc-ico"><span class="material-icons">calendar_today</span></div><div class="sc-lbl">จำนวนวัน</div><div class="sc-val" style="font-size:1.5rem">${Object.keys(byDate).length}</div></div>
       </div>`;
-
-    // สร้าง card แต่ละวัน (expandable)
-    Object.keys(byDate).sort().forEach((date, idx) => {
-      var dayRows = byDate[date];
-      var dayOffice = dayRows.filter(r => r.clockIn && (!r.workType || r.workType==='office')).length;
-      var dayWFH   = dayRows.filter(r => r.workType==='wfh').length;
-      var dayLeave  = dayRows.filter(r => r.workType==='leave').length;
-      var dayAbsent = dayRows.filter(r => !r.clockIn && r.workType!=='wfh' && r.workType!=='leave').length;
-      var d = new Date(date);
-      var dayName = days[d.getDay()];
-      var dateDisplay = d.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
-
-      html += `
+    Object.keys(byDate).sort().forEach((date,idx)=>{
+      var dayRows=byDate[date];
+      var dayOffice=dayRows.filter(r=>r.clockIn&&(!r.workType||r.workType==='office')).length;
+      var dayWFH=dayRows.filter(r=>r.workType==='wfh').length;
+      var dayLeave=dayRows.filter(r=>r.workType==='leave').length;
+      var dayAbsent=dayRows.filter(r=>!r.clockIn&&r.workType!=='wfh'&&r.workType!=='leave').length;
+      var d=new Date(date), dayName=days[d.getDay()];
+      var dateDisplay=d.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+      html+=`
         <div class="report-day-card">
           <div class="report-day-hd" id="rdhd-${idx}" onclick="toggleDayCard(${idx})">
             <span class="material-icons" style="font-size:18px;opacity:.8">event</span>
@@ -1304,171 +1433,117 @@ async function loadDetailedReport() {
             <div class="tbl-wrap" style="border-radius:0;border:none;border-top:1px solid var(--border)">
               <table>
                 <thead><tr><th>ชื่อ-สกุล</th><th>กลุ่มงาน</th><th>เข้างาน</th><th>ออกงาน</th><th>สถานะ</th></tr></thead>
-                <tbody>
-                  ${dayRows.map(row => {
-                    var sc='b-office', st=row.status||'ปกติ';
-                    if (row.workType==='wfh') { sc='b-wfh'; st='WFH'; }
-                    else if (row.workType==='leave') { sc='b-leave'; st=row.leaveType||'ลา'; }
-                    else if (row.status==='สาย') { sc='b-late'; st='มาสาย'; }
-                    else if (!row.clockIn) { sc='b-absent'; st='ยังไม่ลงเวลา'; }
-                    return `<tr>
-                      <td><strong>${row.name}</strong></td>
-                      <td style="color:var(--txt2);font-size:.8rem">${row.dept||'-'}</td>
-                      <td>${row.clockIn||'-'}</td>
-                      <td>${row.clockOut||'-'}</td>
-                      <td><span class="badge ${sc}">${st}</span></td>
-                    </tr>`;
-                  }).join('')}
-                </tbody>
+                <tbody>${dayRows.map(row=>{
+                  var sc='b-office',st=row.status||'ปกติ';
+                  if(row.workType==='wfh'){sc='b-wfh';st='WFH';}
+                  else if(row.workType==='leave'){sc='b-leave';st=row.leaveType||'ลา';}
+                  else if(row.status==='สาย'){sc='b-late';st='มาสาย';}
+                  else if(!row.clockIn){sc='b-absent';st='ยังไม่ลงเวลา';}
+                  return `<tr><td><strong>${row.name}</strong></td><td style="color:var(--txt2);font-size:.8rem">${row.dept||'-'}</td><td>${row.clockIn||'-'}</td><td>${row.clockOut||'-'}</td><td><span class="badge ${sc}">${st}</span></td></tr>`;
+                }).join('')}</tbody>
               </table>
             </div>
           </div>
         </div>`;
     });
-
-    html += `<div style="margin-top:12px"><button class="btn btn-primary" onclick="printAllReportPDF('${start}','${end}')"><span class="material-icons">picture_as_pdf</span> พิมพ์รายงานทั้งหมด</button></div>`;
-    document.getElementById('report-result').innerHTML = html;
+    html+=`<div style="margin-top:12px"><button class="btn btn-primary" onclick="printAllReportPDF('${start}','${end}')"><span class="material-icons">picture_as_pdf</span> พิมพ์รายงานทั้งหมด</button></div>`;
+    document.getElementById('report-result').innerHTML=html;
   } catch(e) { hideLd(); toast('ดึงข้อมูลล้มเหลว','error'); }
 }
 
 function toggleDayCard(idx) {
-  var hd = document.getElementById('rdhd-'+idx);
-  var body = document.getElementById('rdbody-'+idx);
-  hd.classList.toggle('collapsed');
-  body.classList.toggle('hidden');
+  document.getElementById('rdhd-'+idx).classList.toggle('collapsed');
+  document.getElementById('rdbody-'+idx).classList.toggle('hidden');
 }
 
-function printAllReportPDF(start, end) {
-  var el = document.getElementById('report-result');
-  var rows = el.querySelectorAll('table tbody tr');
-  var tableHTML = '<table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="background:#1e3a8a;color:#fff"><th style="padding:6px">วันที่</th><th style="padding:6px">ชื่อ-สกุล</th><th style="padding:6px">กลุ่มงาน</th><th style="padding:6px;text-align:center">เข้างาน</th><th style="padding:6px;text-align:center">ออกงาน</th><th style="padding:6px;text-align:center">สถานะ</th></tr></thead><tbody>';
-  // reconstruct from data
-  var allData = [];
-  el.querySelectorAll('.report-day-card').forEach(card => {
-    var dateText = card.querySelector('.rday-date').innerText;
-    card.querySelectorAll('tbody tr').forEach(tr => {
-      var tds = tr.querySelectorAll('td');
-      if (tds.length >= 5) {
-        tableHTML += `<tr><td style="padding:5px;font-size:10px">${dateText}</td><td style="padding:5px">${tds[0].innerText}</td><td style="padding:5px;color:#64748b">${tds[1].innerText}</td><td style="padding:5px;text-align:center">${tds[2].innerText}</td><td style="padding:5px;text-align:center">${tds[3].innerText}</td><td style="padding:5px;text-align:center">${tds[4].innerText}</td></tr>`;
-      }
+function printAllReportPDF(start,end) {
+  var el=document.getElementById('report-result');
+  var tableHTML='<table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="background:#1e3a8a;color:#fff"><th style="padding:6px">วันที่</th><th style="padding:6px">ชื่อ-สกุล</th><th style="padding:6px">กลุ่มงาน</th><th style="padding:6px;text-align:center">เข้างาน</th><th style="padding:6px;text-align:center">ออกงาน</th><th style="padding:6px;text-align:center">สถานะ</th></tr></thead><tbody>';
+  el.querySelectorAll('.report-day-card').forEach(card=>{
+    var dateText=card.querySelector('.rday-date').innerText;
+    card.querySelectorAll('tbody tr').forEach(tr=>{
+      var tds=tr.querySelectorAll('td');
+      if(tds.length>=5) tableHTML+=`<tr><td style="padding:5px;font-size:10px">${dateText}</td><td style="padding:5px">${tds[0].innerText}</td><td style="padding:5px;color:#64748b">${tds[1].innerText}</td><td style="padding:5px;text-align:center">${tds[2].innerText}</td><td style="padding:5px;text-align:center">${tds[3].innerText}</td><td style="padding:5px;text-align:center">${tds[4].innerText}</td></tr>`;
     });
   });
-  tableHTML += '</tbody></table>';
-
-  var w = window.open('','_blank','width=900,height=900');
-  w.document.write(`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>รายงานสรุปเวลา</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Sarabun',sans-serif;padding:24px;font-size:13px}h2{text-align:center;font-size:14px;margin-bottom:4px}p{text-align:center;color:#666;margin-bottom:14px;font-size:11px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:6px}tbody tr:nth-child(even){background:#f8fafc}@media print{body{padding:12px}}</style></head><body><h2>สรุปการลงเวลาปฏิบัติงาน</h2><h2>สำนักงานเขตพื้นที่การศึกษาประถมศึกษานครราชสีมา เขต 4</h2><p>ช่วงวันที่ ${start} ถึง ${end}</p>${tableHTML}<script>window.onload=()=>window.print()<\/script></body></html>`);
+  tableHTML+='</tbody></table>';
+  var w=window.open('','_blank','width=900,height=900');
+  w.document.write(`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>รายงานสรุปเวลา</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Sarabun',sans-serif;padding:24px;font-size:13px}
+  h2{text-align:center;font-size:14px;margin-bottom:4px}p{text-align:center;color:#666;margin-bottom:14px;font-size:11px}
+  table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:6px}
+  tbody tr:nth-child(even){background:#f8fafc}@media print{body{padding:12px}}</style>
+  </head><body><h2>สรุปการลงเวลาปฏิบัติงาน</h2>
+  <h2>สำนักงานเขตพื้นที่การศึกษาประถมศึกษานครราชสีมา เขต 4</h2>
+  <p>ช่วงวันที่ ${start} ถึง ${end}</p>${tableHTML}<script>window.onload=()=>window.print()<\/script></body></html>`);
   w.document.close();
 }
 
-// =============================================
+// ═══════════════════════════════════════════════════════
 // STAFF TABLE
-// =============================================
+// ═══════════════════════════════════════════════════════
 function renderStaffTable() {
-  var staffVisible = filterOutSuperAdmin(DATA.staff);
-  if (!staffVisible.length) {
-    document.getElementById('staff-table-wrap').innerHTML = '<p style="color:var(--txt2)">ยังไม่มีข้อมูลบุคลากร</p>'; return;
-  }
-  var roleClasses = {HR:'role-hr',HRR:'role-hrr',staff:'role-staff',head:'role-head',admin:'role-admin',superadmin:'role-superadmin'};
-  var rows = staffVisible.map(s => `
-    <tr>
-      <td style="font-family:monospace;font-size:.8rem">${s.id}</td>
-      <td><strong>${s.name}</strong></td>
-      <td style="color:var(--txt2);font-size:.82rem">${s.dept}</td>
-      <td><span class="badge ${roleClasses[s.role]||'b-office'}">${getRoleLabel(s.role)}</span></td>
-    </tr>`).join('');
-
-  document.getElementById('staff-table-wrap').innerHTML = `
-    <div class="tbl-wrap">
-      <table>
-        <thead><tr><th>ID</th><th>ชื่อ-สกุล</th><th>กลุ่มงาน</th><th>สิทธิ์</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>`;
+  var staffVisible=filterOutSuperAdmin(DATA.staff);
+  if (!staffVisible.length) { document.getElementById('staff-table-wrap').innerHTML='<p style="color:var(--txt2)">ยังไม่มีข้อมูลบุคลากร</p>'; return; }
+  var roleClasses={HR:'role-hr',HRR:'role-hrr',staff:'role-staff',head:'role-head',admin:'role-admin',superadmin:'role-superadmin'};
+  document.getElementById('staff-table-wrap').innerHTML=`
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>ID</th><th>ชื่อ-สกุล</th><th>กลุ่มงาน</th><th>สิทธิ์</th></tr></thead>
+      <tbody>${staffVisible.map(s=>`<tr>
+        <td style="font-family:monospace;font-size:.8rem">${s.id}</td>
+        <td><strong>${s.name}</strong></td>
+        <td style="color:var(--txt2);font-size:.82rem">${s.dept}</td>
+        <td><span class="badge ${roleClasses[s.role]||'b-office'}">${getRoleLabel(s.role)}</span></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
 }
 
-// =============================================
-// STAFF MANAGEMENT - Excel
-// =============================================
 async function exportStaffTemplateExcel() {
   showLd('กำลังสร้างไฟล์ Excel...');
   try {
-    var r = await api('exportStaffTemplateExcel');
+    var r=await api('exportStaffTemplateExcel');
     hideLd();
-    if (r.success && r.blob) {
-      var byteCharacters = atob(r.blob);
-      var byteArray = new Uint8Array(byteCharacters.length);
-      for (var i = 0; i < byteCharacters.length; i++) byteArray[i] = byteCharacters.charCodeAt(i);
-      var blob = new Blob([byteArray], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-      var link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'Staff_Import_Template.xlsx';
-      link.click();
+    if (r.success&&r.blob) {
+      var ba=atob(r.blob), arr=new Uint8Array(ba.length);
+      for(var i=0;i<ba.length;i++) arr[i]=ba.charCodeAt(i);
+      var blob=new Blob([arr],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      var link=document.createElement('a'); link.href=URL.createObjectURL(blob); link.download='Staff_Import_Template.xlsx'; link.click();
       toast('ดาวน์โหลด Template Excel สำเร็จ','success');
     } else toast(r.msg||'เกิดข้อผิดพลาด','error');
   } catch(e) { hideLd(); toast('เชื่อมต่อล้มเหลว','error'); }
 }
 
 function importStaffFile(input) {
-  var file = input.files[0]; if (!file) return;
+  var file=input.files[0]; if(!file) return;
   showLd('กำลังนำเข้าไฟล์...');
-  var reader = new FileReader();
-  reader.onload = async function(e) {
-    var r = await api('importStaffCSV', {csv:e.target.result});
-    hideLd(); toast(r.msg, r.success?'success':'error');
-    if (r.success) refreshData();
+  var reader=new FileReader();
+  reader.onload=async function(e){
+    var r=await api('importStaffCSV',{csv:e.target.result});
+    hideLd(); toast(r.msg,r.success?'success':'error');
+    if(r.success) refreshData();
   };
   reader.readAsText(file);
 }
 
 function addNewStaff() {
-  var id = document.getElementById('new-id').value.trim();
-  var name = document.getElementById('new-name').value.trim();
-  if (!id || !name) return toast('กรุณากรอกอย่างน้อย ID และชื่อ-สกุล','error');
+  var id=document.getElementById('new-id').value.trim();
+  var name=document.getElementById('new-name').value.trim();
+  if(!id||!name) return toast('กรุณากรอกอย่างน้อย ID และชื่อ-สกุล','error');
   showLd('กำลังเพิ่มบุคลากร...');
-  api('addNewStaff', {
-    id, name,
-    position: document.getElementById('new-position').value,
-    dept: document.getElementById('new-dept').value,
-    role: document.getElementById('new-role').value
-  }).then(r => {
-    hideLd(); toast(r.msg||'เพิ่มสำเร็จ', r.success?'success':'error');
-    if (r.success) { refreshData(); renderStaffTable(); }
+  api('addNewStaff',{id,name,position:document.getElementById('new-position').value,dept:document.getElementById('new-dept').value,role:document.getElementById('new-role').value}).then(r=>{
+    hideLd(); toast(r.msg||'เพิ่มสำเร็จ',r.success?'success':'error');
+    if(r.success){ refreshData(); renderStaffTable(); }
   });
 }
 
-// =============================================
+// ═══════════════════════════════════════════════════════
 // UTILS
-// =============================================
-function showLd(t) { var l=document.getElementById('loader'); l.classList.add('on'); document.getElementById('ld-txt').innerText=t||'กำลังโหลด...'; }
-function hideLd() { document.getElementById('loader').classList.remove('on'); }
-
-function toast(msg, type='info', dur=3500) {
-  var ic={success:'✅',error:'❌',warn:'⚠️',info:'ℹ️'};
-  var cl={success:'var(--success)',error:'var(--danger)',warn:'var(--warn)',info:'var(--p2)'};
-  var el=document.createElement('div');
-  el.className='toast'; el.style.borderLeftColor=cl[type]||'var(--p2)';
-  el.innerHTML=`<span>${ic[type]}</span><span style="flex:1">${msg}</span>`;
-  document.getElementById('tc').appendChild(el);
-  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),350); }, dur);
-}
-
-function openMo(id) { document.getElementById(id).classList.add('open'); }
-function closeMo(id) { document.getElementById(id).classList.remove('open'); }
-
-function toggleSB() {
-  var sb=document.getElementById('sidebar'), ov=document.getElementById('sb-ov');
-  if (sb.classList.contains('open')) { sb.classList.remove('open'); ov.style.display='none'; }
-  else { sb.classList.add('open'); ov.style.display='block'; }
-}
-function closeSB() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sb-ov').style.display='none';
-}
-
+// ═══════════════════════════════════════════════════════
 function viewStaffDetail(staffId) {
-  var staff = DATA.staff.find(s => s.id === staffId); if (!staff) return;
-  var att = DATA.todayAtt.find(a => a.id === staffId);
-  document.getElementById('staff-detail-body').innerHTML = `
+  var staff=DATA.staff.find(s=>s.id===staffId); if(!staff) return;
+  var att=DATA.todayAtt.find(a=>a.id===staffId);
+  document.getElementById('staff-detail-body').innerHTML=`
     <p><strong>ชื่อ-สกุล:</strong> ${staff.name}</p>
     <p><strong>เลขประจำตัว:</strong> ${staff.id}</p>
     <p><strong>กลุ่มงาน:</strong> ${staff.dept||'-'}</p>
@@ -1479,6 +1554,31 @@ function viewStaffDetail(staffId) {
     <p><strong>เข้างาน:</strong> ${att?.clockIn||'-'}</p>
     <p><strong>ออกงาน:</strong> ${att?.clockOut||'-'}</p>`;
   openMo('mo-staff-detail');
+}
+
+function showLd(t){ var l=document.getElementById('loader'); l.classList.add('on'); document.getElementById('ld-txt').innerText=t||'กำลังโหลด...'; }
+function hideLd(){ document.getElementById('loader').classList.remove('on'); }
+
+function toast(msg,type='info',dur=3500){
+  var ic={success:'✅',error:'❌',warn:'⚠️',info:'ℹ️'};
+  var cl={success:'var(--success)',error:'var(--danger)',warn:'var(--warn)',info:'var(--p2)'};
+  var el=document.createElement('div'); el.className='toast'; el.style.borderLeftColor=cl[type]||'var(--p2)';
+  el.innerHTML=`<span>${ic[type]}</span><span style="flex:1">${msg}</span>`;
+  document.getElementById('tc').appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),350); },dur);
+}
+
+function openMo(id){ document.getElementById(id).classList.add('open'); }
+function closeMo(id){ document.getElementById(id).classList.remove('open'); }
+
+function toggleSB(){
+  var sb=document.getElementById('sidebar'),ov=document.getElementById('sb-ov');
+  if(sb.classList.contains('open')){ sb.classList.remove('open'); ov.style.display='none'; }
+  else{ sb.classList.add('open'); ov.style.display='block'; }
+}
+function closeSB(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sb-ov').style.display='none';
 }
 </script>
 </body>
