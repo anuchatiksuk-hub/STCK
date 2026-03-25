@@ -240,7 +240,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
             <div class="fg"><label>เหตุผล / หมายเหตุ</label><input type="text" id="leave-reason" placeholder="เช่น ไม่สบาย, ธุระส่วนตัว..."></div>
           </div>
         </div>
-        <div style="display:flex;gap:10px" id="ck-btns">
+        <div style="display:flex;gap:10px">
           <button class="btn btn-success btn-lg" id="btn-in" style="flex:1" onclick="doClockIn()"><span class="material-icons">login</span> ลงเวลาเข้างาน</button>
           <button class="btn btn-warn btn-lg" id="btn-out" style="flex:1" onclick="doClockOut()"><span class="material-icons">logout</span> ลงเวลาออกงาน</button>
         </div>
@@ -309,32 +309,36 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
     </div>
 
     <!-- STAFF MANAGEMENT -->
-  <div id="staffmgmt" class="page">
-  <div class="card" style="max-width:720px;margin:0 auto">
-    <div class="card-hd"><span class="material-icons">person_add</span><h3>เพิ่มบุคลากรใหม่</h3></div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px">
-      <div class="fg"><label>เลขประจำตัว</label><input id="new-id" placeholder="เช่น 3301200495499"></div>
-      <div class="fg"><label>ชื่อ-สกุล</label><input id="new-name"></div>
-      <div class="fg"><label>ตำแหน่ง</label><input id="new-position"></div>
-      <div class="fg"><label>กลุ่มงาน</label><input id="new-dept"></div>
-      <div class="fg"><label>สิทธิ์ (Role)</label>
-        <select id="new-role">
-          <option value="staff">staff</option>
-          <option value="head">head</option>
-          <option value="admin">admin</option>
-        </select>
+    <div id="staffmgmt" class="page">
+      <div class="card" style="max-width:720px;margin:0 auto">
+        <div class="card-hd"><span class="material-icons">person_add</span><h3>เพิ่มบุคลากรใหม่</h3></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px">
+          <div class="fg"><label>เลขประจำตัว</label><input id="new-id" placeholder="เช่น 3301200495499"></div>
+          <div class="fg"><label>ชื่อ-สกุล</label><input id="new-name"></div>
+          <div class="fg"><label>ตำแหน่ง</label><input id="new-position"></div>
+          <div class="fg"><label>กลุ่มงาน</label><input id="new-dept"></div>
+          <div class="fg"><label>สิทธิ์ (Role)</label>
+            <select id="new-role">
+              <option value="staff">staff</option>
+              <option value="head">head</option>
+              <option value="admin">admin</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-success btn-full" onclick="addNewStaff()">เพิ่มบุคลากร</button>
+      </div>
+
+      <div class="card" style="max-width:720px;margin:0 auto">
+        <div class="card-hd"><span class="material-icons">download</span><h3>ดาวน์โหลด / อัปโหลดข้อมูลบุคลากร</h3></div>
+        <button class="btn btn-primary" onclick="exportStaffTemplateExcel()">
+          <span class="material-icons">table_view</span> ดาวน์โหลด Template Excel (.xlsx)
+        </button>
+        <input type="file" id="upload-excel" accept=".csv,.xlsx" style="display:none" onchange="importStaffFile(this)">
+        <button class="btn btn-ghost" onclick="document.getElementById('upload-excel').click()">
+          <span class="material-icons">upload</span> อัปโหลดไฟล์ (CSV หรือ Excel)
+        </button>
       </div>
     </div>
-    <button class="btn btn-success btn-full" onclick="addNewStaff()">เพิ่มบุคลากร</button>
-  </div>
-
-  <div class="card" style="max-width:720px;margin:0 auto">
-    <div class="card-hd"><span class="material-icons">download</span><h3>ดาวน์โหลด / อัปโหลดข้อมูลบุคลากร</h3></div>
-    <button class="btn btn-primary" onclick="exportStaffExcel()">ดาวน์โหลด Template CSV</button>
-    <input type="file" id="upload-excel" accept=".csv" style="display:none" onchange="importStaffCSV(this)">
-    <button class="btn btn-ghost" onclick="document.getElementById('upload-excel').click()">อัปโหลด CSV</button>
-  </div>
-</div>
 
     <!-- ADMIN -->
     <div id="admin" class="page">
@@ -372,11 +376,23 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
   </div>
 </div>
 
+<!-- STAFF DETAIL MODAL -->
+<div class="mo" id="mo-staff-detail">
+  <div class="mo-box">
+    <div class="mo-hd">
+      <h3>รายละเอียดบุคลากร</h3>
+      <button class="mo-close" onclick="closeMo('mo-staff-detail')">✕</button>
+    </div>
+    <div class="mo-body" id="staff-detail-body"></div>
+  </div>
+</div>
+
 <script>
 // =============================================
 // CONFIG
 // =============================================
 var API_URL = 'https://script.google.com/macros/s/AKfycbw_woBO9dgsH7xF1gvgHzwCfDp6_8NJoRWjB8gurkheiGAUubs6F38QG80RLQsTBCInVg/exec';
+
 var DATA = { staff:[], todayAtt:[], summaryApproval:{} };
 var CU = JSON.parse(localStorage.getItem('cu') || 'null');
 var ROLE = CU?.systemRole || 'staff';
@@ -620,25 +636,6 @@ function renderDashboard() {
   document.getElementById('dash-tbody').innerHTML = rows || `<tr><td colspan="5" align="center" style="padding:40px;color:var(--txt2)">ยังไม่มีข้อมูลวันนี้</td></tr>`;
 }
 
-function viewStaffDetail(staffId) {
-  var staff = DATA.staff.find(s => s.id === staffId);
-  if (!staff) return;
-
-  var att = DATA.todayAtt.find(a => a.id === staffId);
-  var html = `
-    <p><strong>ชื่อ-สกุล:</strong> ${staff.name}</p>
-    <p><strong>เลขประจำตัว:</strong> ${staff.id}</p>
-    <p><strong>กลุ่มงาน:</strong> ${staff.dept || '-'}</p>
-    <p><strong>ตำแหน่ง:</strong> ${staff.position || '-'}</p>
-    <hr>
-    <p><strong>สถานะวันนี้:</strong> ${att ? (att.workType === 'wfh' ? 'WFH' : att.workType === 'leave' ? 'ลา' : 'มาออฟฟิศ') : 'ยังไม่ลงเวลา'}</p>
-    <p><strong>เข้างาน:</strong> ${att?.clockIn || '-'}</p>
-    <p><strong>ออกงาน:</strong> ${att?.clockOut || '-'}</p>
-  `;
-  document.getElementById('staff-detail-body').innerHTML = html;
-  openMo('mo-staff-detail');
-}
-
 // =============================================
 // CLOCK PAGE
 // =============================================
@@ -709,9 +706,9 @@ async function doSubmitDR() {
     var r = await api('submitDailyReport', {data:{staffId:CU.id,name:CU.name,dept:CU.dept,workDone:w,problems:document.getElementById('dr-prob').value,nextPlan:document.getElementById('dr-next').value}});
     hideLd(); toast(r.msg, r.success?'success':'error');
     if (r.success) {
-      document.getElementById('dr-work').value='';
-      document.getElementById('dr-prob').value='';
-      document.getElementById('dr-next').value='';
+      document.getElementById('dr-work').value = '';
+      document.getElementById('dr-prob').value = '';
+      document.getElementById('dr-next').value = '';
     }
   } catch(e) { hideLd(); toast('เกิดข้อผิดพลาด','error'); }
 }
@@ -765,7 +762,6 @@ function renderSummary() {
     btnArea.innerHTML += `<button class="btn btn-primary" onclick="doApprove(2)"><span class="material-icons">task_alt</span> อนุมัติเอกสาร (ผอ.กลุ่มบุคคล)</button>`;
   }
 
-  // กลุ่มต่าง ๆ (เหมือนเดิม)
   var office = att.filter(r => !r.workType || r.workType === 'office');
   var wfh = att.filter(r => r.workType === 'wfh');
   var leave = att.filter(r => r.workType === 'leave');
@@ -800,6 +796,9 @@ async function doApprove(level) {
   } catch(e) { hideLd(); toast('Error','error'); }
 }
 
+// =============================================
+// PDF Preview & Print
+// =============================================
 function togglePDFPreview() {
   var el = document.getElementById('pdf-preview');
   if (el.style.display === 'none' || !el.style.display) {
@@ -808,7 +807,6 @@ function togglePDFPreview() {
 }
 
 function buildPDFPreview() {
-  // (โค้ด buildPDFPreview เดิมของคุณ)
   var att = DATA.todayAtt;
   var ap = DATA.summaryApproval;
   var now = new Date();
@@ -817,12 +815,14 @@ function buildPDFPreview() {
   var wfh = att.filter(r => r.workType==='wfh');
   var leave = att.filter(r => r.workType==='leave');
   var absent = DATA.staff.filter(s => !att.find(a => a.id===s.id));
+
   function rows(list, isAbs) {
     return list.map((r,i) => `<tr><td style="text-align:center">${i+1}</td><td>${r.name}</td><td>${r.dept}</td><td style="text-align:center">${isAbs?'-':r.clockIn||'-'}</td><td style="text-align:center">${isAbs?'-':r.clockOut||'-'}</td><td style="text-align:center">${isAbs?'ยังไม่ลงเวลา':r.workType==='wfh'?'WFH':r.workType==='leave'?(r.leaveType||'ลา'):r.status==='สาย'?'มาสาย':'ปกติ'}</td></tr>`).join('');
   }
   var allRows = rows(office)+rows(wfh)+rows(leave)+rows(absent,true);
   var s1 = ap?.approvedBy1Name ? `${ap.approvedBy1Name} (${ap.approvedAt1||''})` : '.....................';
   var s2 = ap?.approvedBy2Name ? `${ap.approvedBy2Name} (${ap.approvedAt2||''})` : '.....................';
+
   document.getElementById('pdf-preview').innerHTML = `
     <h2>บันทึกข้อมูลการปฏิบัติงานประจำวัน</h2>
     <h2>สำนักงานเขตพื้นที่การศึกษาประถมศึกษานครราชสีมา เขต 4</h2>
@@ -879,7 +879,10 @@ async function doChangePW() {
   try {
     var r = await api('changePassword', {staffId:CU.id,oldPass:o,newPass:n});
     hideLd(); toast(r.msg, r.success?'success':'error');
-    if (r.success) { document.getElementById('cp-old').value=''; document.getElementById('cp-new').value=''; }
+    if (r.success) { 
+      document.getElementById('cp-old').value=''; 
+      document.getElementById('cp-new').value=''; 
+    }
   } catch(e) { hideLd(); toast('Error','error'); }
 }
 
@@ -887,7 +890,7 @@ async function doChangePW() {
 // ADMIN
 // =============================================
 function loadAdminPage() {
-  // เพิ่มโค้ดที่ขาดหายไปได้ตามต้องการ
+  // สามารถเพิ่มโค้ดเพิ่มเติมได้
 }
 
 async function doAdminLogin() {
@@ -905,31 +908,38 @@ async function doAdminLogin() {
 
 async function doSetup() {
   showLd('กำลังอัปเดต Sheets...');
-  try { var r = await api('setupSheets'); hideLd(); toast(r.msg,'success'); } catch(e) { hideLd(); }
+  try { 
+    var r = await api('setupSheets'); 
+    hideLd(); 
+    toast(r.msg,'success'); 
+  } catch(e) { hideLd(); }
 }
 
 async function doImport() {
   if (!confirm('คำเตือน! เริ่มสร้างรายชื่อและรหัสผ่านเริ่มต้น (12345678)?')) return;
   showLd('กำลังสร้างฐานข้อมูล...');
-  try { var r = await api('importStaff'); hideLd(); toast(r.msg,'success'); refreshData(); } catch(e) { hideLd(); }
+  try { 
+    var r = await api('importStaff'); 
+    hideLd(); 
+    toast(r.msg,'success'); 
+    refreshData(); 
+  } catch(e) { hideLd(); }
 }
 
 // =============================================
 // REPORT
+// =============================================
 async function loadDetailedReport() {
   var start = document.getElementById('report-start').value;
   var end = document.getElementById('report-end').value;
   if (!start || !end) return toast('กรุณาเลือกช่วงวันที่', 'error');
-
   showLd('กำลังดึงข้อมูลทุกคน...');
   var r = await api('getDetailedReport', {startDate: start, endDate: end});
   hideLd();
-
   if (!r.success || !r.data || r.data.length === 0) {
     document.getElementById('report-result').innerHTML = '<p style="color:var(--danger);text-align:center;padding:40px">ไม่พบข้อมูลในช่วงวันที่ที่เลือก</p>';
     return;
   }
-
   var html = `<p style="margin-bottom:12px;font-weight:700;color:var(--txt)">พบ ${r.data.length} แถวข้อมูล</p>`;
   html += `<div class="tbl-wrap"><table style="width:100%">
     <thead><tr>
@@ -940,7 +950,6 @@ async function loadDetailedReport() {
       <th>ออกงาน</th>
       <th>สถานะ</th>
     </tr></thead><tbody>`;
-
   r.data.forEach(row => {
     var statusClass = '';
     var statusText = row.status || 'ปกติ';
@@ -949,7 +958,6 @@ async function loadDetailedReport() {
     else if (row.status === 'สาย') { statusClass = 'b-late'; }
     else if (!row.clockIn) { statusClass = 'b-absent'; statusText = 'ยังไม่ลงเวลา'; }
     else { statusClass = 'b-office'; }
-
     html += `<tr>
       <td>${row.date || '-'}</td>
       <td><strong>${row.name}</strong></td>
@@ -959,9 +967,68 @@ async function loadDetailedReport() {
       <td><span class="badge ${statusClass}">${statusText}</span></td>
     </tr>`;
   });
-
   html += `</tbody></table></div>`;
   document.getElementById('report-result').innerHTML = html;
+}
+
+// =============================================
+// STAFF MANAGEMENT - Excel
+// =============================================
+async function exportStaffTemplateExcel() {
+  showLd('กำลังสร้างไฟล์ Excel...');
+  try {
+    var r = await api('exportStaffTemplateExcel');
+    hideLd();
+    if (r.success && r.blob) {
+      var byteCharacters = atob(r.blob);
+      var byteNumbers = new Array(byteCharacters.length);
+      for (var i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      var byteArray = new Uint8Array(byteNumbers);
+      var blob = new Blob([byteArray], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      
+      var link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'Staff_Import_Template.xlsx';
+      link.click();
+      toast('ดาวน์โหลด Template Excel สำเร็จ', 'success');
+    } else toast(r.msg || 'เกิดข้อผิดพลาด', 'error');
+  } catch(e) {
+    hideLd(); toast('เชื่อมต่อล้มเหลว', 'error');
+  }
+}
+
+function importStaffFile(input) {
+  var file = input.files[0];
+  if (!file) return;
+  showLd('กำลังนำเข้าไฟล์...');
+  var reader = new FileReader();
+  reader.onload = async function(e) {
+    var r = await api('importStaffCSV', {csv: e.target.result});
+    hideLd();
+    toast(r.msg, r.success ? 'success' : 'error');
+    if (r.success) refreshData();
+  };
+  reader.readAsText(file);
+}
+
+function addNewStaff() {
+  var id = document.getElementById('new-id').value.trim();
+  var name = document.getElementById('new-name').value.trim();
+  if (!id || !name) return toast('กรุณากรอกอย่างน้อย ID และชื่อ-สกุล', 'error');
+  showLd('กำลังเพิ่มบุคลากร...');
+  api('addNewStaff', {
+    id: id,
+    name: name,
+    position: document.getElementById('new-position').value,
+    dept: document.getElementById('new-dept').value,
+    role: document.getElementById('new-role').value
+  }).then(r => {
+    hideLd();
+    toast(r.msg || 'เพิ่มสำเร็จ', r.success ? 'success' : 'error');
+    if (r.success) refreshData();
+  });
 }
 
 // =============================================
@@ -1004,65 +1071,23 @@ function closeSB() {
   document.getElementById('sb-ov').style.display='none';
 }
 
-// เพิ่มฟังก์ชันที่ยังขาด (staffmgmt)
-function addNewStaff() { toast('ฟังก์ชันเพิ่มบุคลากรยังไม่ได้เชื่อมต่อกับ Backend', 'warn'); }
-function exportStaffExcel() { toast('กำลังพัฒนา...', 'info'); }
-function importStaffCSV() { toast('กำลังพัฒนา...', 'info'); }
-function addNewStaff() {
-  var id = document.getElementById('new-id').value.trim();
-  var name = document.getElementById('new-name').value.trim();
-  if (!id || !name) return toast('กรุณากรอกอย่างน้อย ID และชื่อ-สกุล', 'error');
-  showLd('กำลังเพิ่มบุคลากร...');
-  api('addNewStaff', {id, name, position: document.getElementById('new-position').value, dept: document.getElementById('new-dept').value, role: document.getElementById('new-role').value})
-    .then(r => {
-      hideLd();
-      toast(r.msg || 'เพิ่มสำเร็จ', r.success ? 'success' : 'error');
-      if (r.success) refreshData();
-    });
+function viewStaffDetail(staffId) {
+  var staff = DATA.staff.find(s => s.id === staffId);
+  if (!staff) return;
+  var att = DATA.todayAtt.find(a => a.id === staffId);
+  var html = `
+    <p><strong>ชื่อ-สกุล:</strong> ${staff.name}</p>
+    <p><strong>เลขประจำตัว:</strong> ${staff.id}</p>
+    <p><strong>กลุ่มงาน:</strong> ${staff.dept || '-'}</p>
+    <p><strong>ตำแหน่ง:</strong> ${staff.position || '-'}</p>
+    <hr>
+    <p><strong>สถานะวันนี้:</strong> ${att ? (att.workType === 'wfh' ? 'WFH' : att.workType === 'leave' ? 'ลา' : 'มาออฟฟิศ') : 'ยังไม่ลงเวลา'}</p>
+    <p><strong>เข้างาน:</strong> ${att?.clockIn || '-'}</p>
+    <p><strong>ออกงาน:</strong> ${att?.clockOut || '-'}</p>
+  `;
+  document.getElementById('staff-detail-body').innerHTML = html;
+  openMo('mo-staff-detail');
 }
-
-async function exportStaffExcel() {
-  showLd('กำลังสร้างไฟล์...');
-  try {
-    var r = await api('exportStaffCSV');
-    hideLd();
-    if (r.success && r.csv) {
-      var blob = new Blob([r.csv], {type: 'text/csv;charset=utf-8;'});
-      var link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'staff_template.csv';
-      link.click();
-      toast('ดาวน์โหลดไฟล์ Template แล้ว', 'success');
-    } else toast('เกิดข้อผิดพลาด', 'error');
-  } catch(e) { hideLd(); toast('เชื่อมต่อล้มเหลว', 'error'); }
-}
-
-function importStaffCSV(input) {
-  var file = input.files[0];
-  if (!file) return;
-  var reader = new FileReader();
-  reader.onload = async function(e) {
-    var csv = e.target.result;
-    showLd('กำลังนำเข้าข้อมูล...');
-    var r = await api('importStaffCSV', {csv});
-    hideLd();
-    toast(r.msg, r.success ? 'success' : 'error');
-    if (r.success) refreshData();
-  };
-  reader.readAsText(file);
-}
-<!-- Staff Detail Modal -->
-<div class="mo" id="mo-staff-detail">
-  <div class="mo-box">
-    <div class="mo-hd">
-      <h3>รายละเอียดบุคลากร</h3>
-      <button class="mo-close" onclick="closeMo('mo-staff-detail')">✕</button>
-    </div>
-    <div class="mo-body" id="staff-detail-body">
-      <!-- ข้อมูลจะถูกใส่โดย JavaScript -->
-    </div>
-  </div>
-</div>
 </script>
 </body>
 </html>
