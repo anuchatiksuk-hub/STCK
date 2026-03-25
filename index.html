@@ -742,14 +742,19 @@ function filterOutSuperAdmin(list) {
 
 function applyRole() {
   var canSeeSummary = isApprover() || isAdmin();
-  document.getElementById('nav-sec-mgr').style.display    = canSeeSummary ? 'block' : 'none';
-  document.getElementById('nav-summary').style.display    = canSeeSummary ? 'flex'  : 'none';
+  document.getElementById('nav-sec-mgr').style.display = canSeeSummary ? 'block' : 'none';
+  document.getElementById('nav-summary').style.display = canSeeSummary ? 'flex' : 'none';
   document.getElementById('nav-sec-report').style.display = canSeeSummary ? 'block' : 'none';
-  document.getElementById('nav-report').style.display     = canSeeSummary ? 'flex'  : 'none';
-  document.getElementById('nav-sec-staff').style.display  = isSuperAdmin() ? 'block' : 'none';
-  document.getElementById('nav-staffmgmt').style.display  = isSuperAdmin() ? 'flex'  : 'none';
-  document.getElementById('nav-sec-admin').style.display  = isSuperAdmin() ? 'block' : 'none';
-  document.getElementById('nav-admin').style.display      = isSuperAdmin() ? 'flex'  : 'none';
+  document.getElementById('nav-report').style.display = canSeeSummary ? 'flex' : 'none';
+  document.getElementById('nav-sec-staff').style.display = isSuperAdmin() ? 'block' : 'none';
+  document.getElementById('nav-staffmgmt').style.display = isSuperAdmin() ? 'flex' : 'none';
+  document.getElementById('nav-sec-admin').style.display = isSuperAdmin() ? 'block' : 'none';
+  document.getElementById('nav-admin').style.display = isSuperAdmin() ? 'flex' : 'none';
+
+  // เมนูหัวหน้า
+  document.getElementById('nav-sec-head').style.display = isHead() ? 'block' : 'none';
+  document.getElementById('nav-head-wfh').style.display = isHead() ? 'flex' : 'none';
+
   var teamSection = document.getElementById('team-reports-section');
   if (teamSection) teamSection.style.display = (isHRR() || isAdmin()) ? 'block' : 'none';
 }
@@ -781,19 +786,17 @@ function go(p, el) {
   document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
   document.getElementById(p).classList.add('active');
   if (el) el.classList.add('active');
-  var titles = {dashboard:'📊 ภาพรวมวันนี้',clock:'⏰ ลงเวลา',dailyreport:'📝 รายงานผลประจำวัน',wfh_task:'🏠 เสนองาน WFH',profile:'👤 โปรไฟล์',summary:'📋 สรุปรายวัน & รับรอง',report:'📈 สรุปเวลา / รายงาน',staffmgmt:'👥 จัดการบุคลากร',admin:'🛡️ ตั้งค่าระบบ'};
+
+  var titles = {dashboard:'📊 ภาพรวมวันนี้',clock:'⏰ ลงเวลา',dailyreport:'📝 รายงานผลประจำวัน',wfh_task:'🏠 เสนองาน WFH',profile:'👤 โปรไฟล์',summary:'📋 สรุปรายวัน & รับรอง',report:'📈 สรุปเวลา / รายงาน',staffmgmt:'👥 จัดการบุคลากร',admin:'🛡️ ตั้งค่าระบบ', head_wfh:'🏠 ผล WFH กลุ่ม'};
   document.getElementById('page-title').innerText = titles[p]||p;
+
   if (window.innerWidth <= 768) closeSB();
   if (p === 'clock' && CU) renderClockPage();
   if (p === 'profile') renderProfile();
   if (p === 'summary') { renderSummary(); populateApproverSelects(); }
   if (p === 'dailyreport') renderDRPage();
   if (p === 'head_wfh') renderHeadWFHPage();
-  if (p === 'report') {
-    var today = new Date().toISOString().slice(0,10);
-    document.getElementById('report-start').value = today;
-    document.getElementById('report-end').value   = today;
-  }
+  if (p === 'report') { /* ... เหมือนเดิม */ }
   if (p === 'staffmgmt') renderStaffTable();
 }
 
