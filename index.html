@@ -65,6 +65,8 @@ tbody tr:hover td{background:#fafbfd}
 .b-late{background:#fef3c7;color:#92400e}
 .b-leave{background:#f3e8ff;color:#6b21a8}
 .b-absent{background:#fee2e2;color:#991b1b}
+.b-trip{background:#e0f2fe;color:#0369a1}
+.radio-opt.opt-trip input:checked + label{border-color:#0369a1;background:#f0f9ff;color:#0369a1}
 .btn{display:inline-flex;align-items:center;gap:5px;padding:9px 16px;border:none;border-radius:9px;font-family:inherit;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .15s}
 .btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:var(--sh-md)}
 .btn-primary{background:var(--p2);color:#fff}
@@ -331,7 +333,8 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
             <div class="radio-opt"><input type="radio" name="wtype" id="wt-office" value="office" checked><label for="wt-office"><span class="material-icons">business</span>มาออฟฟิศ</label></div>
             <div class="radio-opt opt-wfh"><input type="radio" name="wtype" id="wt-wfh" value="wfh"><label for="wt-wfh"><span class="material-icons">home</span>WFH</label></div>
             <div class="radio-opt opt-leave"><input type="radio" name="wtype" id="wt-leave" value="leave"><label for="wt-leave"><span class="material-icons">event_busy</span>ลา</label></div>
-          </div>
+           <div class="radio-opt opt-trip"><input type="radio" name="wtype" id="wt-trip" value="official_trip"><label for="wt-trip"><span class="material-icons">directions_car</span>ไปราชการ</label></div>
+        </div>
           <div id="leave-type-row" style="display:none;margin-top:12px">
             <div class="fg" style="margin-bottom:10px"><label>ประเภทการลา</label><select id="leave-type"><option value="sick">ลาป่วย</option><option value="personal">ลากิจ</option><option value="vacation">ลาพักร้อน</option></select></div>
             <div class="fg"><label>เหตุผล / หมายเหตุ</label><input type="text" id="leave-reason" placeholder="เช่น ไม่สบาย, ธุระส่วนตัว..."></div>
@@ -960,7 +963,8 @@ function renderDashboard() {
   var office = att.filter(r => !r.workType || r.workType==='office').length;
   var wfh    = att.filter(r => r.workType==='wfh').length;
   var leave  = att.filter(r => r.workType==='leave').length;
-  var absent = total - office - wfh - leave;
+ var trip   = att.filter(r => r.workType==='official_trip').length;
+var absent = total - office - wfh - leave - trip;
   var now = new Date();
   document.getElementById('today-lbl').innerText = now.toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
@@ -969,6 +973,7 @@ function renderDashboard() {
     <div class="sc" style="--ac:#059669;--ic-bg:#dcfce7;--ic-col:#15803d;--vc:var(--success)"><div class="sc-ico"><span class="material-icons">business</span></div><div class="sc-lbl">มาออฟฟิศ</div><div class="sc-val">${office}</div><div class="sc-sub">คน</div></div>
     <div class="sc" style="--ac:#0891b2;--ic-bg:#ecfeff;--ic-col:#0891b2;--vc:#0891b2"><div class="sc-ico"><span class="material-icons">home</span></div><div class="sc-lbl">WFH</div><div class="sc-val">${wfh}</div><div class="sc-sub">คน</div></div>
     <div class="sc" style="--ac:#7c3aed;--ic-bg:#f5f3ff;--ic-col:#7c3aed;--vc:var(--purple)"><div class="sc-ico"><span class="material-icons">event_busy</span></div><div class="sc-lbl">ลา</div><div class="sc-val">${leave}</div><div class="sc-sub">คน</div></div>
+    <div class="sc" style="--ac:#0369a1;--ic-bg:#e0f2fe;--ic-col:#0369a1;--vc:#0369a1"><div class="sc-ico"><span class="material-icons">directions_car</span></div><div class="sc-lbl">ไปราชการ</div><div class="sc-val">${trip}</div><div class="sc-sub">คน</div></div>
     <div class="sc" style="--ac:#dc2626;--ic-bg:#fee2e2;--ic-col:#dc2626;--vc:var(--danger)"><div class="sc-ico"><span class="material-icons">person_off</span></div><div class="sc-lbl">ยังไม่ลงเวลา</div><div class="sc-val">${absent}</div><div class="sc-sub">คน</div></div>`;
 
   document.getElementById('group-summary').innerHTML = `
@@ -981,8 +986,9 @@ function renderDashboard() {
     var statusHTML = !rec
       ? `<span class="badge b-absent">ยังไม่ลงเวลา</span>`
       : rec.workType==='wfh'   ? `<span class="badge b-wfh">WFH</span>`
-      : rec.workType==='leave' ? `<span class="badge b-leave">${rec.leaveType||'ลา'}</span>`
-      : rec.status==='สาย'     ? `<span class="badge b-late">มาสาย</span>`
+      : rec.workType==='official_trip' ? `<span class="badge b-trip">ไปราชการ</span>`
+: rec.workType==='leave' ? `<span class="badge b-leave">${rec.leaveType||'ลา'}</span>`
+       : rec.status==='สาย'     ? `<span class="badge b-late">มาสาย</span>`
       : `<span class="badge b-office">มาออฟฟิศ</span>`;
     return `<tr onclick="viewStaffDetail('${s.id}')" style="cursor:pointer">
       <td><strong>${s.name}</strong></td>
@@ -1507,50 +1513,52 @@ function renderSummaryContent() {
   var office = att.filter(r=>!r.workType||r.workType==='office');
   var wfh    = att.filter(r=>r.workType==='wfh');
   var leave  = att.filter(r=>r.workType==='leave');
+  var trip   = att.filter(r=>r.workType==='official_trip');
   var presentIds = att.map(a=>String(a.staffId||a.id));
   var absent = staffVisible.filter(s=>!presentIds.includes(String(s.id)));
 
-  var thead = `<thead><tr>
+var thead = `<thead><tr>
     <th>ชื่อ-สกุล</th><th>กลุ่มงาน</th><th>เข้างาน</th><th>ออกงาน</th><th>สถานะ</th>
-    ${isSuperAdmin() ? '<th style="width:60px;text-align:center">แก้ไข</th>' : ''}
+    ${(isSuperAdmin() || isHR()) ? '<th style="width:60px;text-align:center">แก้ไข</th>' : ''}
   </tr></thead>`;
 
   function makeRows(list, isStaff) {
-    if (!isStaff) return list.map(s => `
-      <tr>
-        <td><strong>${s.name}</strong></td>
-        <td style="color:var(--txt2);font-size:.8rem">${s.dept}</td>
-        <td>-</td><td>-</td>
-        <td><span class="badge b-absent">ขาดงาน</span></td>
-        ${isSuperAdmin() ? `<td style="text-align:center">
-          <button class="btn btn-ghost" style="padding:5px" onclick="editAttendance('${s.id}','${s.name}','${dateStr}')">
-            <span class="material-icons" style="font-size:16px;color:var(--p2)">edit</span>
-          </button>
-        </td>` : ''}
-      </tr>`).join('');
+   if (!isStaff) return list.map(s => `
+  <tr>
+    <td><strong>${s.name}</strong></td>
+    <td style="color:var(--txt2);font-size:.8rem">${s.dept}</td>
+    <td>-</td><td>-</td>
+    <td><span class="badge b-absent">ขาดงาน</span></td>
+    ${(isSuperAdmin() || isHR()) ? `<td style="text-align:center">
+      <button class="btn btn-ghost" style="padding:5px" onclick="editAttendance('${s.id}','${s.name}','${dateStr}')">
+        <span class="material-icons" style="font-size:16px;color:var(--p2)">edit</span>
+      </button>
+    </td>` : ''}
+  </tr>`).join('');
 
     return list.map(r => {
-      var lbl = r.status==='สาย' ? '<span class="badge b-late">มาสาย</span>' : '<span class="badge b-office">ปกติ</span>';
-      if (r.workType==='wfh')   lbl = '<span class="badge b-wfh">WFH</span>';
-      if (r.workType==='leave') lbl = `<span class="badge b-leave">${r.leaveType||'ลา'}</span>`;
-      return `<tr>
-        <td><strong>${r.name}</strong></td>
-        <td style="color:var(--txt2);font-size:.8rem">${r.dept}</td>
-        <td>${r.clockIn||'-'}</td>
-        <td>${r.clockOut||'-'}</td>
-        <td>${lbl}</td>
-        ${isSuperAdmin() ? `<td style="text-align:center">
-          <button class="btn btn-ghost" style="padding:5px" onclick="editAttendance('${r.staffId||r.id}','${r.name}','${dateStr}')">
-            <span class="material-icons" style="font-size:16px;color:var(--p2)">edit</span>
-          </button>
-        </td>` : ''}
-      </tr>`;
-    }).join('');
-  }
-
+  var lbl = r.status==='สาย' ? '<span class="badge b-late">มาสาย</span>' : '<span class="badge b-office">ปกติ</span>';
+  if (r.workType==='wfh')   lbl = '<span class="badge b-wfh">WFH</span>';
+  if (r.workType==='official_trip') lbl = '<span class="badge b-trip">ไปราชการ</span>';
+  if (r.workType==='leave') lbl = `<span class="badge b-leave">${r.leaveType||'ลา'}</span>`;
+  return `<tr>
+    <td><strong>${r.name}</strong></td>
+    <td style="color:var(--txt2);font-size:.8rem">${r.dept}</td>
+    <td>${r.clockIn||'-'}</td>
+    <td>${r.clockOut||'-'}</td>
+    <td>${lbl}</td>
+    ${(isSuperAdmin() || isHR()) ? `<td style="text-align:center">
+      <button class="btn btn-ghost" style="padding:5px" onclick="editAttendance('${r.staffId||r.id}','${r.name}','${dateStr}')">
+        <span class="material-icons" style="font-size:16px;color:var(--p2)">edit</span>
+      </button>
+    </td>` : ''}
+  </tr>`;
+}).join('');
+}
   var html='';
   if(office.length) html+=`<div class="sum-group"><div class="sum-group-hd sg-office"><span class="material-icons" style="font-size:17px">business</span> มาออฟฟิศ (${office.length} คน)</div><div class="tbl-wrap"><table>${thead}<tbody>${makeRows(office,true)}</tbody></table></div></div>`;
   if(wfh.length)    html+=`<div class="sum-group"><div class="sum-group-hd sg-wfh"><span class="material-icons" style="font-size:17px">home</span> WFH (${wfh.length} คน)</div><div class="tbl-wrap"><table>${thead}<tbody>${makeRows(wfh,true)}</tbody></table></div></div>`;
+ if(trip.length) html+=`<div class="sum-group"><div class="sum-group-hd" style="background:#e0f2fe;color:#0369a1"><span class="material-icons" style="font-size:17px">directions_car</span> ไปราชการ (${trip.length} คน)</div><div class="tbl-wrap"><table>${thead}<tbody>${makeRows(trip,true)}</tbody></table></div></div>`;
   if(leave.length)  html+=`<div class="sum-group"><div class="sum-group-hd sg-leave"><span class="material-icons" style="font-size:17px">event_busy</span> ลา (${leave.length} คน)</div><div class="tbl-wrap"><table>${thead}<tbody>${makeRows(leave,true)}</tbody></table></div></div>`;
   if(absent.length) html+=`<div class="sum-group"><div class="sum-group-hd sg-absent"><span class="material-icons" style="font-size:17px">person_off</span> ยังไม่ลงเวลา / ขาด (${absent.length} คน)</div><div class="tbl-wrap"><table>${thead}<tbody>${makeRows(absent,false)}</tbody></table></div></div>`;
   document.getElementById('sum-groups').innerHTML = html || '<p style="color:var(--txt2);text-align:center;padding:20px">ไม่มีข้อมูลในวันที่เลือก</p>';
@@ -1576,13 +1584,46 @@ function deleteDailyReport(reportId) {
 }
 
 function editAttendance(staffId, name, dateStr) {
-  var newIn  = prompt(`เวลาเข้างาน (HH:mm) ของ ${name}:`, '');
-  if (newIn === null) return;
-  var newOut = prompt(`เวลาออกงาน (HH:mm) ของ ${name}:`, '');
-  if (newOut === null) return;
+  document.getElementById('ea-staffid').value = staffId;
+  document.getElementById('ea-date').value    = dateStr;
+  document.getElementById('ea-name').innerText = name;
+  document.getElementById('ea-dateshow').innerText = dateStr;
+  // โหลดค่าเดิม
+  var rec = (DATA._summaryDateAtt || DATA.todayAtt).find(a => (a.staffId||a.id) === staffId);
+  document.getElementById('ea-worktype').value   = rec?.workType || 'office';
+  document.getElementById('ea-in').value         = rec?.clockIn  || '';
+  document.getElementById('ea-out').value        = rec?.clockOut || '';
+  document.getElementById('ea-leavetype').value  = rec?.leaveType || 'sick';
+  onEaWorktypeChange();
+  openMo('mo-edit-att');
+}
+
+function onEaWorktypeChange() {
+  var wt = document.getElementById('ea-worktype').value;
+  document.getElementById('ea-leave-row').style.display = wt === 'leave' ? 'block' : 'none';
+  document.getElementById('ea-time-rows').style.display = wt === 'leave' ? 'none'  : 'block';
+}
+
+async function doSaveEditAtt() {
+  var staffId   = document.getElementById('ea-staffid').value;
+  var dateStr   = document.getElementById('ea-date').value;
+  var workType  = document.getElementById('ea-worktype').value;
+  var clockIn   = document.getElementById('ea-in').value;
+  var clockOut  = document.getElementById('ea-out').value;
+  var leaveType = document.getElementById('ea-leavetype').value;
   showLd('กำลังบันทึก...');
-  api('updateAttendance', { staffId, date: dateStr, clockIn: newIn, clockOut: newOut })
-    .then(r => { hideLd(); toast(r.msg, r.success?'success':'error'); if(r.success) { refreshData(); loadSummaryForDate(dateStr); } });
+  try {
+    var r = await api('updateAttendance', {
+      staffId, date: dateStr,
+      clockIn:  workType === 'leave' ? '' : clockIn,
+      clockOut: workType === 'leave' ? '' : clockOut,
+      workType,
+      leaveType: workType === 'leave' ? leaveType : ''
+    });
+    hideLd();
+    toast(r.msg, r.success ? 'success' : 'error');
+    if (r.success) { closeMo('mo-edit-att'); refreshData(); loadSummaryForDate(dateStr); }
+  } catch(e) { hideLd(); toast('เกิดข้อผิดพลาด','error'); }
 }
 
 function populateApproverSelects() {
@@ -2108,5 +2149,48 @@ function closeSB(){
   document.getElementById('sb-ov').style.display='none';
 }
 </script>
+
+<div class="mo" id="mo-edit-att">
+  <div class="mo-box" style="max-width:420px">
+    <div class="mo-hd"><h3>✏️ แก้ไขการลงเวลา</h3><button class="mo-close" onclick="closeMo('mo-edit-att')">✕</button></div>
+    <div class="mo-body">
+      <input type="hidden" id="ea-staffid">
+      <input type="hidden" id="ea-date">
+      <div style="background:#f8fafc;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:.85rem">
+        <strong id="ea-name"></strong><br>
+        <span style="color:var(--txt2);font-size:.78rem" id="ea-dateshow"></span>
+      </div>
+      <div class="fg">
+        <label>สถานะ / ประเภทการมา</label>
+        <select id="ea-worktype" onchange="onEaWorktypeChange()">
+          <option value="office">มาออฟฟิศ</option>
+          <option value="wfh">WFH</option>
+          <option value="official_trip">ไปราชการ</option>
+          <option value="leave">ลา</option>
+        </select>
+      </div>
+      <div id="ea-leave-row" style="display:none">
+        <div class="fg"><label>ประเภทการลา</label>
+          <select id="ea-leavetype">
+            <option value="sick">ลาป่วย</option>
+            <option value="personal">ลากิจ</option>
+            <option value="vacation">ลาพักร้อน</option>
+          </select>
+        </div>
+      </div>
+      <div id="ea-time-rows">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="fg"><label>เวลาเข้างาน (HH:mm)</label><input type="time" id="ea-in"></div>
+          <div class="fg"><label>เวลาออกงาน (HH:mm)</label><input type="time" id="ea-out"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost btn-full" onclick="closeMo('mo-edit-att')">ยกเลิก</button>
+        <button class="btn btn-primary btn-full" onclick="doSaveEditAtt()"><span class="material-icons">save</span> บันทึก</button>
+      </div>
+    </div>  ← ปิด mo-body
+  </div>    ← ปิด mo-box
+</div>      ← ปิด mo
+
 </body>
 </html>
