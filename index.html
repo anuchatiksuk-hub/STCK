@@ -776,35 +776,36 @@ function filterOutSuperAdmin(list) {
 // ✅ FIX: applyRole — ครบทุก role
 // ═══════════════════════════════════════════════════
 function applyRole() {
-  var canSeeSummary = isApprover() || isAdmin();
-  // Summary / Report
+  // ── หัวหน้ากลุ่มงาน (head) ──
+  var isHead = ROLE === 'head';
+  document.getElementById('nav-sec-head').style.display  = (isHead || isSuperAdmin()) ? 'block' : 'none';
+  document.getElementById('nav-head-wfh').style.display  = (isHead || isSuperAdmin()) ? 'flex'  : 'none';
+
+  // ── nav inbox ──
+  var canInbox = isHR() || isAdmin() || isHead;
+  document.getElementById('nav-daily-inbox').style.display = canInbox ? 'flex' : 'none';
+
+  // ── สรุปรายวัน / รายงาน (HR, HRR, head, admin, superadmin) ──
+  var canSeeSummary = isApprover() || isAdmin() || isHead;
   document.getElementById('nav-sec-mgr').style.display    = canSeeSummary ? 'block' : 'none';
   document.getElementById('nav-summary').style.display    = canSeeSummary ? 'flex'  : 'none';
   document.getElementById('nav-sec-report').style.display = canSeeSummary ? 'block' : 'none';
   document.getElementById('nav-report').style.display     = canSeeSummary ? 'flex'  : 'none';
-  // Staff / Admin (superadmin only)
-  document.getElementById('nav-sec-staff').style.display  = isSuperAdmin() ? 'block' : 'none';
-  document.getElementById('nav-staffmgmt').style.display  = isSuperAdmin() ? 'flex'  : 'none';
-  document.getElementById('nav-sec-admin').style.display  = isSuperAdmin() ? 'block' : 'none';
-  document.getElementById('nav-admin').style.display      = isSuperAdmin() ? 'flex'  : 'none';
 
-  // ✅ Inbox: head, HR, HRR, admin, superadmin ล้วนรับ report ได้
-  var isBoss = ['head','HR','HRR','admin','superadmin'].includes(ROLE);
-  document.getElementById('nav-daily-inbox').style.display = isBoss ? 'flex' : 'none';
+  // ── รายงานทุกกลุ่ม (HRR, admin, superadmin, head) ──
+  var canSeeAllReports = isHRR() || isAdmin() || isHead;
+  document.getElementById('nav-sec-allreports').style.display = canSeeAllReports ? 'block' : 'none';
+  document.getElementById('nav-all-daily').style.display      = canSeeAllReports ? 'flex'  : 'none';
 
-  // ✅ เมนูหัวหน้ากลุ่มงาน
-  var showHead = ROLE === 'head' || isSuperAdmin();
-  document.getElementById('nav-sec-head').style.display  = showHead ? 'block' : 'none';
-  document.getElementById('nav-head-wfh').style.display  = showHead ? 'flex'  : 'none';
+  // ── บุคลากร / admin ──
+  document.getElementById('nav-sec-staff').style.display   = isSuperAdmin() ? 'block' : 'none';
+  document.getElementById('nav-staffmgmt').style.display   = isSuperAdmin() ? 'flex'  : 'none';
+  document.getElementById('nav-sec-admin').style.display   = isSuperAdmin() ? 'block' : 'none';
+  document.getElementById('nav-admin').style.display       = isSuperAdmin() ? 'flex'  : 'none';
 
-  // ✅ รายงานทุกกลุ่ม (HRR, admin, superadmin)
-  var showAllReports = canSeeAllReports();
-  document.getElementById('nav-sec-allreports').style.display = showAllReports ? 'block' : 'none';
-  document.getElementById('nav-all-daily').style.display      = showAllReports ? 'flex'  : 'none';
-
-  // team reports section in dailyreport page
+  // ── team-reports-section ──
   var teamSection = document.getElementById('team-reports-section');
-  if (teamSection) teamSection.style.display = (isHRR() || isAdmin()) ? 'block' : 'none';
+  if (teamSection) teamSection.style.display = canSeeAllReports ? 'block' : 'none';
 }
 
 function getRoleLabel(r){ return ROLES_LABEL[r]||r; }
