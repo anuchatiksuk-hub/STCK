@@ -793,7 +793,7 @@ function applyRole() {
   document.getElementById('nav-report').style.display     = canSeeSummary ? 'flex'  : 'none';
 
   // ── รายงานทุกกลุ่ม (HRR, admin, superadmin, head) ──
-  var canSeeAllReports = isHRR() || isAdmin() || isHead;
+  var canSeeAllReports = isAdmin();
   document.getElementById('nav-sec-allreports').style.display = canSeeAllReports ? 'block' : 'none';
   document.getElementById('nav-all-daily').style.display      = canSeeAllReports ? 'flex'  : 'none';
 
