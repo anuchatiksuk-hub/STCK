@@ -2169,7 +2169,7 @@ function viewStaffDetail(staffId) {
   var att=DATA.todayAtt.find(a=>a.id===staffId);
   document.getElementById('staff-detail-body').innerHTML=`
     <p style="margin-bottom:8px"><strong>ชื่อ-สกุล:</strong> ${staff.name}</p>
-    <p style="margin-bottom:8px"><strong>เลขประจำตัว:</strong> ${staff.id}</p>
+    <p style="margin-bottom:8px"><strong>เลขประจำตัว:</strong> *****</p>
     <p style="margin-bottom:8px"><strong>กลุ่มงาน:</strong> ${staff.dept||'-'}</p>
     <p style="margin-bottom:8px"><strong>ตำแหน่ง:</strong> ${staff.position||'-'}</p>
     <p style="margin-bottom:12px"><strong>สิทธิ์:</strong> <span class="badge ${roleClasses[staff.role]||'b-office'}">${getRoleLabel(staff.role)}</span></p>
