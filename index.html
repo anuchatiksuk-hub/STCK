@@ -874,7 +874,7 @@ function applyRole() {
   document.getElementById('nav-daily-inbox').style.display = canInbox ? 'flex' : 'none';
 
   // ── สรุปรายวัน / รายงาน (HR, HRR, head, admin, superadmin) ──
-  var canSeeSummary = isApprover() || isAdmin() || isHead;
+  var canSeeSummary = isApprover() || isAdmin() || isHR() || ROLE === 'head';
   document.getElementById('nav-sec-mgr').style.display    = canSeeSummary ? 'block' : 'none';
   document.getElementById('nav-summary').style.display    = canSeeSummary ? 'flex'  : 'none';
   document.getElementById('nav-sec-report').style.display = canSeeSummary ? 'block' : 'none';
