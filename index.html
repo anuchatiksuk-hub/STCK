@@ -485,46 +485,89 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
     </div>
 
     <!-- ═══ STAFF MANAGEMENT (superadmin) ═══ -->
-    <div id="staffmgmt" class="page">
-      <!-- เพิ่มใหม่ -->
-      <div class="card" style="max-width:720px;margin:0 auto">
-        <div class="card-hd"><span class="material-icons">person_add</span><h3>เพิ่มบุคลากรใหม่</h3></div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px">
-          <div class="fg"><label>เลขประจำตัว</label><input id="new-id" placeholder="เช่น 3301200495499"></div>
-          <div class="fg"><label>ชื่อ-สกุล</label><input id="new-name"></div>
-          <div class="fg"><label>ตำแหน่ง</label><input id="new-position"></div>
-          <div class="fg"><label>กลุ่มงาน</label><input id="new-dept"></div>
-          <div class="fg"><label>สิทธิ์ (Role)</label>
-            <select id="new-role">
-              <option value="staff">staff — เจ้าหน้าที่ทั่วไป</option>
-              <option value="HR">HR — เจ้าหน้าที่บุคคล</option>
-              <option value="HRR">HRR — หัวหน้ากลุ่มบุคคล</option>
-              <option value="head">head — หัวหน้ากลุ่มงาน</option>
-              <option value="admin">admin — ผู้บริหาร</option>
-            </select>
-          </div>
-        </div>
-        <button class="btn btn-success btn-full" onclick="addNewStaff()">เพิ่มบุคลากร</button>
-      </div>
-      <!-- Import/Export -->
-      <div class="card" style="max-width:720px;margin:0 auto">
-        <div class="card-hd"><span class="material-icons">download</span><h3>ดาวน์โหลด / อัปโหลดข้อมูลบุคลากร</h3></div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn btn-primary" onclick="exportStaffTemplateExcel()"><span class="material-icons">table_view</span> ดาวน์โหลด Template Excel (.xlsx)</button>
-          <input type="file" id="upload-excel" accept=".csv,.xlsx" style="display:none" onchange="importStaffFile(this)">
-          <button class="btn btn-ghost" onclick="document.getElementById('upload-excel').click()"><span class="material-icons">upload</span> อัปโหลดไฟล์ (CSV หรือ Excel)</button>
-        </div>
-      </div>
-      <!-- รายชื่อ + แก้ไข/ลบ -->
-      <div class="card" style="max-width:720px;margin:0 auto">
-        <div class="card-hd"><span class="material-icons">groups</span><h3>รายชื่อบุคลากรทั้งหมด</h3>
-          <button class="btn btn-ghost" style="margin-left:auto;font-size:.78rem;padding:6px 12px" onclick="renderStaffTable()">
-            <span class="material-icons" style="font-size:16px">refresh</span> รีเฟรช
-          </button>
-        </div>
-        <div id="staff-table-wrap"><p style="color:var(--txt2);font-size:.85rem">กด "รีเฟรช" เพื่อโหลดรายชื่อ</p></div>
+ <div id="staffmgmt" class="page">
+  <!-- เพิ่มใหม่ -->
+  <div class="card" style="max-width:720px;margin:0 auto">
+    <div class="card-hd"><span class="material-icons">person_add</span><h3>เพิ่มบุคลากรใหม่</h3></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px">
+      <div class="fg"><label>เลขประจำตัว</label><input id="new-id" placeholder="เช่น 3301200495499"></div>
+      <div class="fg"><label>ชื่อ-สกุล</label><input id="new-name"></div>
+      <div class="fg"><label>ตำแหน่ง</label><input id="new-position"></div>
+      <div class="fg"><label>กลุ่มงาน</label><input id="new-dept"></div>
+      <div class="fg"><label>สิทธิ์ (Role)</label>
+        <select id="new-role">
+          <option value="staff">staff — เจ้าหน้าที่ทั่วไป</option>
+          <option value="HR">HR — เจ้าหน้าที่บุคคล</option>
+          <option value="HRR">HRR — หัวหน้ากลุ่มบุคคล</option>
+          <option value="head">head — หัวหน้ากลุ่มงาน</option>
+          <option value="admin">admin — ผู้บริหาร</option>
+        </select>
       </div>
     </div>
+    <button class="btn btn-success btn-full" onclick="addNewStaff()">เพิ่มบุคลากร</button>
+  </div>
+
+  <!-- Import/Export -->
+  <div class="card" style="max-width:720px;margin:0 auto">
+    <div class="card-hd"><span class="material-icons">download</span><h3>ดาวน์โหลด / อัปโหลดข้อมูลบุคลากร</h3></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="exportStaffTemplateExcel()"><span class="material-icons">table_view</span> ดาวน์โหลด Template Excel (.xlsx)</button>
+      <input type="file" id="upload-excel" accept=".csv,.xlsx" style="display:none" onchange="importStaffFile(this)">
+      <button class="btn btn-ghost" onclick="document.getElementById('upload-excel').click()"><span class="material-icons">upload</span> อัปโหลดไฟล์ (CSV หรือ Excel)</button>
+    </div>
+  </div>
+
+  <!-- รายชื่อ + แก้ไข/ลบ -->
+  <div class="card" style="max-width:720px;margin:0 auto">
+    <div class="card-hd"><span class="material-icons">groups</span><h3>รายชื่อบุคลากรทั้งหมด</h3>
+      <button class="btn btn-ghost" style="margin-left:auto;font-size:.78rem;padding:6px 12px" onclick="renderStaffTable()">
+        <span class="material-icons" style="font-size:16px">refresh</span> รีเฟรช
+      </button>
+    </div>
+    <div id="staff-table-wrap"><p style="color:var(--txt2);font-size:.85rem">กด "รีเฟรช" เพื่อโหลดรายชื่อ</p></div>
+  </div>
+
+  <!-- ลงเวลาย้อนหลัง (superadmin) -->
+  <div class="card" style="max-width:720px;margin:0 auto" id="backdated-clock-card">
+    <div class="card-hd">
+      <span class="material-icons" style="color:var(--warn)">history</span>
+      <h3>ลงเวลาย้อนหลัง (superadmin)</h3>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+      <div class="fg">
+        <label>เลือกบุคลากร</label>
+        <select id="bd-staff"><option value="">— เลือก —</option></select>
+      </div>
+      <div class="fg"><label>วันที่</label><input type="date" id="bd-date"></div>
+      <div class="fg">
+        <label>ประเภท</label>
+        <select id="bd-worktype" onchange="onBdWorktypeChange()">
+          <option value="office">มาออฟฟิศ</option>
+          <option value="wfh">WFH</option>
+          <option value="leave">ลา</option>
+        </select>
+      </div>
+      <div class="fg"><label>เวลาเข้างาน (HH:mm)</label><input type="time" id="bd-in" value="08:30"></div>
+      <div class="fg"><label>เวลาออกงาน (HH:mm)</label><input type="time" id="bd-out" value="16:30"></div>
+      <div class="fg" id="bd-leave-row" style="display:none">
+        <label>ประเภทการลา</label>
+        <select id="bd-leavetype">
+          <option value="sick">ลาป่วย</option>
+          <option value="personal">ลากิจ</option>
+          <option value="vacation">ลาพักร้อน</option>
+        </select>
+      </div>
+      <div class="fg" id="bd-reason-row" style="display:none">
+        <label>เหตุผล</label>
+        <input type="text" id="bd-reason" placeholder="ระบุเหตุผล...">
+      </div>
+    </div>
+    <button class="btn btn-warn btn-full" onclick="doBackdatedClock()">
+      <span class="material-icons">history</span> บันทึกเวลาย้อนหลัง
+    </button>
+  </div>
+
+</div>
 
     <!-- ═══ ADMIN ═══ -->
     <div id="admin" class="page">
@@ -680,6 +723,48 @@ function setupWorkTypeListeners() {
     var sel = document.querySelector('input[name=wtype]:checked').value;
     document.getElementById('leave-type-row').style.display = sel === 'leave' ? 'block' : 'none';
   }));
+}
+
+function onBdWorktypeChange() {
+  var wt = document.getElementById('bd-worktype').value;
+  document.getElementById('bd-leave-row').style.display  = wt === 'leave' ? 'block' : 'none';
+  document.getElementById('bd-reason-row').style.display = wt === 'leave' ? 'block' : 'none';
+  document.getElementById('bd-in').disabled  = wt === 'leave';
+  document.getElementById('bd-out').disabled = wt === 'leave';
+}
+
+function populateBdStaffSelect() {
+  var sel = document.getElementById('bd-staff');
+  if (!sel) return;
+  var staffVisible = filterOutSuperAdmin(DATA.staff);
+  sel.innerHTML = '<option value="">— เลือก —</option>' +
+    staffVisible.map(s => `<option value="${s.id}">${s.name} (${s.dept})</option>`).join('');
+}
+
+async function doBackdatedClock() {
+  var staffId   = document.getElementById('bd-staff').value;
+  var date      = document.getElementById('bd-date').value;
+  var workType  = document.getElementById('bd-worktype').value;
+  var clockIn   = document.getElementById('bd-in').value;
+  var clockOut  = document.getElementById('bd-out').value;
+  var leaveType = document.getElementById('bd-leavetype').value;
+  var reason    = document.getElementById('bd-reason').value;
+
+  if (!staffId) return toast('กรุณาเลือกบุคลากร','error');
+  if (!date)    return toast('กรุณาเลือกวันที่','error');
+  if (workType !== 'leave' && !clockIn) return toast('กรุณาระบุเวลาเข้างาน','error');
+
+  showLd('กำลังบันทึก...');
+  try {
+    var r = await api('clockInManual', {
+      staffId, date, clockIn, clockOut, workType,
+      leaveType: workType === 'leave' ? leaveType : null,
+      leaveReason: workType === 'leave' ? reason : null
+    });
+    hideLd();
+    toast(r.msg, r.success ? 'success' : 'error');
+    if (r.success) refreshData();
+  } catch(e) { hideLd(); toast('เกิดข้อผิดพลาด','error'); }
 }
 
 function handleMenuToggleVisibility() {
@@ -855,7 +940,10 @@ function go(p, el) {
   if (p === 'dailyreport') renderDRPage();
   if (p === 'head_wfh') renderHeadWFHPage();
   if (p === 'daily_inbox') loadReceivedReports();
-  if (p === 'staffmgmt') renderStaffTable();
+if (p === 'staffmgmt') {
+  renderStaffTable();
+  populateBdStaffSelect(); // ← เพิ่มบรรทัดนี้
+}
   if (p === 'all_daily_reports') {
     document.getElementById('all-reports-date').value = new Date().toISOString().slice(0,10);
     loadAllDailyReports();
@@ -1755,39 +1843,47 @@ function printAllReportPDF(start,end) {
 // ✅ STAFF TABLE (superadmin: แก้ไข + ลบ)
 // ═══════════════════════════════════════════════════
 var roleClasses = {HR:'role-hr',HRR:'role-hrr',staff:'role-staff',head:'role-head',admin:'role-admin',superadmin:'role-superadmin'};
+async function doResetPassword(staffId, name) {
+  if (!confirm(`รีเซ็ตรหัสผ่านของ "${name}" เป็น 12345678 ใช่มั้ย?`)) return;
+  showLd('กำลังรีเซ็ต...');
+  try {
+    var r = await api('resetPassword', { staffId });
+    hideLd();
+    toast(r.msg, r.success ? 'success' : 'error');
+  } catch(e) { hideLd(); toast('เกิดข้อผิดพลาด','error'); }
+}
 
 function renderStaffTable() {
   var staffVisible = filterOutSuperAdmin(DATA.staff);
   if (!staffVisible.length) {
-    document.getElementById('staff-table-wrap').innerHTML='<p style="color:var(--txt2)">ยังไม่มีข้อมูลบุคลากร กด รีเฟรช อีกครั้ง</p>';
+    document.getElementById('staff-table-wrap').innerHTML = '<p style="color:var(--txt2)">ยังไม่มีข้อมูลบุคลากร</p>';
     return;
   }
-  var canEdit = isSuperAdmin();
-  var editCols = canEdit ? '<th style="width:100px;text-align:center">จัดการ</th>' : '';
-  var rows = staffVisible.map(s => {
-    var editBtns = canEdit ? `
-      <td style="text-align:center;white-space:nowrap">
-        <button class="btn btn-ghost sa-action-btn" onclick="openEditStaff('${s.id}')" title="แก้ไข">
-          <span class="material-icons" style="font-size:16px">edit</span>
-        </button>
-        <button class="btn btn-danger sa-action-btn" style="margin-left:4px" onclick="openDeleteStaff('${s.id}','${s.name}')" title="ลบ">
-          <span class="material-icons" style="font-size:16px">delete</span>
-        </button>
-      </td>` : '';
-    return `<tr>
-      <td style="font-family:monospace;font-size:.78rem;color:var(--txt2)">${s.id}</td>
+  var roleClasses = {HR:'role-hr',HRR:'role-hrr',staff:'role-staff',head:'role-head',admin:'role-admin',superadmin:'role-superadmin'};
+  var rows = staffVisible.map(s => `
+    <tr>
+      <td style="font-family:monospace;font-size:.8rem">${s.id}</td>
       <td><strong>${s.name}</strong></td>
       <td style="color:var(--txt2);font-size:.82rem">${s.dept}</td>
       <td><span class="badge ${roleClasses[s.role]||'b-office'}">${getRoleLabel(s.role)}</span></td>
-      ${editBtns}
-    </tr>`;
-  }).join('');
+      <td style="text-align:center">
+        <button class="btn btn-ghost" style="padding:5px" title="รีเซ็ตรหัสผ่าน"
+          onclick="doResetPassword('${s.id}','${s.name}')">
+          <span class="material-icons" style="font-size:16px;color:var(--warn)">lock_reset</span>
+        </button>
+      </td>
+    </tr>`).join('');
+
   document.getElementById('staff-table-wrap').innerHTML = `
-    <div class="tbl-wrap"><table>
-      <thead><tr><th>ID</th><th>ชื่อ-สกุล</th><th>กลุ่มงาน</th><th>สิทธิ์</th>${editCols}</tr></thead>
-      <tbody>${rows}</tbody>
-    </table></div>`;
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>ชื่อ-สกุล</th><th>กลุ่มงาน</th><th>สิทธิ์</th><th style="text-align:center">รีเซ็ต</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+    
 }
+
 
 function openEditStaff(staffId) {
   var s = DATA.staff.find(x => x.id === staffId);
@@ -1818,6 +1914,7 @@ async function doSaveEditStaff() {
       closeMo('mo-edit-staff');
       await refreshData();
       renderStaffTable();
+      populateBdStaffSelect();
     } else {
       // fallback: อัพเดทใน local DATA แล้วแสดงผล (ยัง backup ไว้ถ้า backend ยังไม่มี updateStaff)
       var idx = DATA.staff.findIndex(x => x.id === id);
