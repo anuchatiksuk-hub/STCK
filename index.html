@@ -1192,7 +1192,6 @@ async function loadAllDailyReports() {
       container.innerHTML = `<div style="text-align:center;padding:60px;color:var(--txt2)">ยังไม่มีรายงานในวันที่ ${dateVal}</div>`;
       return;
     }
-    // จัดกลุ่มตาม dept
     var byDept = {};
     ALL_DAILY_REPORTS_CACHE.forEach(function(rep) {
       if (!byDept[rep.dept]) byDept[rep.dept] = [];
@@ -1208,19 +1207,32 @@ async function loadAllDailyReports() {
         </div>
         <div class="tbl-wrap" style="border-radius:0 0 10px 10px;border-top:none">
           <table>
-            <thead><tr><th>ชื่อ-สกุล</th><th>ผลงานวันนี้</th><th>ปัญหา</th><th>แผนพรุ่งนี้</th><th style="width:80px;text-align:center">PDF</th></tr></thead>
+            <thead><tr>
+              <th>ชื่อ-สกุล</th><th>ผลงานวันนี้</th><th>ปัญหา</th><th>แผนพรุ่งนี้</th>
+              <th style="width:80px;text-align:center">PDF</th>
+              ${isSuperAdmin() ? '<th style="width:100px;text-align:center">จัดการ</th>' : ''}
+            </tr></thead>
             <tbody>`;
       reps.forEach(function(rep) {
+        var repJson = JSON.stringify(rep).replace(/'/g, '&#39;');
         html += `<tr>
           <td><strong>${rep.name}</strong><br><small style="color:var(--txt2)">${rep.timestamp||''}</small></td>
           <td style="max-width:300px"><div style="white-space:pre-wrap;max-height:80px;overflow:hidden">${rep.workDone}</div></td>
           <td>${rep.problems||'<span style="color:#94a3b8">—</span>'}</td>
           <td>${rep.nextPlan||'<span style="color:#94a3b8">—</span>'}</td>
           <td style="text-align:center">
-            <button class="btn btn-primary" style="padding:6px" onclick='printIndividualReport(${JSON.stringify(rep)})'>
+            <button class="btn btn-primary" style="padding:6px" onclick='printIndividualReport(${repJson})'>
               <span class="material-icons" style="font-size:18px">picture_as_pdf</span>
             </button>
           </td>
+          ${isSuperAdmin() ? `<td style="text-align:center;display:flex;gap:4px;justify-content:center;padding:8px">
+            <button class="btn btn-ghost" style="padding:5px" onclick='editDailyReport(${repJson})'>
+              <span class="material-icons" style="font-size:16px;color:var(--warn)">edit</span>
+            </button>
+            <button class="btn btn-ghost" style="padding:5px" onclick="deleteDailyReport('${rep.reportId}')">
+              <span class="material-icons" style="font-size:16px;color:var(--danger)">delete</span>
+            </button>
+          </td>` : ''}
         </tr>`;
       });
       html += `</tbody></table></div></div>`;
@@ -1228,6 +1240,7 @@ async function loadAllDailyReports() {
     container.innerHTML = html;
   } catch(e) { hideLd(); toast('โหลดข้อมูลล้มเหลว','error'); }
 }
+
 
 function printAllDailyReportsPDF() {
   if (!ALL_DAILY_REPORTS_CACHE.length) return toast('ไม่มีรายงาน','warn');
@@ -1409,23 +1422,79 @@ function renderSummaryContent() {
   var presentIds = att.map(a=>String(a.staffId||a.id));
   var absent = staffVisible.filter(s=>!presentIds.includes(String(s.id)));
 
-  function makeRows(list,isStaff) {
-    if (!isStaff) return list.map(s=>`<tr><td><strong>${s.name}</strong></td><td style="color:var(--txt2);font-size:.8rem">${s.dept}</td><td>-</td><td>-</td><td><span class="badge b-absent">ขาดงาน</span></td></tr>`).join('');
-    return list.map(r=>{
-      var lbl=r.status==='สาย'?'<span class="badge b-late">มาสาย</span>':'<span class="badge b-office">ปกติ</span>';
-      if(r.workType==='wfh') lbl='<span class="badge b-wfh">WFH</span>';
-      if(r.workType==='leave') lbl=`<span class="badge b-leave">${r.leaveType||'ลา'}</span>`;
-      return `<tr><td><strong>${r.name}</strong></td><td style="color:var(--txt2);font-size:.8rem">${r.dept}</td><td>${r.clockIn||'-'}</td><td>${r.clockOut||'-'}</td><td>${lbl}</td></tr>`;
+  var thead = `<thead><tr>
+    <th>ชื่อ-สกุล</th><th>กลุ่มงาน</th><th>เข้างาน</th><th>ออกงาน</th><th>สถานะ</th>
+    ${isSuperAdmin() ? '<th style="width:60px;text-align:center">แก้ไข</th>' : ''}
+  </tr></thead>`;
+
+  function makeRows(list, isStaff) {
+    if (!isStaff) return list.map(s => `
+      <tr>
+        <td><strong>${s.name}</strong></td>
+        <td style="color:var(--txt2);font-size:.8rem">${s.dept}</td>
+        <td>-</td><td>-</td>
+        <td><span class="badge b-absent">ขาดงาน</span></td>
+        ${isSuperAdmin() ? `<td style="text-align:center">
+          <button class="btn btn-ghost" style="padding:5px" onclick="editAttendance('${s.id}','${s.name}','${dateStr}')">
+            <span class="material-icons" style="font-size:16px;color:var(--p2)">edit</span>
+          </button>
+        </td>` : ''}
+      </tr>`).join('');
+
+    return list.map(r => {
+      var lbl = r.status==='สาย' ? '<span class="badge b-late">มาสาย</span>' : '<span class="badge b-office">ปกติ</span>';
+      if (r.workType==='wfh')   lbl = '<span class="badge b-wfh">WFH</span>';
+      if (r.workType==='leave') lbl = `<span class="badge b-leave">${r.leaveType||'ลา'}</span>`;
+      return `<tr>
+        <td><strong>${r.name}</strong></td>
+        <td style="color:var(--txt2);font-size:.8rem">${r.dept}</td>
+        <td>${r.clockIn||'-'}</td>
+        <td>${r.clockOut||'-'}</td>
+        <td>${lbl}</td>
+        ${isSuperAdmin() ? `<td style="text-align:center">
+          <button class="btn btn-ghost" style="padding:5px" onclick="editAttendance('${r.staffId||r.id}','${r.name}','${dateStr}')">
+            <span class="material-icons" style="font-size:16px;color:var(--p2)">edit</span>
+          </button>
+        </td>` : ''}
+      </tr>`;
     }).join('');
   }
 
-  var thead='<thead><tr><th>ชื่อ-สกุล</th><th>กลุ่มงาน</th><th>เข้างาน</th><th>ออกงาน</th><th>สถานะ</th></tr></thead>';
   var html='';
   if(office.length) html+=`<div class="sum-group"><div class="sum-group-hd sg-office"><span class="material-icons" style="font-size:17px">business</span> มาออฟฟิศ (${office.length} คน)</div><div class="tbl-wrap"><table>${thead}<tbody>${makeRows(office,true)}</tbody></table></div></div>`;
   if(wfh.length)    html+=`<div class="sum-group"><div class="sum-group-hd sg-wfh"><span class="material-icons" style="font-size:17px">home</span> WFH (${wfh.length} คน)</div><div class="tbl-wrap"><table>${thead}<tbody>${makeRows(wfh,true)}</tbody></table></div></div>`;
   if(leave.length)  html+=`<div class="sum-group"><div class="sum-group-hd sg-leave"><span class="material-icons" style="font-size:17px">event_busy</span> ลา (${leave.length} คน)</div><div class="tbl-wrap"><table>${thead}<tbody>${makeRows(leave,true)}</tbody></table></div></div>`;
   if(absent.length) html+=`<div class="sum-group"><div class="sum-group-hd sg-absent"><span class="material-icons" style="font-size:17px">person_off</span> ยังไม่ลงเวลา / ขาด (${absent.length} คน)</div><div class="tbl-wrap"><table>${thead}<tbody>${makeRows(absent,false)}</tbody></table></div></div>`;
   document.getElementById('sum-groups').innerHTML = html || '<p style="color:var(--txt2);text-align:center;padding:20px">ไม่มีข้อมูลในวันที่เลือก</p>';
+}
+
+function editDailyReport(rep) {
+  var newWork = prompt('แก้ไขผลการปฏิบัติงาน:', rep.workDone);
+  if (newWork === null) return;
+  var newProb = prompt('แก้ไขปัญหา:', rep.problems || '');
+  if (newProb === null) return;
+  var newPlan = prompt('แก้ไขแผนพรุ่งนี้:', rep.nextPlan || '');
+  if (newPlan === null) return;
+  showLd('กำลังบันทึก...');
+  api('updateDailyReport', { reportId: rep.reportId, workDone: newWork, problems: newProb, nextPlan: newPlan })
+    .then(r => { hideLd(); toast(r.msg, r.success?'success':'error'); if(r.success) loadAllDailyReports(); });
+}
+
+function deleteDailyReport(reportId) {
+  if (!confirm('ยืนยันลบรายงานนี้?')) return;
+  showLd('กำลังลบ...');
+  api('deleteDailyReport', { reportId })
+    .then(r => { hideLd(); toast(r.msg, r.success?'success':'error'); if(r.success) loadAllDailyReports(); });
+}
+
+function editAttendance(staffId, name, dateStr) {
+  var newIn  = prompt(`เวลาเข้างาน (HH:mm) ของ ${name}:`, '');
+  if (newIn === null) return;
+  var newOut = prompt(`เวลาออกงาน (HH:mm) ของ ${name}:`, '');
+  if (newOut === null) return;
+  showLd('กำลังบันทึก...');
+  api('updateAttendance', { staffId, date: dateStr, clockIn: newIn, clockOut: newOut })
+    .then(r => { hideLd(); toast(r.msg, r.success?'success':'error'); if(r.success) { refreshData(); loadSummaryForDate(dateStr); } });
 }
 
 function populateApproverSelects() {
