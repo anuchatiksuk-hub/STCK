@@ -267,7 +267,8 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
         </div>
         <div class="tbl-wrap">
           <table id="tb-dash">
-            <thead><tr><th>ชื่อ-สกุล</th><th>กลุ่มงาน</th><th>สถานะ</th><th>เข้างาน</th><th>ออกงาน</th></tr></thead>
+            document.getElementById('tb-dash').querySelector('thead tr').innerHTML =
+  '<th>ชื่อ-สกุล</th><th>กลุ่มงาน</th><th>สถานะ</th><th>เข้างาน</th><th>ออกงาน</th><th>ตำแหน่ง</th>';
             <tbody id="dash-tbody"></tbody>
           </table>
         </div>
@@ -963,9 +964,10 @@ function renderDashboard() {
   var office = att.filter(r => !r.workType || r.workType==='office').length;
   var wfh    = att.filter(r => r.workType==='wfh').length;
   var leave  = att.filter(r => r.workType==='leave').length;
- var trip   = att.filter(r => r.workType==='official_trip').length;
-var absent = total - office - wfh - leave - trip;
+  var trip   = att.filter(r => r.workType==='official_trip').length;
+  var absent = total - office - wfh - leave - trip;
   var now = new Date();
+
   document.getElementById('today-lbl').innerText = now.toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
   document.getElementById('stat-grid').innerHTML = `
@@ -985,22 +987,32 @@ var absent = total - office - wfh - leave - trip;
     var rec = att.find(a => a.id === s.id);
     var statusHTML = !rec
       ? `<span class="badge b-absent">ยังไม่ลงเวลา</span>`
-      : rec.workType==='wfh'   ? `<span class="badge b-wfh">WFH</span>`
-      : rec.workType==='official_trip' ? `<span class="badge b-trip">ไปราชการ</span>`
-: rec.workType==='leave' ? `<span class="badge b-leave">${rec.leaveType||'ลา'}</span>`
-       : rec.status==='สาย'     ? `<span class="badge b-late">มาสาย</span>`
+      : rec.workType==='wfh'            ? `<span class="badge b-wfh">WFH</span>`
+      : rec.workType==='official_trip'  ? `<span class="badge b-trip">ไปราชการ</span>`
+      : rec.workType==='leave'          ? `<span class="badge b-leave">${rec.leaveType||'ลา'}</span>`
+      : rec.status==='สาย'              ? `<span class="badge b-late">มาสาย</span>`
       : `<span class="badge b-office">มาออฟฟิศ</span>`;
+
+    // ✅ locationBadge อยู่ใน map ถูกที่แล้ว
+    var locationBadge = !rec
+      ? ''
+      : rec.location && rec.location !== 'ไม่ระบุ location' && rec.location !== ''
+      ? `<span style="font-size:.72rem;color:#0369a1">📍 ${rec.location}</span>`
+      : `<span style="font-size:.72rem;color:#94a3b8">ไม่ระบุ</span>`;
+
     return `<tr onclick="viewStaffDetail('${s.id}')" style="cursor:pointer">
       <td><strong>${s.name}</strong></td>
       <td><small>${s.dept}</small></td>
       <td>${statusHTML}</td>
       <td>${rec?.clockIn||'-'}</td>
       <td>${rec?.clockOut||'-'}</td>
+      <td>${locationBadge}</td>
     </tr>`;
   }).join('');
-  document.getElementById('dash-tbody').innerHTML = rows || `<tr><td colspan="5" align="center" style="padding:40px;color:var(--txt2)">ยังไม่มีข้อมูลวันนี้</td></tr>`;
-}
 
+  document.getElementById('dash-tbody').innerHTML = rows ||
+    `<tr><td colspan="6" align="center" style="padding:40px;color:var(--txt2)">ยังไม่มีข้อมูลวันนี้</td></tr>`;
+}
 // ═══════════════════════════════════════════════════
 // DASHBOARD PDF
 // ═══════════════════════════════════════════════════
@@ -1086,17 +1098,61 @@ function renderClockPage() {
   }
 }
 
+// แทนที่ฟังก์ชัน doClockIn() เดิม
 async function doClockIn() {
-  var wtype = document.querySelector('input[name=wtype]:checked')?.value||'office';
-  var leaveType   = wtype==='leave' ? document.getElementById('leave-type').value : null;
-  var leaveReason = wtype==='leave' ? document.getElementById('leave-reason').value : null;
+  var wtype = document.querySelector('input[name=wtype]:checked')?.value || 'office';
+  var leaveType   = wtype === 'leave' ? document.getElementById('leave-type').value : null;
+  var leaveReason = wtype === 'leave' ? document.getElementById('leave-reason').value : null;
+
+  showLd('กำลังระบุตำแหน่ง...');
+  var locationStr = await getLocationString();
+
   showLd('กำลังบันทึก...');
   try {
-    var r = await api('clockIn',{id:CU.id,name:CU.name,dept:CU.dept,method:'manual',workType:wtype,leaveType,leaveReason});
+    var r = await api('clockIn', {
+      id: CU.id, name: CU.name, dept: CU.dept,
+      method: 'manual', workType: wtype,
+      leaveType, leaveReason,
+      location: locationStr
+    });
     hideLd();
-    if (r.success) { toast('✅ บันทึกเวลาเข้างานสำเร็จ','success'); setTimeout(refreshData,1500); }
-    else toast(r.msg,'error');
-  } catch(e) { hideLd(); toast('Error','error'); }
+    if (r.success) {
+      toast('✅ บันทึกเวลาเข้างานสำเร็จ' + (locationStr !== 'ไม่ระบุ location' ? ' 📍' + locationStr : ''), 'success');
+      setTimeout(refreshData, 1500);
+    } else toast(r.msg, 'error');
+  } catch(e) { hideLd(); toast('Error', 'error'); }
+}
+
+// ฟังก์ชันดึง GPS + reverse geocode
+async function getLocationString() {
+  return new Promise(resolve => {
+    if (!navigator.geolocation) return resolve('ไม่รองรับ GPS');
+    navigator.geolocation.getCurrentPosition(
+      async pos => {
+        try {
+          var lat = pos.coords.latitude;
+          var lng = pos.coords.longitude;
+          // Reverse geocode ด้วย Nominatim (ฟรี ไม่ต้อง API key)
+          var res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=th`,
+            { headers: { 'User-Agent': 'SmartOffice/1.0' } }
+          );
+          var data = await res.json();
+          var addr = data.address || {};
+          // ดึงชื่อจังหวัด + อำเภอ
+          var province = addr.state || addr.province || '';
+          var district = addr.county || addr.city_district || addr.suburb || '';
+          var label = [district, province].filter(Boolean).join(', ') || data.display_name?.split(',').slice(-3).join(',') || `${lat.toFixed(4)},${lng.toFixed(4)}`;
+          resolve(label);
+        } catch(e) {
+          // ถ้า reverse geocode ล้มเหลว ใช้ lat/lng แทน
+          resolve(`${pos.coords.latitude.toFixed(5)},${pos.coords.longitude.toFixed(5)}`);
+        }
+      },
+      err => resolve('ไม่ระบุ location'),
+      { timeout: 8000, maximumAge: 0 }
+    );
+  });
 }
 
 async function doClockOut() {
@@ -2188,9 +2244,8 @@ function closeSB(){
         <button class="btn btn-ghost btn-full" onclick="closeMo('mo-edit-att')">ยกเลิก</button>
         <button class="btn btn-primary btn-full" onclick="doSaveEditAtt()"><span class="material-icons">save</span> บันทึก</button>
       </div>
-    </div>  ← ปิด mo-body
-  </div>    ← ปิด mo-box
-</div>      ← ปิด mo
+  </div>    
+</div>      
 
 </body>
 </html>
