@@ -2236,27 +2236,22 @@ function doSignAndPrintWFH() {
   ${remarkRow}
 
   <div class="sig-section">
-    <div class="sig-box">
-      <div style="font-size:11px;color:#64748b;margin-bottom:4px">ผู้รายงาน (ตัวแทนกลุ่ม)</div>
-      <div class="sig-line"></div>
-      <div class="sig-name">(......................................................)</div>
-      <div class="sig-role">เจ้าหน้าที่กลุ่ม${CU.dept}</div>
-    </div>
-    <div class="sig-box">
-      <div style="font-size:11px;color:#64748b;margin-bottom:4px">ผู้รับรองรายงาน</div>
-      <div class="sig-line"></div>
-      <div class="sig-name">(${CU.name})</div>
-      <div class="sig-role">${getRoleLabel(ROLE)} — กลุ่ม${CU.dept}</div>
-      <div style="margin-top:8px">
-        <div class="stamp-box">
-          ✅ รับรองแล้ว<br>
-          ${new Date().toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'})}
-          ${new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})} น.
-          ${remark ? '<br><em>หมายเหตุ: '+remark+'</em>' : ''}
-        </div>
-      </div>
-    </div>
+  <!-- ช่องซ้าย: ผู้รายงาน (staff เซ็นเอง) -->
+  <div class="sig-box">
+    <div style="font-size:11px;color:#64748b;margin-bottom:4px">ผู้รายงาน (ตัวแทนกลุ่ม)</div>
+    <div class="sig-line"></div>
+    <div class="sig-name">(......................................................)</div>
+    <div class="sig-role">เจ้าหน้าที่กลุ่ม${CU.dept}</div>
   </div>
+  <!-- ช่องขวา: head ใส่ชื่อตัวเอง -->
+  <div class="sig-box">
+    <div style="font-size:11px;color:#64748b;margin-bottom:4px">ผู้รับรองรายงาน</div>
+    <div class="sig-line"></div>
+    <div class="sig-name">(${CU.name})</div>
+    <div class="sig-role">หัวหน้ากลุ่มงาน/ผู้รับรายงาน</div>
+  </div>
+</div>
+    
 
   <script>window.onload=()=>window.print()<\/script>
   </body></html>`);
