@@ -268,7 +268,7 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
         <div class="tbl-wrap">
           <table id="tb-dash">
            
-  '<th>ชื่อ-สกุล</th><th>กลุ่มงาน</th><th>สถานะ</th><th>เข้างาน</th><th>ออกงาน</th><th>ตำแหน่ง</th>';
+  '<thead><tr><th>ชื่อ-สกุล</th><th>กลุ่มงาน</th><th>สถานะ</th><th>เข้างาน</th><th>ออกงาน</th><th>ตำแหน่ง</th></tr></thead>
             <tbody id="dash-tbody"></tbody>
           </table>
         </div>
@@ -1319,17 +1319,38 @@ function printIndividualReport(data) {
     .meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;background:#f7fafc;padding:15px;border-radius:8px;margin-bottom:20px;font-size:14px}
     .section-label{font-weight:700;color:#1e3a8a;font-size:15px;margin-top:20px;margin-bottom:8px;border-left:4px solid #1e3a8a;padding-left:10px}
     .content-area{background:#fff;border:1px solid #e2e8f0;padding:15px;border-radius:6px;min-height:60px;white-space:pre-wrap;font-size:14px}
-    .footer-sig{margin-top:60px;display:grid;grid-template-columns:1fr 1fr;text-align:center;font-size:14px}
-    .sig-box{margin-top:40px}@media print{body{padding:20px}}</style></head><body>
+    .sig-section{margin-top:60px;display:grid;grid-template-columns:1fr 1fr;gap:40px;text-align:center;font-size:13px}
+    .sig-box .sig-line{border-bottom:1px solid #000;height:40px;margin-bottom:8px}
+    .sig-box .sig-name{font-weight:700;margin-bottom:4px}
+    .sig-box .sig-role{color:#64748b;font-size:12px}
+    .sig-box .sig-label{font-size:11px;color:#64748b;margin-bottom:4px}
+    @media print{body{padding:20px}}</style></head><body>
     <div class="header"><h1>รายงานผลการปฏิบัติงานประจำวัน</h1><div style="font-weight:600;margin-top:5px">สพป.นครราชสีมา เขต 4</div></div>
-    <div class="meta-grid"><div><strong>ผู้รายงาน:</strong> ${data.name}</div><div><strong>กลุ่มงาน:</strong> ${data.dept}</div>
-    <div><strong>วันที่:</strong> ${dateStr}</div><div><strong>เวลาที่ส่ง:</strong> ${data.timestamp}</div></div>
-    <div class="section-label">1. ผลการปฏิบัติงานที่สำคัญวันนี้</div><div class="content-area">${data.workDone}</div>
-    <div class="section-label">2. ปัญหาและอุปสรรค</div><div class="content-area">${data.problems||'- ไม่มี -'}</div>
-    <div class="section-label">3. แผนการปฏิบัติงานในวันถัดไป</div><div class="content-area">${data.nextPlan||'- ไม่มี -'}</div>
-    <div class="footer-sig">
-      <div class="sig-box"><p>ลงชื่อ......................................................</p><p>(${data.name})</p><p>ผู้รายงาน</p></div>
-      <div class="sig-box"><p>ลงชื่อ......................................................</p><p>(....................................................)</p><p>หัวหน้ากลุ่มงาน/ผู้รับรายงาน</p></div>
+    <div class="meta-grid">
+      <div><strong>ผู้รายงาน:</strong> ${data.name}</div>
+      <div><strong>กลุ่มงาน:</strong> ${data.dept}</div>
+      <div><strong>วันที่:</strong> ${dateStr}</div>
+      <div><strong>เวลาที่ส่ง:</strong> ${data.timestamp}</div>
+    </div>
+    <div class="section-label">1. ผลการปฏิบัติงานที่สำคัญวันนี้</div>
+    <div class="content-area">${data.workDone}</div>
+    <div class="section-label">2. ปัญหาและอุปสรรค</div>
+    <div class="content-area">${data.problems||'- ไม่มี -'}</div>
+    <div class="section-label">3. แผนการปฏิบัติงานในวันถัดไป</div>
+    <div class="content-area">${data.nextPlan||'- ไม่มี -'}</div>
+    <div class="sig-section">
+      <div class="sig-box">
+        <div class="sig-label">ผู้รายงาน</div>
+        <div class="sig-line"></div>
+        <div class="sig-name">(${data.name})</div>
+        <div class="sig-role">เจ้าหน้าที่ผู้รายงาน</div>
+      </div>
+      <div class="sig-box">
+        <div class="sig-label">ผู้รับรองรายงาน</div>
+        <div class="sig-line"></div>
+        <div class="sig-name">(${CU?.name||'......................................................'})</div>
+        <div class="sig-role">หัวหน้ากลุ่มงาน / ผู้รับรายงาน</div>
+      </div>
     </div>
     <script>window.onload=function(){window.print();}<\/script></body></html>`);
   win.document.close();
@@ -1620,6 +1641,7 @@ var thead = `<thead><tr>
   </tr>`;
 }).join('');
 }
+
   var html='';
   if(office.length) html+=`<div class="sum-group"><div class="sum-group-hd sg-office"><span class="material-icons" style="font-size:17px">business</span> ปฏิบัติงาน ณ สำนักงาน (${office.length} คน)</div><div class="tbl-wrap"><table>${thead}<tbody>${makeRows(office,true)}</tbody></table></div></div>`;
   if(wfh.length)    html+=`<div class="sum-group"><div class="sum-group-hd sg-wfh"><span class="material-icons" style="font-size:17px">home</span> WFH (${wfh.length} คน)</div><div class="tbl-wrap"><table>${thead}<tbody>${makeRows(wfh,true)}</tbody></table></div></div>`;
@@ -2235,12 +2257,12 @@ function doSignAndPrintWFH() {
 
   ${remarkRow}
 
- <div class="sig-section">
+<div class="sig-section">
   <div class="sig-box">
     <div style="font-size:11px;color:#64748b;margin-bottom:4px">ผู้รายงาน</div>
     <div class="sig-line"></div>
-   <div class="sig-name">(............................................)</div>
-    <div class="sig-role">เจ้าหน้าที่กลุ่มงาน ${CU.dept}</div>
+    <div class="sig-name">(${data.name})</div>
+    <div class="sig-role">เจ้าหน้าที่ผู้รายงาน</div>
   </div>
   <div class="sig-box">
     <div style="font-size:11px;color:#64748b;margin-bottom:4px">ผู้รับรองรายงาน</div>
