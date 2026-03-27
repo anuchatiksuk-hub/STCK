@@ -1170,24 +1170,34 @@ async function doClockOut() {
 // ═══════════════════════════════════════════════════
 function renderDRPage() {
   if (!CU) return;
-  // ✅ FIX: เพิ่ม 'head' เป็น recipient ได้
-  var candidates = filterOutSuperAdmin(DATA.staff).filter(s =>
-    (s.role === 'HRR' || s.role === 'head' || s.role === 'admin') && s.id !== CU.id
-  );
+
+  // ✅ แก้ตรงนี้จุดเดียว
+  var candidates = filterOutSuperAdmin(DATA.staff).filter(s => {
+    if (s.id === CU.id) return false;                              // ไม่เอาตัวเอง
+    if (s.role === 'HRR' || s.role === 'admin') return true;       // HRR/admin ทุกคน
+    if (s.role === 'HR') return true;                              // HR ทุกคน
+    if (s.role === 'head' && s.dept === CU.dept) return true;      // head กลุ่มเดียวกันเท่านั้น
+    return false;
+  });
+
   if (DR_SELECTED_RECIPIENTS.length === 0 && candidates.length > 0) {
+    // เลือก head กลุ่มเดียวกัน + HRR เป็นค่าเริ่มต้น
     DR_SELECTED_RECIPIENTS = candidates
-      .filter(s => s.dept === CU.dept || s.role === 'HRR' || s.role === 'admin')
+      .filter(s => (s.role === 'head' && s.dept === CU.dept) || s.role === 'HRR')
       .map(s => s.id);
     if (DR_SELECTED_RECIPIENTS.length === 0) DR_SELECTED_RECIPIENTS = [candidates[0].id];
   }
+
   var listEl = document.getElementById('dr-check-list');
   if (!candidates.length) {
-    listEl.innerHTML = `<div style="padding:12px;color:var(--txt2);font-size:.85rem"><span class="material-icons" style="font-size:15px;vertical-align:middle">info</span> ยังไม่มีผู้รับในระบบ</div>`;
+    listEl.innerHTML = `<div style="padding:12px;color:var(--txt2);font-size:.85rem">
+      <span class="material-icons" style="font-size:15px;vertical-align:middle">info</span>
+      ยังไม่มีผู้รับในระบบ</div>`;
   } else {
     listEl.innerHTML = candidates.map(s => {
       var checked = DR_SELECTED_RECIPIENTS.includes(s.id) ? 'checked' : '';
-      var sel = DR_SELECTED_RECIPIENTS.includes(s.id) ? 'selected' : '';
-      var rc = {HR:'role-hr',HRR:'role-hrr',head:'role-head',admin:'role-admin'}[s.role]||'role-staff';
+      var sel     = DR_SELECTED_RECIPIENTS.includes(s.id) ? 'selected' : '';
+      var rc      = {HR:'role-hr',HRR:'role-hrr',head:'role-head',admin:'role-admin'}[s.role] || 'role-staff';
       return `<div class="dr-check-item ${sel}" id="drc-${s.id}" onclick="toggleRecipient('${s.id}')">
         <input type="checkbox" ${checked} onclick="event.stopPropagation();toggleRecipient('${s.id}')">
         <span class="dr-check-name">${s.name}</span>
@@ -1198,7 +1208,6 @@ function renderDRPage() {
   }
   updateSelectedPreview(candidates);
 }
-
 function toggleRecipient(id) {
   var idx = DR_SELECTED_RECIPIENTS.indexOf(id);
   if (idx > -1) DR_SELECTED_RECIPIENTS.splice(idx,1);
@@ -2146,18 +2155,111 @@ function printSingleDailyReportPDF(reportId) {
   w.document.close();
 }
 
+// แทนที่ฟังก์ชันเดิม
 function printGroupWFHPDF() {
   if (!GROUP_REPORTS_CACHE.length) return toast('ไม่มีรายงาน WFH','warn');
+  // เปิด modal เซ็นชื่อก่อน
+  document.getElementById('sign-name-display').innerText  = CU.name;
+  document.getElementById('sign-dept-display').innerText  = CU.dept;
+  document.getElementById('sign-role-display').innerText  = getRoleLabel(ROLE);
+  document.getElementById('sign-date-display').innerText  =
+    new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('sign-remark').value = '';
+  openMo('mo-sign-wfh');
+}
+
+function doSignAndPrintWFH() {
+  var remark  = document.getElementById('sign-remark').value;
   var dateStr = new Date().toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  var rows = GROUP_REPORTS_CACHE.map((rep,i)=>`<tr><td style="text-align:center">${i+1}</td><td>${rep.name}</td><td>${(rep.workDone||'').substring(0,150)}</td><td>${rep.problems||'-'}</td><td>${rep.nextPlan||'-'}</td></tr>`).join('');
+  var rows = GROUP_REPORTS_CACHE.map((rep,i) =>
+    `<tr>
+      <td style="text-align:center">${i+1}</td>
+      <td>${rep.name}</td>
+      <td>${(rep.workDone||'').substring(0,150)}</td>
+      <td>${rep.problems||'-'}</td>
+      <td>${rep.nextPlan||'-'}</td>
+    </tr>`
+  ).join('');
+
+  var remarkRow = remark
+    ? `<div style="margin-top:18px;background:#f0fdf4;border-left:4px solid #16a34a;padding:10px 14px;border-radius:6px;font-size:12px">
+        <strong>หมายเหตุจากผู้รับรอง:</strong> ${remark}
+       </div>` : '';
+
+  closeMo('mo-sign-wfh');
+
   var w = window.open('','_blank','width=1100,height=900');
-  w.document.write(`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>สรุป WFH กลุ่ม</title>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>body{font-family:'Sarabun',sans-serif;padding:30px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:9px}th{background:#1e3a8a;color:#fff}</style></head><body>
-    <h1 style="text-align:center">สรุปผลการปฏิบัติงาน WFH กลุ่ม ${CU.dept}</h1>
-    <p style="text-align:center">วันที่ ${dateStr}</p>
-    <table><thead><tr><th>ที่</th><th>ชื่อ-สกุล</th><th>ผลงาน</th><th>ปัญหา</th><th>แผนพรุ่งนี้</th></tr></thead><tbody>${rows}</tbody></table>
-    <script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.write(`<!DOCTYPE html>
+  <html lang="th"><head><meta charset="UTF-8"><title>สรุป WFH กลุ่ม ${CU.dept}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Sarabun',sans-serif;padding:30px;font-size:13px;color:#0f172a}
+    .header{text-align:center;border-bottom:3px solid #1e3a8a;padding-bottom:16px;margin-bottom:20px}
+    .header h1{font-size:16px;color:#1e3a8a;font-weight:800}
+    .header h2{font-size:14px;font-weight:700;margin-top:4px}
+    .header .meta{font-size:11px;color:#64748b;margin-top:6px}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th{background:#1e3a8a;color:#fff;padding:9px;text-align:left}
+    td{border:1px solid #e2e8f0;padding:8px}
+    tbody tr:nth-child(even){background:#f8fafc}
+    .sig-section{margin-top:50px;display:grid;grid-template-columns:1fr 1fr;gap:40px;text-align:center;font-size:12px}
+    .sig-box .sig-line{border-bottom:1px solid #1e3a8a;width:200px;margin:40px auto 6px}
+    .sig-box .sig-name{font-weight:700}
+    .sig-box .sig-role{color:#64748b;font-size:11px;margin-top:2px}
+    .stamp-box{display:inline-block;border:2px solid #1e3a8a;border-radius:8px;padding:8px 16px;font-size:11px;color:#1e3a8a;margin-top:12px}
+    @media print{body{padding:20px}}
+  </style></head><body>
+  <div class="header">
+    <h1>สรุปผลการปฏิบัติงาน WFH</h1>
+    <h2>สำนักงานเขตพื้นที่การศึกษาประถมศึกษานครราชสีมา เขต 4</h2>
+    <div class="meta">
+      กลุ่มงาน: <strong>${CU.dept}</strong> &nbsp;|&nbsp;
+      วัน${dateStr} &nbsp;|&nbsp;
+      จำนวน ${GROUP_REPORTS_CACHE.length} คน
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:36px;text-align:center">ที่</th>
+        <th>ชื่อ-สกุล</th>
+        <th>ผลการปฏิบัติงานวันนี้</th>
+        <th>ปัญหาและอุปสรรค</th>
+        <th>แผนงานพรุ่งนี้</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>
+
+  ${remarkRow}
+
+  <div class="sig-section">
+    <div class="sig-box">
+      <div style="font-size:11px;color:#64748b;margin-bottom:4px">ผู้รายงาน (ตัวแทนกลุ่ม)</div>
+      <div class="sig-line"></div>
+      <div class="sig-name">(......................................................)</div>
+      <div class="sig-role">เจ้าหน้าที่กลุ่ม${CU.dept}</div>
+    </div>
+    <div class="sig-box">
+      <div style="font-size:11px;color:#64748b;margin-bottom:4px">ผู้รับรองรายงาน</div>
+      <div class="sig-line"></div>
+      <div class="sig-name">(${CU.name})</div>
+      <div class="sig-role">${getRoleLabel(ROLE)} — กลุ่ม${CU.dept}</div>
+      <div style="margin-top:8px">
+        <div class="stamp-box">
+          ✅ รับรองแล้ว<br>
+          ${new Date().toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'})}
+          ${new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})} น.
+          ${remark ? '<br><em>หมายเหตุ: '+remark+'</em>' : ''}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>window.onload=()=>window.print()<\/script>
+  </body></html>`);
   w.document.close();
 }
 
@@ -2247,6 +2349,41 @@ function closeSB(){
       </div>
   </div>    
 </div>      
-
+<!-- Modal เซ็นชื่อ Head WFH -->
+<div class="mo" id="mo-sign-wfh">
+  <div class="mo-box" style="max-width:480px">
+    <div class="mo-hd">
+      <h3>✍️ ลงลายเซ็น / ยืนยันรายงาน WFH</h3>
+      <button class="mo-close" onclick="closeMo('mo-sign-wfh')">✕</button>
+    </div>
+    <div class="mo-body">
+      <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:12px;padding:14px;margin-bottom:14px;font-size:.85rem">
+        <div style="font-weight:800;color:#1e40af;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+          <span class="material-icons" style="font-size:16px">info</span> ข้อมูลผู้รับรองรายงาน
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><span style="color:var(--txt2);font-size:.72rem">ชื่อ-สกุล</span><br><strong id="sign-name-display"></strong></div>
+          <div><span style="color:var(--txt2);font-size:.72rem">กลุ่มงาน</span><br><strong id="sign-dept-display"></strong></div>
+          <div><span style="color:var(--txt2);font-size:.72rem">ตำแหน่ง/สิทธิ์</span><br><strong id="sign-role-display"></strong></div>
+          <div><span style="color:var(--txt2);font-size:.72rem">วันที่</span><br><strong id="sign-date-display"></strong></div>
+        </div>
+      </div>
+      <div class="fg">
+        <label>หมายเหตุ / ความเห็นเพิ่มเติม (ถ้ามี)</label>
+        <textarea id="sign-remark" rows="3" placeholder="เช่น รับทราบแล้ว, เห็นชอบ..."></textarea>
+      </div>
+      <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:12px;margin-bottom:14px;font-size:.82rem;color:#15803d">
+        <span class="material-icons" style="font-size:15px;vertical-align:middle">verified</span>
+        การกด "ยืนยันและพิมพ์ PDF" ถือเป็นการลงนามรับรองรายงานนี้
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost btn-full" onclick="closeMo('mo-sign-wfh')">ยกเลิก</button>
+        <button class="btn btn-success btn-full" onclick="doSignAndPrintWFH()">
+          <span class="material-icons">task_alt</span> ยืนยันและพิมพ์ PDF
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
