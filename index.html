@@ -208,6 +208,10 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
       <span id="inbox-badge" style="background:red;color:white;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:auto;display:none">0</span>
     </div>
     <div class="nav-item" data-p="wfh_task" onclick="go('wfh_task',this)"><span class="material-icons">home_work</span><span>เสนองาน WFH</span></div>
+    <div class="nav-item" data-p="my_reports" onclick="go('my_reports',this)">
+  <span class="material-icons">history_edu</span>
+  <span>รายงานของฉัน</span>
+</div>
     <div class="nav-item" data-p="profile" onclick="go('profile',this)"><span class="material-icons">person</span><span>โปรไฟล์ / เปลี่ยนรหัส</span></div>
 
     <!-- หัวหน้ากลุ่มงาน -->
@@ -401,7 +405,24 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
         <button class="btn btn-success btn-full" onclick="doSubmitWFH()"><span class="material-icons">cloud_upload</span> เสนองาน WFH</button>
       </div>
     </div>
-
+<!-- ═══ MY REPORTS ═══ -->
+    <div id="my_reports" class="page">
+      <div class="card" style="max-width:780px;margin:0 auto">
+        <div class="card-hd">
+          <span class="material-icons" style="color:var(--p2)">history_edu</span>
+          <h3>รายงานของฉัน</h3>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+            <input type="date" id="my-reports-date" style="width:auto;padding:6px 10px;font-size:.8rem;border-radius:8px">
+            <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="loadMyReports()">
+              <span class="material-icons" style="font-size:16px">search</span> ค้นหา
+            </button>
+          </div>
+        </div>
+        <div id="my-reports-body" style="min-height:300px">
+          <p style="color:var(--txt2);text-align:center;padding:60px">เลือกวันที่แล้วกด "ค้นหา"</p>
+        </div>
+      </div>
+    </div>
     <!-- ═══ HEAD WFH ═══ -->
     <div id="head_wfh" class="page">
       <div class="card" style="max-width:920px;margin:0 auto">
@@ -809,6 +830,151 @@ async function refreshData() {
   } catch(e) { hideLd(); toast('เชื่อมต่อฐานข้อมูลล้มเหลว','error'); }
 }
 
+
+// ═══════════════════════════════════════════════════
+// MY REPORTS
+// ═══════════════════════════════════════════════════
+async function loadMyReports() {
+  var dateVal = document.getElementById('my-reports-date').value;
+  if (!dateVal) return toast('กรุณาเลือกวันที่','error');
+  showLd('กำลังดึงรายงานของคุณ...');
+  try {
+    var r = await api('getMyDailyReports', { staffId: CU.id, date: dateVal });
+    hideLd();
+    var container = document.getElementById('my-reports-body');
+    var data = r.data || [];
+    if (!data.length) {
+      container.innerHTML = `<div style="text-align:center;padding:60px;color:var(--txt2)">
+        <span class="material-icons" style="font-size:48px;opacity:.25;display:block;margin-bottom:12px">inbox</span>
+        ไม่พบรายงานในวันที่ ${dateVal}
+      </div>`;
+      return;
+    }
+    var html = data.map((rep, i) => `
+      <div class="card" style="margin-bottom:12px;border-left:4px solid var(--p2)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <div style="background:#eff6ff;border-radius:10px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <span class="material-icons" style="color:var(--p2);font-size:20px">description</span>
+          </div>
+          <div style="flex:1">
+            <div style="font-weight:800;font-size:.95rem">รายงานฉบับที่ ${i + 1}</div>
+            <div style="font-size:.75rem;color:var(--txt2);margin-top:2px">
+              <span class="material-icons" style="font-size:13px;vertical-align:middle">schedule</span>
+              ส่งเมื่อ ${rep.timestamp || '-'} &nbsp;|&nbsp;
+              <span class="material-icons" style="font-size:13px;vertical-align:middle">send</span>
+              ถึง: ${rep.recipientNames || '-'}
+            </div>
+          </div>
+          <button class="btn btn-primary" style="padding:7px 12px;flex-shrink:0"
+            onclick='printMyReport(${JSON.stringify(rep)})'>
+            <span class="material-icons" style="font-size:17px">picture_as_pdf</span>
+          </button>
+        </div>
+
+        <div style="display:grid;gap:10px">
+          <div style="background:#f8fafc;border-radius:10px;padding:12px">
+            <div style="font-size:.72rem;font-weight:800;color:var(--p2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;display:flex;align-items:center;gap:5px">
+              <span class="material-icons" style="font-size:14px">task_alt</span> ผลการปฏิบัติงานวันนี้
+            </div>
+            <div style="font-size:.88rem;line-height:1.7;white-space:pre-wrap">${rep.workDone || '-'}</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div style="background:#fff5f5;border-radius:10px;padding:12px">
+              <div style="font-size:.72rem;font-weight:800;color:var(--danger);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;display:flex;align-items:center;gap:5px">
+                <span class="material-icons" style="font-size:14px">warning_amber</span> ปัญหาและอุปสรรค
+              </div>
+              <div style="font-size:.85rem;line-height:1.6;white-space:pre-wrap;color:${rep.problems ? 'var(--txt)' : 'var(--txt2)'}">${rep.problems || '— ไม่มี —'}</div>
+            </div>
+            <div style="background:#f0fdf4;border-radius:10px;padding:12px">
+              <div style="font-size:.72rem;font-weight:800;color:var(--success);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;display:flex;align-items:center;gap:5px">
+                <span class="material-icons" style="font-size:14px">event_note</span> แผนงานพรุ่งนี้
+              </div>
+              <div style="font-size:.85rem;line-height:1.6;white-space:pre-wrap;color:${rep.nextPlan ? 'var(--txt)' : 'var(--txt2)'}">${rep.nextPlan || '— ไม่มี —'}</div>
+            </div>
+          </div>
+        </div>
+      </div>`).join('');
+
+    container.innerHTML = html;
+  } catch(e) { hideLd(); toast('โหลดข้อมูลล้มเหลว','error'); }
+}
+
+function printMyReport(rep) {
+  var dateStr = new Date().toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  var w = window.open('','_blank','width=800,height=950');
+  w.document.write(`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
+  <title>รายงานของฉัน - ${CU.name}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Sarabun',sans-serif;padding:44px;color:#0f172a;font-size:14px;line-height:1.8}
+    .header{text-align:center;margin-bottom:30px;padding-bottom:18px;border-bottom:3px solid #1e3a8a}
+    .header h1{font-size:18px;font-weight:800;color:#1e3a8a;margin-bottom:4px}
+    .header h2{font-size:15px;font-weight:700}
+    .meta-table{width:100%;border-collapse:collapse;margin-bottom:24px;font-size:13px}
+    .meta-table td{padding:7px 12px;border:1px solid #e2e8f0}
+    .meta-table td:first-child{background:#f1f5f9;font-weight:700;width:30%}
+    .section-label{font-weight:800;color:#1e3a8a;font-size:14px;margin:20px 0 8px;
+      padding-left:12px;border-left:4px solid #1e3a8a;display:flex;align-items:center;gap:6px}
+    .content-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
+      padding:14px 16px;min-height:70px;font-size:13px;white-space:pre-wrap;line-height:1.8}
+    .sig-section{margin-top:64px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;text-align:center;font-size:12px}
+    .sig-box .sig-label{color:#64748b;font-size:11px;margin-bottom:36px}
+    .sig-box .sig-line{border-bottom:1px solid #0f172a;margin:0 auto 8px;width:160px}
+    .sig-box .sig-name{font-weight:700;font-size:13px}
+    .sig-box .sig-role{color:#64748b;margin-top:3px;font-size:11px}
+    .doc-no{text-align:right;font-size:11px;color:#94a3b8;margin-bottom:8px}
+    @media print{body{padding:28px}}
+  </style></head><body>
+  <div class="doc-no">เลขที่เอกสาร: DR-${rep.reportId || Date.now()}</div>
+  <div class="header">
+    <h1>รายงานผลการปฏิบัติงานประจำวัน</h1>
+    <h2>สำนักงานเขตพื้นที่การศึกษาประถมศึกษานครราชสีมา เขต 4</h2>
+  </div>
+
+  <table class="meta-table">
+    <tr><td>ชื่อ-สกุล</td><td><strong>${CU.name}</strong></td></tr>
+    <tr><td>กลุ่มงาน / ฝ่าย</td><td>${CU.dept || '-'}</td></tr>
+    <tr><td>วันที่รายงาน</td><td>วัน${dateStr}</td></tr>
+    <tr><td>เวลาที่ส่งรายงาน</td><td>${rep.timestamp || '-'}</td></tr>
+    <tr><td>ส่งถึง</td><td>${rep.recipientNames || '-'}</td></tr>
+  </table>
+
+  <div class="section-label">1. ผลการปฏิบัติงานที่สำเร็จในวันนี้</div>
+  <div class="content-box">${rep.workDone || '-'}</div>
+
+  <div class="section-label">2. ปัญหาและอุปสรรคที่พบ</div>
+  <div class="content-box">${rep.problems || '— ไม่มีปัญหา —'}</div>
+
+  <div class="section-label">3. แผนการปฏิบัติงานในวันถัดไป</div>
+  <div class="content-box">${rep.nextPlan || '— ไม่มี —'}</div>
+
+  <div class="sig-section">
+    <div class="sig-box">
+      <div class="sig-label">ผู้รายงาน</div>
+      <div class="sig-line"></div>
+      <div class="sig-name">(${CU.name})</div>
+      <div class="sig-role">${CU.dept || ''}</div>
+    </div>
+    <div class="sig-box">
+      <div class="sig-label">หัวหน้ากลุ่มงาน / ผู้รับทราบ</div>
+      <div class="sig-line"></div>
+      <div class="sig-name">(...................................)</div>
+      <div class="sig-role">หัวหน้ากลุ่มงาน</div>
+    </div>
+    <div class="sig-box">
+      <div class="sig-label">ผู้บริหาร / ผู้อนุมัติ</div>
+      <div class="sig-line"></div>
+      <div class="sig-name">(...................................)</div>
+      <div class="sig-role">ผู้อำนวยการ สพป.นม.4</div>
+    </div>
+  </div>
+
+  <script>window.onload=()=>window.print()<\/script>
+  </body></html>`);
+  w.document.close();
+}
 // ═══════════════════════════════════════════════════
 // AUTH
 // ═══════════════════════════════════════════════════
@@ -933,6 +1099,7 @@ function go(p, el) {
     wfh_task:'🏠 เสนองาน WFH', profile:'👤 โปรไฟล์', summary:'📋 สรุปรายวัน & รับรอง',
     report:'📈 สรุปเวลา / รายงาน', staffmgmt:'👥 จัดการบุคลากร', admin:'🛡️ ตั้งค่าระบบ',
     head_wfh:'🏠 ผล WFH กลุ่ม', daily_inbox:'📥 รายงานที่ได้รับ',
+    my_reports:'📋 รายงานของฉัน',
     all_daily_reports:'📚 รายงานทุกกลุ่ม'
   };
   document.getElementById('page-title').innerText = titles[p]||p;
@@ -948,9 +1115,13 @@ if (p === 'staffmgmt') {
   renderStaffTable();
   populateBdStaffSelect(); // ← เพิ่มบรรทัดนี้
 }
-  if (p === 'all_daily_reports') {
+ if (p === 'all_daily_reports') {
     document.getElementById('all-reports-date').value = new Date().toISOString().slice(0,10);
     loadAllDailyReports();
+  }
+  if (p === 'my_reports') {
+    document.getElementById('my-reports-date').value = new Date().toISOString().slice(0,10);
+    loadMyReports();
   }
 }
 
