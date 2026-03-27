@@ -2239,8 +2239,8 @@ function doSignAndPrintWFH() {
   <div class="sig-box">
     <div style="font-size:11px;color:#64748b;margin-bottom:4px">ผู้รายงาน</div>
     <div class="sig-line"></div>
-    <div class="sig-name">(${data.name})</div>
-    <div class="sig-role">เจ้าหน้าที่ผู้รายงาน</div>
+   <div class="sig-name">(............................................)</div>
+    <div class="sig-role">เจ้าหน้าที่กลุ่มงาน ${CU.dept}</div>
   </div>
   <div class="sig-box">
     <div style="font-size:11px;color:#64748b;margin-bottom:4px">ผู้รับรองรายงาน</div>
@@ -2336,12 +2336,13 @@ function closeSB(){
           <div class="fg"><label>เวลาออกงาน (HH:mm)</label><input type="time" id="ea-out"></div>
         </div>
       </div>
-      <div style="display:flex;gap:10px">
+ <div style="display:flex;gap:10px">
         <button class="btn btn-ghost btn-full" onclick="closeMo('mo-edit-att')">ยกเลิก</button>
         <button class="btn btn-primary btn-full" onclick="doSaveEditAtt()"><span class="material-icons">save</span> บันทึก</button>
       </div>
-  </div>    
-</div>      
+    </div>
+  </div>
+</div> 
 <!-- Modal เซ็นชื่อ Head WFH -->
 <div class="mo" id="mo-sign-wfh">
   <div class="mo-box" style="max-width:480px">
