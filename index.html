@@ -2235,19 +2235,17 @@ function doSignAndPrintWFH() {
 
   ${remarkRow}
 
-  <div class="sig-section">
-  <!-- ช่องซ้าย: ผู้รายงาน (staff เซ็นเอง) -->
+ <div class="sig-section">
   <div class="sig-box">
-    <div style="font-size:11px;color:#64748b;margin-bottom:4px">ผู้รายงาน (ตัวแทนกลุ่ม)</div>
+    <div style="font-size:11px;color:#64748b;margin-bottom:4px">ผู้รายงาน</div>
     <div class="sig-line"></div>
-    <div class="sig-name">(......................................................)</div>
-    <div class="sig-role">เจ้าหน้าที่กลุ่ม${CU.dept}</div>
+    <div class="sig-name">(${data.name})</div>
+    <div class="sig-role">เจ้าหน้าที่ผู้รายงาน</div>
   </div>
-  <!-- ช่องขวา: head ใส่ชื่อตัวเอง -->
   <div class="sig-box">
     <div style="font-size:11px;color:#64748b;margin-bottom:4px">ผู้รับรองรายงาน</div>
     <div class="sig-line"></div>
-    <div class="sig-name">(${CU.name})</div>
+    <div class="sig-name">(${CU?.name||'......................................................'})</div>
     <div class="sig-role">หัวหน้ากลุ่มงาน/ผู้รับรายงาน</div>
   </div>
 </div>
