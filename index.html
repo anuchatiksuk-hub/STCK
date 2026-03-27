@@ -598,7 +598,26 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
   </div>
 
 </div>
+<!-- ═══ WFH HISTORY ═══ -->
+    <div id="wfh_history" class="page">
+      <div class="card" style="max-width:860px;margin:0 auto">
+        <div class="card-hd">
+          <span class="material-icons" style="color:var(--success)">home_work</span>
+          <h3 id="wfh-history-title">ประวัติงาน WFH</h3>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+            <input type="date" id="wfh-history-date" style="width:auto;padding:6px 10px;font-size:.8rem;border-radius:8px">
+            <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="loadWFHHistory()">
+              <span class="material-icons" style="font-size:16px">search</span> โหลด
+            </button>
+          </div>
+        </div>
+        <div id="wfh-history-body" style="min-height:280px">
+          <p style="color:var(--txt2);text-align:center;padding:60px">เลือกวันที่แล้วกด "โหลด"</p>
+        </div>
+      </div>
+    </div>
 
+    <!-- ═══ ADMIN ═══ -->       ← วางก่อนบรรทัดนี้
     <!-- ═══ ADMIN ═══ -->
     <div id="admin" class="page">
       <div id="admin-gate" class="card" style="max-width:360px;margin:0 auto;text-align:center;padding:32px 22px">
@@ -723,8 +742,7 @@ var DATA = { staff:[], todayAtt:[], summaryApproval:{} };
 var CU   = JSON.parse(localStorage.getItem('cu') || 'null');
 var ROLE = CU?.systemRole || 'staff';
 var APPROVERS = JSON.parse(localStorage.getItem('approvers') || '{"a1":null,"a2":null,"a1Name":"","a2Name":""}');
-var PRIVATE = ['clock','dailyreport','wfh_task','wfh_history','profile',
-               'summary','report','staffmgmt','admin','daily_inbox','head_wfh','all_daily_reports'];
+var PRIVATE = ['clock','dailyreport','wfh_task','wfh_history','profile','summary',,'my_reports','report','staffmgmt','admin','daily_inbox','head_wfh','all_daily_reports'];
 var SUMMARY_DATE = new Date().toISOString().slice(0,10);
 var TEAM_REPORTS_CACHE = [];
 var DR_SELECTED_RECIPIENTS = [];
@@ -1089,24 +1107,7 @@ function renderUserBadge() {
       <span class="material-icons" style="color:rgba(255,255,255,.35);font-size:17px;cursor:pointer;flex-shrink:0" onclick="doLogout()">logout</span>
     </div>`;
 }
-<!-- ═══ WFH HISTORY ═══ -->
-<div id="wfh_history" class="page">
-  <div class="card" style="max-width:860px;margin:0 auto">
-    <div class="card-hd">
-      <span class="material-icons" style="color:var(--success)">home_work</span>
-      <h3 id="wfh-history-title">ประวัติงาน WFH</h3>
-      <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
-        <input type="date" id="wfh-history-date" style="width:auto;padding:6px 10px;font-size:.8rem;border-radius:8px">
-        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="loadWFHHistory()">
-          <span class="material-icons" style="font-size:16px">search</span> โหลด
-        </button>
-      </div>
-    </div>
-    <div id="wfh-history-body" style="min-height:280px">
-      <p style="color:var(--txt2);text-align:center;padding:60px">เลือกวันที่แล้วกด "โหลด"</p>
-    </div>
-  </div>
-</div>
+
 
 // ═══════════════════════════════════════════════════
 // NAVIGATION
