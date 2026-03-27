@@ -212,6 +212,11 @@ input:focus,textarea:focus,select:focus{border-color:var(--p2);box-shadow:0 0 0 
   <span class="material-icons">history_edu</span>
   <span>รายงานของฉัน</span>
 </div>
+<!-- เพิ่มต่อจาก nav-item wfh_task -->
+<div class="nav-item" data-p="wfh_history" onclick="go('wfh_history',this)">
+  <span class="material-icons">history</span>
+  <span>ประวัติงาน WFH</span>
+</div>
     <div class="nav-item" data-p="profile" onclick="go('profile',this)"><span class="material-icons">person</span><span>โปรไฟล์ / เปลี่ยนรหัส</span></div>
 
     <!-- หัวหน้ากลุ่มงาน -->
@@ -718,7 +723,8 @@ var DATA = { staff:[], todayAtt:[], summaryApproval:{} };
 var CU   = JSON.parse(localStorage.getItem('cu') || 'null');
 var ROLE = CU?.systemRole || 'staff';
 var APPROVERS = JSON.parse(localStorage.getItem('approvers') || '{"a1":null,"a2":null,"a1Name":"","a2Name":""}');
-var PRIVATE = ['clock','dailyreport','wfh_task','profile','summary','report','staffmgmt','admin','daily_inbox','head_wfh','all_daily_reports'];
+var PRIVATE = ['clock','dailyreport','wfh_task','wfh_history','profile',
+               'summary','report','staffmgmt','admin','daily_inbox','head_wfh','all_daily_reports'];
 var SUMMARY_DATE = new Date().toISOString().slice(0,10);
 var TEAM_REPORTS_CACHE = [];
 var DR_SELECTED_RECIPIENTS = [];
@@ -1083,6 +1089,24 @@ function renderUserBadge() {
       <span class="material-icons" style="color:rgba(255,255,255,.35);font-size:17px;cursor:pointer;flex-shrink:0" onclick="doLogout()">logout</span>
     </div>`;
 }
+<!-- ═══ WFH HISTORY ═══ -->
+<div id="wfh_history" class="page">
+  <div class="card" style="max-width:860px;margin:0 auto">
+    <div class="card-hd">
+      <span class="material-icons" style="color:var(--success)">home_work</span>
+      <h3 id="wfh-history-title">ประวัติงาน WFH</h3>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+        <input type="date" id="wfh-history-date" style="width:auto;padding:6px 10px;font-size:.8rem;border-radius:8px">
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="loadWFHHistory()">
+          <span class="material-icons" style="font-size:16px">search</span> โหลด
+        </button>
+      </div>
+    </div>
+    <div id="wfh-history-body" style="min-height:280px">
+      <p style="color:var(--txt2);text-align:center;padding:60px">เลือกวันที่แล้วกด "โหลด"</p>
+    </div>
+  </div>
+</div>
 
 // ═══════════════════════════════════════════════════
 // NAVIGATION
@@ -1100,6 +1124,7 @@ function go(p, el) {
     report:'📈 สรุปเวลา / รายงาน', staffmgmt:'👥 จัดการบุคลากร', admin:'🛡️ ตั้งค่าระบบ',
     head_wfh:'🏠 ผล WFH กลุ่ม', daily_inbox:'📥 รายงานที่ได้รับ',
     my_reports:'📋 รายงานของฉัน',
+    wfh_history:'📋 ประวัติงาน WFH',
     all_daily_reports:'📚 รายงานทุกกลุ่ม'
   };
   document.getElementById('page-title').innerText = titles[p]||p;
@@ -1119,6 +1144,13 @@ if (p === 'staffmgmt') {
     document.getElementById('all-reports-date').value = new Date().toISOString().slice(0,10);
     loadAllDailyReports();
   }
+  // ✅ เพิ่มตรงนี้
+if (p === 'wfh_history') {
+  document.getElementById('wfh-history-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('wfh-history-title').innerText =
+    ROLE === 'head' ? `ประวัติงาน WFH — กลุ่ม ${CU.dept}` : 'ประวัติงาน WFH ของฉัน';
+  loadWFHHistory();
+}
   if (p === 'my_reports') {
     document.getElementById('my-reports-date').value = new Date().toISOString().slice(0,10);
     loadMyReports();
@@ -1269,6 +1301,7 @@ function renderClockPage() {
   }
 }
 
+
 // แทนที่ฟังก์ชัน doClockIn() เดิม
 async function doClockIn() {
   var wtype = document.querySelector('input[name=wtype]:checked')?.value || 'office';
@@ -1335,7 +1368,44 @@ async function doClockOut() {
     else toast(r.msg,'error');
   } catch(e) { hideLd(); toast('Error','error'); }
 }
-
+async function loadWFHHistory() {
+  if (!CU) return;
+  var dateVal = document.getElementById('wfh-history-date').value;
+  if (!dateVal) return toast('กรุณาเลือกวันที่','error');
+  showLd('กำลังโหลด...');
+  try {
+    var r = await api('getWFHHistory', {
+      date: dateVal,
+      staffId: ROLE === 'head' ? null : CU.id,   // head ดูทั้งกลุ่ม, staff ดูเฉพาะตัวเอง
+      dept:    ROLE === 'head' ? CU.dept : null
+    });
+    hideLd();
+    var body = document.getElementById('wfh-history-body');
+    if (!r.data || !r.data.length) {
+      body.innerHTML = `<p style="text-align:center;padding:60px;color:var(--txt2)">ไม่มีข้อมูลในวันที่เลือก</p>`;
+      return;
+    }
+    var html = `<div class="tbl-wrap"><table>
+      <thead><tr>
+        <th>ชื่อ-สกุล</th>
+        <th>กลุ่มงาน</th>
+        <th>รายละเอียดงาน</th>
+        <th>เวลาที่ส่ง</th>
+        <th>สถานะ</th>
+      </tr></thead><tbody>`;
+    r.data.forEach(item => {
+      html += `<tr>
+        <td><strong>${item.name}</strong></td>
+        <td><small>${item.dept}</small></td>
+        <td style="max-width:320px;white-space:pre-wrap">${item.taskDesc}</td>
+        <td><small>${item.timestamp}</small></td>
+        <td><span class="badge b-wfh">${item.status||'ส่งงานแล้ว'}</span></td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+    body.innerHTML = html;
+  } catch(e) { hideLd(); toast('โหลดข้อมูลล้มเหลว','error'); }
+}
 // ═══════════════════════════════════════════════════
 // DAILY REPORT — SEND
 // ═══════════════════════════════════════════════════
