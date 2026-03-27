@@ -2375,19 +2375,47 @@ async function loadGroupWFHReports() {
   try {
     var r = await api('getGroupDailyReports', { dept: CU.dept });
     hideLd();
+
     GROUP_REPORTS_CACHE = r.data || [];
     var body = document.getElementById('head-wfh-body');
+
     if (!GROUP_REPORTS_CACHE.length) {
       body.innerHTML = `<p style="padding:60px;text-align:center;color:var(--txt2)">ยังไม่มีรายงาน WFH จากกลุ่มงานวันนี้</p>`;
       return;
     }
-    var html = `<div class="tbl-wrap"><table><thead><tr><th>ชื่อ-สกุล</th><th>ผลงานวันนี้</th><th>ปัญหา</th><th>แผนพรุ่งนี้</th><th style="width:70px;text-align:center">PDF</th></tr></thead><tbody>`;
+
+    var html = `<div class="tbl-wrap">
+    <table>
+    <thead>
+      <tr>
+        <th>ชื่อ-สกุล</th>
+        <th>ผลงานวันนี้</th>
+        <th>ปัญหา</th>
+        <th>แผนพรุ่งนี้</th>
+        <th style="width:70px;text-align:center">PDF</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
     GROUP_REPORTS_CACHE.forEach(rep => {
+
+      var name = esc(rep.name);
+      var workDone = esc(rep.workDone);
+      var problems = esc(rep.problems);
+      var nextPlan = esc(rep.nextPlan);
+
+      var workShort = workDone ? 
+        (workDone.substring(0,100) + (workDone.length>100 ? '...' : '')) 
+        : `<span style="color:#94a3b8">—</span>`;
+
+      var problemsTxt = problems || `<span style="color:#94a3b8">—</span>`;
+      var nextPlanTxt = nextPlan || `<span style="color:#94a3b8">—</span>`;
+
       html += `<tr>
-        <td><strong>${esc(rep.name)}</strong></td>
-        <td style="max-width:260px;white-space:pre-wrap">${(esc(rep.workDone)||'').substring(0,100)}${(esc(rep.workDone)||'').length>100?'...':''}</td>
-        <td>${esc(rep.problems)||'<span style="color:#94a3b8">—</span>'}</td>
-        <td>${rep.nextPlan||'<span style="color:#94a3b8">—</span>'}</td>
+        <td><strong>${name}</strong></td>
+        <td style="max-width:260px;white-space:pre-wrap">${workShort}</td>
+        <td>${problemsTxt}</td>
+        <td>${nextPlanTxt}</td>
         <td style="text-align:center">
           <button class="btn btn-ghost" onclick="printSingleDailyReportPDF('${rep.reportId}')" style="padding:6px 10px">
             <span class="material-icons" style="font-size:18px">picture_as_pdf</span>
@@ -2395,27 +2423,83 @@ async function loadGroupWFHReports() {
         </td>
       </tr>`;
     });
+
     html += `</tbody></table></div>`;
     body.innerHTML = html;
-  } catch(e) { hideLd(); toast('โหลดรายงานล้มเหลว','error'); }
+
+  } catch(e) {
+    hideLd();
+    toast('โหลดรายงานล้มเหลว','error');
+  }
 }
 
 function printSingleDailyReportPDF(reportId) {
   var rep = GROUP_REPORTS_CACHE.find(r => r.reportId === reportId);
   if (!rep) return toast('ไม่พบรายงาน','error');
-  var dateStr = new Date().toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  var name = esc(rep.name);
+  var dept = esc(rep.dept);
+  var workDone = esc(rep.workDone);
+  var problems = esc(rep.problems);
+  var nextPlan = esc(rep.nextPlan);
+
+  var dateStr = rep.date 
+    ? new Date(rep.date).toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'})
+    : new Date().toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
   var w = window.open('','_blank','width=850,height=950');
-  w.document.write(`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>รายงาน WFH - ${esc(rep.name)}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>body{font-family:'Sarabun',sans-serif;padding:40px;font-size:14px;line-height:1.8}
-    .header{text-align:center;border-bottom:4px solid #1e3a8a;padding-bottom:20px;margin-bottom:30px}
-    h1{font-size:20px;color:#1e3a8a}.section{margin-bottom:25px}.label{font-weight:700;color:#1e3a8a}</style></head><body>
-    <div class="header"><h1>รายงานผลการปฏิบัติงาน WFH</h1><h2>สพป.นครราชสีมา เขต 4</h2><p>${dateStr}</p><p style="font-weight:700">${esc(rep.name)} — ${rep.dept}</p></div>
-    <div class="section"><div class="label">1. ผลการปฏิบัติงานวันนี้</div><div style="background:#f8fafc;padding:18px;border-radius:10px">${esc(rep.workDone)}</div></div>
-    <div class="section"><div class="label">2. ปัญหาและอุปสรรค</div><div style="background:#f8fafc;padding:18px;border-radius:10px">${esc(rep.problems)||'— ไม่มี —'}</div></div>
-    <div class="section"><div class="label">3. แผนงานพรุ่งนี้</div><div style="background:#f8fafc;padding:18px;border-radius:10px">${rep.nextPlan||'— ไม่มี —'}</div></div>
-    <div style="margin-top:80px;text-align:center">ลงชื่อ .............................................. (${esc(rep.name)})</div>
-    <script>window.onload=()=>window.print()<\/script></body></html>`);
+
+  w.document.write(`<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>รายงาน WFH - ${name}</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+body{font-family:'Sarabun',sans-serif;padding:40px;font-size:14px;line-height:1.8}
+.header{text-align:center;border-bottom:4px solid #1e3a8a;padding-bottom:20px;margin-bottom:30px}
+h1{font-size:20px;color:#1e3a8a}
+.section{margin-bottom:25px}
+.label{font-weight:700;color:#1e3a8a}
+.box{background:#f8fafc;padding:18px;border-radius:10px}
+.sign{margin-top:80px;text-align:center}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>รายงานผลการปฏิบัติงาน WFH</h1>
+  <h2>สพป.นครราชสีมา เขต 4</h2>
+  <p>${dateStr}</p>
+  <p style="font-weight:700">${name} — ${dept}</p>
+</div>
+
+<div class="section">
+  <div class="label">1. ผลการปฏิบัติงานวันนี้</div>
+  <div class="box">${workDone || '— ไม่มี —'}</div>
+</div>
+
+<div class="section">
+  <div class="label">2. ปัญหาและอุปสรรค</div>
+  <div class="box">${problems || '— ไม่มี —'}</div>
+</div>
+
+<div class="section">
+  <div class="label">3. แผนงานพรุ่งนี้</div>
+  <div class="box">${nextPlan || '— ไม่มี —'}</div>
+</div>
+
+<div class="sign">
+  ลงชื่อ .............................................. (${name})
+</div>
+
+<script>
+window.onload = () => window.print();
+<\/script>
+
+</body>
+</html>`);
+
   w.document.close();
 }
 
@@ -2434,27 +2518,42 @@ function printGroupWFHPDF() {
 
 function doSignAndPrintWFH() {
   var remark  = document.getElementById('sign-remark').value;
-  var dateStr = new Date().toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  var rows = GROUP_REPORTS_CACHE.map((rep,i) =>
-    `<tr>
+  var dept = esc(CU.dept);
+  var headName = esc(CU?.name);
+
+  var dateStr = new Date().toLocaleDateString('th-TH',{
+    weekday:'long',year:'numeric',month:'long',day:'numeric'
+  });
+
+  var rows = GROUP_REPORTS_CACHE.map((rep,i) => {
+    var name = esc(rep.name);
+    var work = esc(rep.workDone);
+    var prob = esc(rep.problems);
+    var next = esc(rep.nextPlan);
+
+    return `<tr>
       <td style="text-align:center">${i+1}</td>
-      <td>${esc(rep.name)}</td>
-      <td>${(esc(rep.workDone)||'').substring(0,150)}</td>
-      <td>${esc(rep.problems)||'-'}</td>
-      <td>${rep.nextPlan||'-'}</td>
-    </tr>`
-  ).join('');
+      <td>${name}</td>
+      <td>${(work||'').substring(0,150)}</td>
+      <td>${prob||'-'}</td>
+      <td>${next||'-'}</td>
+    </tr>`;
+  }).join('');
 
   var remarkRow = remark
     ? `<div style="margin-top:18px;background:#f0fdf4;border-left:4px solid #16a34a;padding:10px 14px;border-radius:6px;font-size:12px">
-        <strong>หมายเหตุจากผู้รับรอง:</strong> ${remark}
+        <strong>หมายเหตุจากผู้รับรอง:</strong> ${esc(remark)}
        </div>` : '';
 
   closeMo('mo-sign-wfh');
 
   var w = window.open('','_blank','width=1100,height=900');
+
   w.document.write(`<!DOCTYPE html>
-  <html lang="th"><head><meta charset="UTF-8"><title>สรุป WFH กลุ่ม ${CU.dept}</title>
+  <html lang="th">
+  <head>
+  <meta charset="UTF-8">
+  <title>สรุป WFH กลุ่ม ${dept}</title>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
@@ -2471,15 +2570,16 @@ function doSignAndPrintWFH() {
     .sig-box .sig-line{border-bottom:1px solid #1e3a8a;width:200px;margin:40px auto 6px}
     .sig-box .sig-name{font-weight:700}
     .sig-box .sig-role{color:#64748b;font-size:11px;margin-top:2px}
-    .stamp-box{display:inline-block;border:2px solid #1e3a8a;border-radius:8px;padding:8px 16px;font-size:11px;color:#1e3a8a;margin-top:12px}
-    @media print{body{padding:20px}}
-  </style></head><body>
+  </style>
+  </head>
+  <body>
+
   <div class="header">
     <h1>สรุปผลการปฏิบัติงาน WFH</h1>
     <h2>สำนักงานเขตพื้นที่การศึกษาประถมศึกษานครราชสีมา เขต 4</h2>
     <div class="meta">
-      กลุ่มงาน: <strong>${CU.dept}</strong> &nbsp;|&nbsp;
-      วัน${dateStr} &nbsp;|&nbsp;
+      กลุ่มงาน: <strong>${dept}</strong> |
+      วัน${dateStr} |
       จำนวน ${GROUP_REPORTS_CACHE.length} คน
     </div>
   </div>
@@ -2499,24 +2599,19 @@ function doSignAndPrintWFH() {
 
   ${remarkRow}
 
-<div class="sig-section">
-  <div class="sig-box">
-    <div style="font-size:11px;color:#64748b;margin-bottom:4px">ผู้รายงาน</div>
-    <div class="sig-line"></div>
-    <div class="sig-name">(${data.name})</div>
-    <div class="sig-role">เจ้าหน้าที่ผู้รายงาน</div>
+  <div class="sig-section">
+    <div class="sig-box">
+      <div style="font-size:11px;color:#64748b;margin-bottom:4px">ผู้รับรองรายงาน</div>
+      <div class="sig-line"></div>
+      <div class="sig-name">(${headName})</div>
+      <div class="sig-role">หัวหน้ากลุ่มงาน/ผู้รับรายงาน</div>
+    </div>
   </div>
-  <div class="sig-box">
-    <div style="font-size:11px;color:#64748b;margin-bottom:4px">ผู้รับรองรายงาน</div>
-    <div class="sig-line"></div>
-    <div class="sig-name">(${CU?.name||'......................................................'})</div>
-    <div class="sig-role">หัวหน้ากลุ่มงาน/ผู้รับรายงาน</div>
-  </div>
-</div>
-    
 
   <script>window.onload=()=>window.print()<\/script>
-  </body></html>`);
+  </body>
+  </html>`);
+
   w.document.close();
 }
 
